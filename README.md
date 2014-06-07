@@ -1,4 +1,4 @@
-rainfall
+Rainfall
 ========
 
-Rainfall is an extensive java framework to implement custom DSL-based stress and performance testing in your application.
+Rainfall is an extensible java framework to implement custom DSL-based stress and performance tests in your application.
