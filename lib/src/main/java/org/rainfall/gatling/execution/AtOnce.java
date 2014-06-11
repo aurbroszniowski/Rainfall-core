@@ -6,9 +6,11 @@ import org.rainfall.Execution;
 import org.rainfall.Operation;
 import org.rainfall.Scenario;
 import org.rainfall.Unit;
+import org.rainfall.configuration.ConcurrencyConfig;
 import org.rainfall.gatling.unit.User;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * This will execute the {@link Scenario} with {@link AtOnce#nb} occurrences of a specified {@link Unit}
@@ -25,13 +27,15 @@ public class AtOnce extends Execution {
     this.users = users;
   }
 
-  public void execute(final Scenario scenario, final List<Configuration> configurations, final List<Assertion> assertions) {
+  public void execute(final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations, final List<Assertion> assertions) {
     List<Operation> operations = scenario.getOperations();
-    for (Operation operation : operations) {
-      for (int i=0; i< nb; i++) {
+
+    ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
+
+    for (int i = 0; i < nb / concurrencyConfig.getNbThreads(); i++) {
+      for (Operation operation : operations) {
         operation.exec(configurations, assertions);
       }
     }
   }
-
 }

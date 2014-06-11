@@ -6,6 +6,7 @@ import org.rainfall.Execution;
 import org.rainfall.Scenario;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -22,7 +23,7 @@ public class NothingFor extends Execution {
   }
 
   @Override
-  public void execute(final Scenario scenario, final List<Configuration> configurations, final List<Assertion> assertions) {
+  public void execute(final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations, final List<Assertion> assertions) {
     System.out.println(">>> Sleep " + nb);
     try {
       Thread.sleep(timeUnit.toMillis(nb));

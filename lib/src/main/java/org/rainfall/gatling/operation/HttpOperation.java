@@ -6,6 +6,7 @@ import org.rainfall.Operation;
 import org.rainfall.gatling.configuration.HttpConfig;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Aurelien Broszniowski
@@ -25,15 +26,11 @@ public class HttpOperation extends Operation {
   }
 
   @Override
-  public void exec(final List<Configuration> configurations, final List<Assertion> assertions) {
+  public void exec(final Map<Class<? extends Configuration>, Configuration> configurations, final List<Assertion> assertions) {
     String url = null;
-    for (Configuration configuration : configurations) {
-      if (configuration instanceof HttpConfig) {
-        if (url != null) {
-          throw new RuntimeException("baseURL of org.rainfall.gatling.HttpConfig has already been defined");
-        }
-        url = ((HttpConfig)configuration).getUrl();
-      }
+    HttpConfig httpConfig = (HttpConfig)configurations.get(HttpConfig.class);
+    if (httpConfig != null) {
+      url = httpConfig.getUrl();
     }
     if (url == null) {
       throw new RuntimeException("baseURL of org.rainfall.gatling.HttpConfig is missing");
@@ -43,5 +40,10 @@ public class HttpOperation extends Operation {
       url += path;
     }
     System.out.println(">>> Get page for URL  = " + url + " (" + description + ")");
+  }
+
+  @Override
+  public void run() {
+    //To change body of implemented methods use File | Settings | File Templates.
   }
 }
