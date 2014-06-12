@@ -4,9 +4,13 @@ import org.rainfall.Assertion;
 import org.rainfall.Configuration;
 import org.rainfall.Operation;
 import org.rainfall.gatling.configuration.HttpConfig;
+import org.rainfall.gatling.statistics.HttpResult;
+import org.rainfall.statistics.StatisticsManager;
+import org.rainfall.statistics.StatisticsObserver;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 /**
  * @author Aurelien Broszniowski
@@ -15,6 +19,7 @@ import java.util.Map;
 public class HttpOperation extends Operation {
   private String description;
   private String path = null;
+  private StatisticsObserver httpObserver = StatisticsManager.getStatisticObserver("http", HttpResult.class);
 
   public HttpOperation(final String description) {
     this.description = description;
@@ -39,11 +44,12 @@ public class HttpOperation extends Operation {
     if (path != null) {
       url += path;
     }
+    long start = httpObserver.start();
     System.out.println(">>> Get page for URL  = " + url + " (" + description + ")");
+    if (new Random(System.currentTimeMillis()).nextBoolean())
+      httpObserver.end(start, HttpResult.OK);
+    else
+      httpObserver.end(start, HttpResult.KO);
   }
 
-  @Override
-  public void run() {
-    //To change body of implemented methods use File | Settings | File Templates.
-  }
 }

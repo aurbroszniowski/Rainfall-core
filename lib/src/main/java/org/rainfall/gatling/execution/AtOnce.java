@@ -27,12 +27,13 @@ public class AtOnce extends Execution {
     this.users = users;
   }
 
-  public void execute(final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations, final List<Assertion> assertions) {
+  public void execute(final int threadNb, final Scenario scenario, final Map<Class<? extends Configuration>,
+      Configuration> configurations, final List<Assertion> assertions) {
     List<Operation> operations = scenario.getOperations();
 
     ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
-
-    for (int i = 0; i < nb / concurrencyConfig.getNbThreads(); i++) {
+    int max = concurrencyConfig.getNbIterationsForThread(threadNb, nb);
+    for (int i = 0; i < max; i++) {
       for (Operation operation : operations) {
         operation.exec(configurations, assertions);
       }

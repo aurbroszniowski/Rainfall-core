@@ -1,6 +1,7 @@
 package org.rainfall;
 
 import org.rainfall.configuration.ConcurrencyConfig;
+import org.rainfall.statistics.StatisticsThread;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,12 +50,19 @@ public class ScenarioRun {
 
   // Start Scenario run
   public void start() {
-    //TODO stat perf counting
+    StatisticsThread stats = new StatisticsThread();
+    stats.start();
+
     ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
     concurrencyConfig.submit(executions, scenario, configurations, assertions);
-    // do perf measurement
-    // do reporting
-    //
+
+    //TODO end only after executor is finished
+    stats.end();
+    try {
+      stats.join();
+    } catch (InterruptedException e) {
+      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+    }
   }
 
 

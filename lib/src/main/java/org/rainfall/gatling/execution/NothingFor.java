@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * This will do nothing for a certain amount of time.
+ *
  * @author Aurelien Broszniowski
  */
 
@@ -23,7 +25,7 @@ public class NothingFor extends Execution {
   }
 
   @Override
-  public void execute(final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations, final List<Assertion> assertions) {
+  public void execute(final int threadNb, final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations, final List<Assertion> assertions) {
     System.out.println(">>> Sleep " + nb);
     try {
       Thread.sleep(timeUnit.toMillis(nb));
