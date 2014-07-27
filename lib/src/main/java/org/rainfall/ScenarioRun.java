@@ -19,7 +19,7 @@ public class ScenarioRun {
   private Scenario scenario;
   private Map<Class<? extends Configuration>, Configuration> configurations = new ConcurrentHashMap<Class<? extends Configuration>, Configuration>();
   private List<Assertion> assertions = new ArrayList<Assertion>();
-  private List<Execution> executions = null;
+  private List<Execution> executions = new ArrayList<Execution>();
 
   public ScenarioRun(final Runner runner, final Scenario scenario) {
     this.runner = runner;
@@ -56,16 +56,13 @@ public class ScenarioRun {
     ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
     concurrencyConfig.submit(executions, scenario, configurations, assertions);
 
-    //TODO end only after executor is finished
+    stats.end();
     try {
-      Thread.sleep(15000);    // TODO : Can we calculate when the tests are done ? maybe the nb of ops at the end of executor and report until nb is reached
-      stats.end();
       stats.join();
     } catch (InterruptedException e) {
-      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+      throw new RuntimeException(e);
     }
   }
-
 
   public Scenario getScenario() {
     return scenario;

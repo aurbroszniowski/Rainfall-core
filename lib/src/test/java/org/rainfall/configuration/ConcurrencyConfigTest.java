@@ -58,7 +58,7 @@ public class ConcurrencyConfigTest {
   }
 
   @Test
-  public void nbIterationsAlmostTribleThanNbThreadsTest() {
+  public void nbIterationsAlmostTripleThanNbThreadsTest() {
     ConcurrencyConfig config = new ConcurrencyConfig().threads(4);
     assertThat(config.getNbIterationsForThread(0, 10), is(equalTo(3)));
     assertThat(config.getNbIterationsForThread(1, 10), is(equalTo(3)));
