@@ -1,10 +1,10 @@
-package org.rainfall.gatling.operation;
+package org.rainfall.web.operation;
 
 import org.rainfall.Assertion;
 import org.rainfall.Configuration;
 import org.rainfall.Operation;
-import org.rainfall.gatling.configuration.HttpConfig;
-import org.rainfall.gatling.statistics.HttpResult;
+import org.rainfall.web.configuration.HttpConfig;
+import org.rainfall.web.statistics.HttpResult;
 import org.rainfall.statistics.StatisticsManager;
 import org.rainfall.statistics.StatisticsObserver;
 

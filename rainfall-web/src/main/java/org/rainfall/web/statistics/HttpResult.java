@@ -1,4 +1,4 @@
-package org.rainfall.gatling.statistics;
+package org.rainfall.web.statistics;
 
 /**
  * @author Aurelien Broszniowski

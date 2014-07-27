@@ -1,4 +1,4 @@
-package org.rainfall.gatling.configuration;
+package org.rainfall.web.configuration;
 
 import org.rainfall.Configuration;
 

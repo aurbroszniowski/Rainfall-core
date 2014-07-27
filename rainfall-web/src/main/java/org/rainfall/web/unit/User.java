@@ -1,4 +1,4 @@
-package org.rainfall.gatling.unit;
+package org.rainfall.web.unit;
 
 import org.rainfall.Unit;
 

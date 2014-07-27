@@ -1,4 +1,4 @@
-package org.rainfall.gatling.execution;
+package org.rainfall.web.execution;
 
 import org.rainfall.Assertion;
 import org.rainfall.Configuration;

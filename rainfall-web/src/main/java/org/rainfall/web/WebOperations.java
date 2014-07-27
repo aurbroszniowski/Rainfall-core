@@ -1,12 +1,12 @@
-package org.rainfall.gatling;
+package org.rainfall.web;
 
-import org.rainfall.gatling.operation.HttpOperation;
+import org.rainfall.web.operation.HttpOperation;
 
 /**
  * @author Aurelien Broszniowski
  */
 
-public class GatlingOperations {
+public class WebOperations {
 
   public static HttpOperation http(final String description) {
     return new HttpOperation(description);

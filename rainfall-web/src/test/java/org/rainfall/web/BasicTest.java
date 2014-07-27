@@ -1,20 +1,18 @@
-package org.rainfall;
+package org.rainfall.web;
 
 import org.junit.Test;
+import org.rainfall.Runner;
+import org.rainfall.Scenario;
 import org.rainfall.configuration.ConcurrencyConfig;
-import org.rainfall.gatling.configuration.HttpConfig;
-
-import java.util.concurrent.TimeUnit;
+import org.rainfall.web.configuration.HttpConfig;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
-import static org.rainfall.Runner.setUp;
-import static org.rainfall.Scenario.scenario;
-import static org.rainfall.gatling.GatlingExecutions.atOnce;
-import static org.rainfall.gatling.GatlingExecutions.nothingFor;
-import static org.rainfall.gatling.GatlingOperations.http;
-import static org.rainfall.gatling.GatlingUnits.seconds;
-import static org.rainfall.gatling.GatlingUnits.users;
-import static org.rainfall.gatling.configuration.HttpConfig.httpConfig;
+import static org.rainfall.web.WebExecutions.atOnce;
+import static org.rainfall.web.WebExecutions.nothingFor;
+import static org.rainfall.web.WebOperations.http;
+import static org.rainfall.web.WebUnits.seconds;
+import static org.rainfall.web.WebUnits.users;
+import static org.rainfall.web.configuration.HttpConfig.httpConfig;
 
 /**
  * @author Aurelien Broszniowski
@@ -29,12 +27,12 @@ public class BasicTest {
     ConcurrencyConfig concurrency = ConcurrencyConfig.concurrencyConfig()
         .threads(4).timeout(5, MINUTES);
 
-    Scenario scenario = scenario("Twitter search")
+    Scenario scenario = Scenario.scenario("Twitter search")
         .exec(http("Recherche Crocro").get("/search.json?q=crocro"))
         .exec(http("Recherche Gatling").get("/search.json?q=gatling"))
-        .exec(http("Recherche Scala").get("/search.json?q=scala"));
+        .exec(http("Recherche Java").get("/search.json?q=java"));
 
-    setUp(scenario)
+    Runner.setUp(scenario)
         .executed(atOnce(5, users), nothingFor(5, seconds), atOnce(5, users))
         .config(httpConf, concurrency)
         .start();
