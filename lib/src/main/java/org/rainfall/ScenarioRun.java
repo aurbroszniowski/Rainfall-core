@@ -57,8 +57,9 @@ public class ScenarioRun {
     concurrencyConfig.submit(executions, scenario, configurations, assertions);
 
     //TODO end only after executor is finished
-    stats.end();
     try {
+      Thread.sleep(15000);    // TODO : Can we calculate when the tests are done ? maybe the nb of ops at the end of executor and report until nb is reached
+      stats.end();
       stats.join();
     } catch (InterruptedException e) {
       e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.

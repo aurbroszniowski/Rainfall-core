@@ -38,7 +38,6 @@ public class StatisticsObserver<T extends Enum<T>> {
     long latency = (end - start) / 1000000;
 
     long nbResults = counter.get(result).getAndIncrement();
-    System.out.println("+++++++ >> " + nbResults);
 
     synchronized (minLatency) {
       if (this.minLatency.get(result) > latency) {
@@ -56,6 +55,14 @@ public class StatisticsObserver<T extends Enum<T>> {
       double average = ((this.averageLatency.get(result) * nbResults) + latency) / (nbResults + 1);
       this.averageLatency.put(result, average);
     }
+  }
+
+  public Long getSumOfCounters() {
+    AtomicLong sum = new AtomicLong();
+    for (AtomicLong cnt : counter.values()) {
+      sum.addAndGet(cnt.longValue());
+    }
+    return sum.longValue();
   }
 
   @Override

@@ -46,6 +46,11 @@ public class HttpOperation extends Operation {
     }
     long start = httpObserver.start();
     System.out.println(">>> Get page for URL  = " + url + " (" + description + ")");
+    try {
+      Thread.sleep(new Random(System.currentTimeMillis()).nextInt(500));
+    } catch (InterruptedException e) {
+      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+    }
     if (new Random(System.currentTimeMillis()).nextBoolean())
       httpObserver.end(start, HttpResult.OK);
     else

@@ -1,7 +1,6 @@
 package org.rainfall.statistics;
 
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 
 /**
  * @author Aurelien Broszniowski
@@ -14,7 +13,7 @@ public class StatisticsThread extends Thread {
   @Override
   public void run() {
     while (!stopped) {
-      ConcurrentHashMap<String,StatisticsObserver> statisticObservers = StatisticsManager.getStatisticObservers();
+      ConcurrentHashMap<String, StatisticsObserver> statisticObservers = StatisticsManager.getStatisticObservers();
       for (StatisticsObserver observer : statisticObservers.values()) {
         System.out.println(observer.toString());
       }
