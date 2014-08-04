@@ -4,6 +4,7 @@ import org.junit.Test;
 import org.rainfall.Runner;
 import org.rainfall.Scenario;
 import org.rainfall.configuration.ConcurrencyConfig;
+import org.rainfall.configuration.ReportingConfig;
 import org.rainfall.web.configuration.HttpConfig;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
@@ -26,6 +27,7 @@ public class BasicTest {
         .baseURL("http://search.twitter.com");
     ConcurrencyConfig concurrency = ConcurrencyConfig.concurrencyConfig()
         .threads(4).timeout(5, MINUTES);
+    ReportingConfig reporting = ReportingConfig.reportingConfig().text();
 
     Scenario scenario = Scenario.scenario("Twitter search")
         .exec(http("Recherche Crocro").get("/search.json?q=crocro"))
@@ -34,9 +36,8 @@ public class BasicTest {
 
     Runner.setUp(scenario)
         .executed(atOnce(5, users), nothingFor(5, seconds), atOnce(5, users))
-        .config(httpConf, concurrency)
+        .config(httpConf, concurrency, reporting)
         .start();
-
 
 /*
     HttpConfig httpConf = HttpConfig.httpConfig

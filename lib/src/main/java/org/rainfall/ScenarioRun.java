@@ -1,6 +1,7 @@
 package org.rainfall;
 
 import org.rainfall.configuration.ConcurrencyConfig;
+import org.rainfall.configuration.ReportingConfig;
 import org.rainfall.statistics.StatisticsThread;
 
 import java.util.ArrayList;
@@ -50,7 +51,9 @@ public class ScenarioRun {
 
   // Start Scenario run
   public void start() {
-    StatisticsThread stats = new StatisticsThread();
+    //TODO : add generics to avoid cast
+    ReportingConfig reportingConfig = (ReportingConfig)configurations.get(ReportingConfig.class);
+    StatisticsThread stats = new StatisticsThread(reportingConfig);
     stats.start();
 
     ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
