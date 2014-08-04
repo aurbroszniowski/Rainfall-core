@@ -9,5 +9,5 @@ import java.util.Map;
 
 public abstract class Operation {
 
-  public abstract void exec(final Map<Class<? extends Configuration>, Configuration> configurations, final List<Assertion> assertions);
+  public abstract void exec(final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions);
 }

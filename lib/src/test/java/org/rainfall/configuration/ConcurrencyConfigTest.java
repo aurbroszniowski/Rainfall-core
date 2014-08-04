@@ -1,7 +1,6 @@
-package org.rainfall.web.configuration;
+package org.rainfall.configuration;
 
 import org.junit.Test;
-import org.rainfall.configuration.ConcurrencyConfig;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;

@@ -1,11 +1,10 @@
 package org.rainfall.web.execution;
 
-import org.rainfall.Assertion;
+import org.rainfall.AssertionEvaluator;
 import org.rainfall.Configuration;
 import org.rainfall.Execution;
 import org.rainfall.Operation;
 import org.rainfall.Scenario;
-import org.rainfall.Unit;
 import org.rainfall.configuration.ConcurrencyConfig;
 import org.rainfall.web.unit.User;
 
@@ -13,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This will execute the {@link Scenario} with {@link AtOnce#nb} occurrences of a specified {@link Unit}
+ * This will execute the {@link Scenario} with {@link AtOnce#nb} occurrences of a specified {@link org.rainfall.Unit}
  *
  * @author Aurelien Broszniowski
  */
@@ -28,7 +27,7 @@ public class AtOnce extends Execution {
   }
 
   public void execute(final int threadNb, final Scenario scenario, final Map<Class<? extends Configuration>,
-      Configuration> configurations, final List<Assertion> assertions) {
+      Configuration> configurations, final List<AssertionEvaluator> assertions) {
     List<Operation> operations = scenario.getOperations();
 
     ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);

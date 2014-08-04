@@ -1,12 +1,12 @@
 package org.rainfall.web.operation;
 
-import org.rainfall.Assertion;
+import org.rainfall.AssertionEvaluator;
 import org.rainfall.Configuration;
 import org.rainfall.Operation;
-import org.rainfall.web.configuration.HttpConfig;
-import org.rainfall.web.statistics.HttpResult;
 import org.rainfall.statistics.StatisticsManager;
 import org.rainfall.statistics.StatisticsObserver;
+import org.rainfall.web.configuration.HttpConfig;
+import org.rainfall.web.statistics.HttpResult;
 
 import java.util.List;
 import java.util.Map;
@@ -31,14 +31,14 @@ public class HttpOperation extends Operation {
   }
 
   @Override
-  public void exec(final Map<Class<? extends Configuration>, Configuration> configurations, final List<Assertion> assertions) {
+  public void exec(final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions) {
     String url = null;
     HttpConfig httpConfig = (HttpConfig)configurations.get(HttpConfig.class);
     if (httpConfig != null) {
       url = httpConfig.getUrl();
     }
     if (url == null) {
-      throw new RuntimeException("baseURL of org.rainfall.gatling.HttpConfig is missing");
+      throw new RuntimeException("baseURL of org.rainfall.web.HttpConfig is missing");
     }
 
     if (path != null) {
@@ -49,12 +49,13 @@ public class HttpOperation extends Operation {
     try {
       Thread.sleep(new Random(System.currentTimeMillis()).nextInt(500));
     } catch (InterruptedException e) {
-      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+      e.printStackTrace();  //TODO : To change body of catch statement use File | Settings | File Templates.
     }
     if (new Random(System.currentTimeMillis()).nextBoolean())
       httpObserver.end(start, HttpResult.OK);
     else
       httpObserver.end(start, HttpResult.KO);
+    //TODO : evaluate assertions
   }
 
 }

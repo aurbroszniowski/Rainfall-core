@@ -11,6 +11,6 @@ import java.util.Map;
 
 public abstract class Execution {
 
-  public abstract void execute(final int threadNb, final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations, final List<Assertion> assertions);
+  public abstract void execute(final int threadNb, final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions);
 
 }

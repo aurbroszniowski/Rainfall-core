@@ -14,7 +14,6 @@ public class Runner {
     return new ScenarioRun(new Runner(), scenario);
   }
 
-
   public void start(final ScenarioRun run) {
   }
 }

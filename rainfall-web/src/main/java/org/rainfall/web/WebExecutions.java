@@ -2,9 +2,8 @@ package org.rainfall.web;
 
 import org.rainfall.web.execution.AtOnce;
 import org.rainfall.web.execution.NothingFor;
+import org.rainfall.web.unit.TimeDivision;
 import org.rainfall.web.unit.User;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Aurelien Broszniowski
@@ -12,8 +11,8 @@ import java.util.concurrent.TimeUnit;
 
 public class WebExecutions {
 
-  public static NothingFor nothingFor(int nb, TimeUnit timeUnit) {
-    return new NothingFor(nb, timeUnit);
+  public static NothingFor nothingFor(int nb, TimeDivision timeDivision) {
+    return new NothingFor(nb, timeDivision);
   }
 
   public static AtOnce atOnce(int nb, User users) {

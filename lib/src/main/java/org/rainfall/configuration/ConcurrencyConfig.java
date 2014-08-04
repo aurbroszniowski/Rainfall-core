@@ -1,6 +1,6 @@
 package org.rainfall.configuration;
 
-import org.rainfall.Assertion;
+import org.rainfall.AssertionEvaluator;
 import org.rainfall.Configuration;
 import org.rainfall.Execution;
 import org.rainfall.Scenario;
@@ -13,7 +13,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static java.util.concurrent.TimeUnit.*;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * @author Aurelien Broszniowski
@@ -65,7 +65,7 @@ public class ConcurrencyConfig extends Configuration {
     return nbIterationsPerThread.get(threadNb).intValue();
   }
 
-  public void submit(final List<Execution> executions, final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations, final List<Assertion> assertions) {
+  public void submit(final List<Execution> executions, final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions) {
     for (final Execution execution : executions) {
       for (int i = 0; i < nbThreads; i++) {
         final int threadNb = i;

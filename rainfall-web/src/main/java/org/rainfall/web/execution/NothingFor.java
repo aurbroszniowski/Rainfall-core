@@ -1,13 +1,13 @@
 package org.rainfall.web.execution;
 
-import org.rainfall.Assertion;
+import org.rainfall.AssertionEvaluator;
 import org.rainfall.Configuration;
 import org.rainfall.Execution;
 import org.rainfall.Scenario;
+import org.rainfall.web.unit.TimeDivision;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * This will do nothing for a certain amount of time.
@@ -17,18 +17,18 @@ import java.util.concurrent.TimeUnit;
 
 public class NothingFor extends Execution {
   private final int nb;
-  private final TimeUnit timeUnit;
+  private final TimeDivision timeDivision;
 
-  public NothingFor(final int nb, final TimeUnit timeUnit) {
+  public NothingFor(final int nb, final TimeDivision timeDivision) {
     this.nb = nb;
-    this.timeUnit = timeUnit;
+    this.timeDivision = timeDivision;
   }
 
   @Override
-  public void execute(final int threadNb, final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations, final List<Assertion> assertions) {
+  public void execute(final int threadNb, final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions) {
     System.out.println(">>> Sleep " + nb);
     try {
-      Thread.sleep(timeUnit.toMillis(nb));
+      Thread.sleep(timeDivision.getTimeUnit().toMillis(nb));
     } catch (InterruptedException ex) {
       Thread.currentThread().interrupt();
     }

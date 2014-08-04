@@ -1,5 +1,6 @@
 package org.rainfall.web;
 
+import org.rainfall.web.unit.TimeDivision;
 import org.rainfall.web.unit.User;
 
 import java.util.concurrent.TimeUnit;
@@ -15,6 +16,6 @@ public class WebUnits {
 
   public static User users = new User();
 
-  public static TimeUnit seconds = TimeUnit.SECONDS;
+  public static TimeDivision seconds = new TimeDivision(TimeUnit.SECONDS);
 
 }

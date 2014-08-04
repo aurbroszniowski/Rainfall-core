@@ -19,7 +19,7 @@ public class ScenarioRun {
   private Runner runner;
   private Scenario scenario;
   private Map<Class<? extends Configuration>, Configuration> configurations = new ConcurrentHashMap<Class<? extends Configuration>, Configuration>();
-  private List<Assertion> assertions = new ArrayList<Assertion>();
+  private List<AssertionEvaluator> assertions = new ArrayList<AssertionEvaluator>();
   private List<Execution> executions = new ArrayList<Execution>();
 
   public ScenarioRun(final Runner runner, final Scenario scenario) {
@@ -41,13 +41,16 @@ public class ScenarioRun {
   // Add configuration
   public ScenarioRun config(final Configuration... configs) {
     for (Configuration config : configs) {
-      configurations.put(config.getClass(), config);
+      this.configurations.put(config.getClass(), config);
     }
     return this;
   }
 
   // Add assertion
-
+  public ScenarioRun assertion(final Assertion actual, final Assertion expected) {
+    this.assertions.add(new AssertionEvaluator(actual, expected));
+    return this;
+  }
 
   // Start Scenario run
   public void start() {
@@ -75,9 +78,8 @@ public class ScenarioRun {
     return configurations.get(configurationClass);
   }
 
-  public List<Assertion> getAssertions() {
+  public List<AssertionEvaluator> getAssertions() {
     return assertions;
   }
-
 
 }

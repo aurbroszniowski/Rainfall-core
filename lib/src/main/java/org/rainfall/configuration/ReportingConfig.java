@@ -4,6 +4,7 @@ import org.rainfall.Configuration;
 import org.rainfall.Reporter;
 import org.rainfall.reporting.TextReporter;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -17,13 +18,16 @@ public class ReportingConfig extends Configuration {
 
   private final Set<Reporter> reporters = new HashSet<Reporter>();
 
-  public static ReportingConfig reportingConfig() {
-    return new ReportingConfig();
+  public ReportingConfig(final Reporter... reporters) {
+    Collections.addAll(this.reporters, reporters);
   }
 
-  public ReportingConfig text() {
-    this.reporters.add(new TextReporter());
-    return this;
+  public static ReportingConfig reportingConfig(Reporter ... reporters) {
+    return new ReportingConfig(reporters);
+  }
+
+  public static Reporter text() {
+     return new TextReporter();
   }
 
   public Set<Reporter> getReporters() {

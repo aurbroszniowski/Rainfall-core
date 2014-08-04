@@ -7,4 +7,7 @@ package org.rainfall;
  */
 
 public abstract class Assertion {
+
+  public abstract void evaluate(final Assertion assertion) throws AssertionError;
+
 }
