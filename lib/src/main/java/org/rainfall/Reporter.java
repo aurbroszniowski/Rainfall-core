@@ -1,4 +1,4 @@
-package org.rainfall.reporting;
+package org.rainfall;
 
 import org.rainfall.statistics.StatisticsObserver;
 

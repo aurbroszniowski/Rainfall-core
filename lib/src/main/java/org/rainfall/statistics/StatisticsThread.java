@@ -1,7 +1,7 @@
 package org.rainfall.statistics;
 
 import org.rainfall.configuration.ReportingConfig;
-import org.rainfall.reporting.Reporter;
+import org.rainfall.Reporter;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,8 +31,6 @@ public class StatisticsThread extends Thread {
           reporter.report(observer);
         }
       }
-//      System.out.println(observer.toString());
-//      System.out.println("----------------------------------------------");
       try {
         sleep(1000);
       } catch (InterruptedException e) {

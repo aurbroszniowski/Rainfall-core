@@ -1,5 +1,6 @@
 package org.rainfall.reporting;
 
+import org.rainfall.Reporter;
 import org.rainfall.statistics.StatisticsObserver;
 
 import java.util.Set;

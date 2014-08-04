@@ -1,7 +1,7 @@
 package org.rainfall.configuration;
 
 import org.rainfall.Configuration;
-import org.rainfall.reporting.Reporter;
+import org.rainfall.Reporter;
 import org.rainfall.reporting.TextReporter;
 
 import java.util.HashSet;

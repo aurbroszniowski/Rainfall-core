@@ -51,7 +51,7 @@ public class ScenarioRun {
 
   // Start Scenario run
   public void start() {
-    //TODO : add generics to avoid cast
+    //TODO : add generics to avoid cast or use a better map
     ReportingConfig reportingConfig = (ReportingConfig)configurations.get(ReportingConfig.class);
     StatisticsThread stats = new StatisticsThread(reportingConfig);
     stats.start();
