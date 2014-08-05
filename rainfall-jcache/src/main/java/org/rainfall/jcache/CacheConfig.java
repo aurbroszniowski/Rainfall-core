@@ -42,7 +42,7 @@ public class CacheConfig extends Configuration {
     return this;
   }
 
-  public CacheConfig sequence() {
+  public CacheConfig sequentially() {
     if (this.sequenceGenerator != null) {
       throw new IllegalStateException("SequenceGenerator already chosen.");
     }

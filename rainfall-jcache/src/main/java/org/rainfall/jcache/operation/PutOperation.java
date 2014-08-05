@@ -1,6 +1,5 @@
 package org.rainfall.jcache.operation;
 
-import net.sf.ehcache.CacheException;
 import net.sf.ehcache.Ehcache;
 import net.sf.ehcache.Element;
 import org.rainfall.AssertionEvaluator;
@@ -22,6 +21,7 @@ import java.util.Map;
 
 public class PutOperation extends Operation {
 
+  //TODO take weight into account
   private final double weight;
 
   public PutOperation(final double weight) {

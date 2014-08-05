@@ -38,7 +38,7 @@ public class CrudTest {
       CacheConfig cacheConfig = cacheConfig()
           .caches(one)
           .using(StringGenerator.fixedLength(10), ByteArrayGenerator.fixedLength(128))
-          .sequence();
+          .sequentially();
       ConcurrencyConfig concurrency = ConcurrencyConfig.concurrencyConfig()
           .threads(4).timeout(5, MINUTES);
       ReportingConfig reporting = ReportingConfig.reportingConfig(ReportingConfig.text());
