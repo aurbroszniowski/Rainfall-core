@@ -1,4 +1,4 @@
-package org.rainfall.web.unit;
+package org.rainfall.unit;
 
 import org.rainfall.Unit;
 

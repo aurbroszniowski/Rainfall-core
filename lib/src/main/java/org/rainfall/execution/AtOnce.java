@@ -1,4 +1,4 @@
-package org.rainfall.web.execution;
+package org.rainfall.execution;
 
 import org.rainfall.AssertionEvaluator;
 import org.rainfall.Configuration;
@@ -6,7 +6,7 @@ import org.rainfall.Execution;
 import org.rainfall.Operation;
 import org.rainfall.Scenario;
 import org.rainfall.configuration.ConcurrencyConfig;
-import org.rainfall.web.unit.User;
+import org.rainfall.unit.User;
 
 import java.util.List;
 import java.util.Map;

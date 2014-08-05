@@ -49,7 +49,7 @@ public class ConcurrencyConfig extends Configuration {
     return timeoutInSeconds;
   }
 
-  public int getNbIterationsForThread(int threadNb, int nbIterations) {
+  public int getNbIterationsForThread(int threadNb, long nbIterations) {
     synchronized (nbIterationsPerThread) {
       if (nbIterationsPerThread.size() == 0) {
         for (int i = 0; i < nbThreads; i++)

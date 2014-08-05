@@ -7,17 +7,14 @@ import org.rainfall.configuration.ConcurrencyConfig;
 import org.rainfall.configuration.ReportingConfig;
 import org.rainfall.web.configuration.HttpConfig;
 
-import java.util.concurrent.TimeUnit;
-
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;
+import static org.rainfall.execution.Executions.atOnce;
+import static org.rainfall.unit.Units.seconds;
+import static org.rainfall.unit.Units.users;
 import static org.rainfall.web.WebAssertions.isLessThan;
 import static org.rainfall.web.WebAssertions.responseTime;
-import static org.rainfall.web.WebExecutions.atOnce;
 import static org.rainfall.web.WebExecutions.nothingFor;
 import static org.rainfall.web.WebOperations.http;
-import static org.rainfall.web.WebUnits.seconds;
-import static org.rainfall.web.WebUnits.users;
 import static org.rainfall.web.configuration.HttpConfig.httpConfig;
 
 /**

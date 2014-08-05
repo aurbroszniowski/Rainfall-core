@@ -40,6 +40,7 @@ public class ScenarioRun {
 
   // Add configuration
   public ScenarioRun config(final Configuration... configs) {
+    // TODO : setup default concurrency and reporting configs
     for (Configuration config : configs) {
       this.configurations.put(config.getClass(), config);
     }

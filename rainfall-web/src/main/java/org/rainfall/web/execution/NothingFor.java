@@ -4,7 +4,7 @@ import org.rainfall.AssertionEvaluator;
 import org.rainfall.Configuration;
 import org.rainfall.Execution;
 import org.rainfall.Scenario;
-import org.rainfall.web.unit.TimeDivision;
+import org.rainfall.unit.TimeDivision;
 
 import java.util.List;
 import java.util.Map;

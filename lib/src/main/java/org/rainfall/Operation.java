@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * A step executed in the {@link Scenario}
+ *
  * @author Aurelien Broszniowski
  */
 

@@ -1,7 +1,7 @@
-package org.rainfall.web;
+package org.rainfall.unit;
 
-import org.rainfall.web.unit.TimeDivision;
-import org.rainfall.web.unit.User;
+import org.rainfall.unit.TimeDivision;
+import org.rainfall.unit.User;
 
 import java.util.concurrent.TimeUnit;
 
@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
  * @author Aurelien Broszniowski
  */
 
-public class WebUnits {
+public class Units {
 
   public static User users = new User();
 

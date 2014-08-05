@@ -19,7 +19,7 @@ public class Scenario {
   }
 
   public Scenario exec(final Operation operation) {
-    operations.add(operation);
+    this.operations.add(operation);
     return this;
   }
 
@@ -28,7 +28,7 @@ public class Scenario {
   }
 
   public List<Operation> getOperations() {
-    return operations;
+    return this.operations;
   }
 
 }
