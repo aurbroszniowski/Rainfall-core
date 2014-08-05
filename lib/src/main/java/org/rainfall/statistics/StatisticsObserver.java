@@ -1,6 +1,8 @@
 package org.rainfall.statistics;
 
+import java.util.Collections;
 import java.util.EnumMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -9,16 +11,16 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class StatisticsObserver<K extends Enum<K>> {
 
-  private final EnumMap<K, AtomicLong> counter;
-  private final EnumMap<K, Long> minLatency;
-  private final EnumMap<K, Long> maxLatency;
-  private final EnumMap<K, Double> averageLatency;
+  private final Map<K, AtomicLong> counter;
+  private final Map<K, Long> minLatency;
+  private final Map<K, Long> maxLatency;
+  private final Map<K, Double> averageLatency;
 
   public StatisticsObserver(final Class<K> results) {
     this.counter = new EnumMap<K, AtomicLong>(results);
-    this.minLatency = new EnumMap<K, Long>(results);
-    this.maxLatency = new EnumMap<K, Long>(results);
-    this.averageLatency = new EnumMap<K, Double>(results);
+    this.minLatency = Collections.synchronizedMap(new EnumMap<K, Long>(results));
+    this.maxLatency = Collections.synchronizedMap(new EnumMap<K, Long>(results));
+    this.averageLatency = Collections.synchronizedMap(new EnumMap<K, Double>(results));
 
     for (K t : results.getEnumConstants()) {
       this.counter.put(t, new AtomicLong(0));
@@ -38,22 +40,16 @@ public class StatisticsObserver<K extends Enum<K>> {
 
     long nbResults = counter.get(result).getAndIncrement();
 
-    synchronized (minLatency) {
-      if (this.minLatency.get(result) > latency) {
-        this.minLatency.put(result, latency);
-      }
+    if (this.minLatency.get(result) > latency) {
+      this.minLatency.put(result, latency);
     }
 
-    synchronized (maxLatency) {
-      if (this.maxLatency.get(result) < latency) {
-        this.maxLatency.put(result, latency);
-      }
+    if (this.maxLatency.get(result) < latency) {
+      this.maxLatency.put(result, latency);
     }
 
-    synchronized (averageLatency) {
-      double average = ((this.averageLatency.get(result) * nbResults) + latency) / (nbResults + 1);
-      this.averageLatency.put(result, average);
-    }
+    double average = ((this.averageLatency.get(result) * nbResults) + latency) / (nbResults + 1);
+    this.averageLatency.put(result, average);
   }
 
   public Long getSumOfCounters() {
@@ -64,19 +60,19 @@ public class StatisticsObserver<K extends Enum<K>> {
     return sum.longValue();
   }
 
-  public EnumMap<K, AtomicLong> getCounter() {
+  public Map<K, AtomicLong> getCounter() {
     return counter;
   }
 
-  public EnumMap<K, Long> getMinLatency() {
+  public Map<K, Long> getMinLatency() {
     return minLatency;
   }
 
-  public EnumMap<K, Long> getMaxLatency() {
+  public Map<K, Long> getMaxLatency() {
     return maxLatency;
   }
 
-  public EnumMap<K, Double> getAverageLatency() {
+  public Map<K, Double> getAverageLatency() {
     return averageLatency;
   }
 }

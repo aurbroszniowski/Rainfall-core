@@ -63,4 +63,6 @@ Your test will define a scenario, made of a serie of executions (e.g. do nothing
 org.rainfall.Operation
 Each execution of the test does some specific Operation (e.g. do the http call with some parameter)
 
-See the project module : rainfall-web
+
+Currently, two performance frameworks are (partially) implemented : rainfall-web and rainfall-jcache
+You can refer to those modules to have some idea on how to write your own framework.

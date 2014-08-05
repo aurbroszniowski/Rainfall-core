@@ -19,7 +19,7 @@ import java.util.Random;
 public class HttpOperation extends Operation {
   private String description;
   private String path = null;
-  private StatisticsObserver httpObserver = StatisticsManager.getStatisticObserver("http", HttpResult.class);
+  private StatisticsObserver<HttpResult> httpObserver = StatisticsManager.getStatisticObserver("http", HttpResult.class);
 
   public HttpOperation(final String description) {
     this.description = description;
