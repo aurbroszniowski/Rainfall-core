@@ -27,8 +27,7 @@ public class PutOperation extends Operation {
     SequenceGenerator sequenceGenerator = cacheConfig.getSequenceGenerator();
     long next = sequenceGenerator.next();
     Double weight = cacheConfig.getRandomizer().nextDouble(next);
-    OperationWeight operationWeight = cacheConfig.getOperationWeights().get(weight);
-    if (operationWeight!= null && operationWeight.getOperation() == OperationWeight.OPERATION.PUT) {
+    if (cacheConfig.getOperationWeights().get(weight) == OperationWeight.OPERATION.PUT) {
       List<Ehcache> caches = cacheConfig.getCaches();
       ObjectGenerator keyGenerator = cacheConfig.getKeyGenerator();
       ObjectGenerator valueGenerator = cacheConfig.getValueGenerator();
