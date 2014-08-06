@@ -21,29 +21,26 @@ import java.util.Map;
 
 public class PutOperation extends Operation {
 
-  //TODO take weight into account
-  private final double weight;
-
-  public PutOperation(final double weight) {
-    this.weight = weight;
-  }
-
   @Override
   public void exec(final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions) {
     CacheConfig cacheConfig = (CacheConfig)configurations.get(CacheConfig.class);
-    List<Ehcache> caches = cacheConfig.getCaches();
     SequenceGenerator sequenceGenerator = cacheConfig.getSequenceGenerator();
-    ObjectGenerator keyGenerator = cacheConfig.getKeyGenerator();
-    ObjectGenerator valueGenerator = cacheConfig.getValueGenerator();
     long next = sequenceGenerator.next();
-    for (Ehcache cache : caches) {
-      StatisticsObserver observer = StatisticsManager.getStatisticObserver(cache.getName(), JCacheResult.class);
-      long start = observer.start();
-      try {
-        cache.put(new Element(keyGenerator.generate(next), valueGenerator.generate(next)));
-        observer.end(start, JCacheResult.OK);
-      } catch (Exception e) {
-        observer.end(start, JCacheResult.EXCEPTION);
+    Double weight = cacheConfig.getRandomizer().nextDouble(next);
+    OperationWeight operationWeight = cacheConfig.getOperationWeights().get(weight);
+    if (operationWeight!= null && operationWeight.getOperation() == OperationWeight.OPERATION.PUT) {
+      List<Ehcache> caches = cacheConfig.getCaches();
+      ObjectGenerator keyGenerator = cacheConfig.getKeyGenerator();
+      ObjectGenerator valueGenerator = cacheConfig.getValueGenerator();
+      for (Ehcache cache : caches) {
+        StatisticsObserver<JCacheResult> observer = StatisticsManager.getStatisticObserver(cache.getName(), JCacheResult.class);
+        long start = observer.start();
+        try {
+          cache.put(new Element(keyGenerator.generate(next), valueGenerator.generate(next)));
+          observer.end(start, JCacheResult.OK);
+        } catch (Exception e) {
+          observer.end(start, JCacheResult.EXCEPTION);
+        }
       }
     }
   }

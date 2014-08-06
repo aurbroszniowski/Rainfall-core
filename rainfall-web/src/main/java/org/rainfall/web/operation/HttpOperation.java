@@ -49,7 +49,7 @@ public class HttpOperation extends Operation {
     try {
       Thread.sleep(new Random(System.currentTimeMillis()).nextInt(500));
     } catch (InterruptedException e) {
-      e.printStackTrace();  //TODO : To change body of catch statement use File | Settings | File Templates.
+      e.printStackTrace();  //TODO : implement real http get
     }
     if (new Random(System.currentTimeMillis()).nextBoolean())
       httpObserver.end(start, HttpResult.OK);

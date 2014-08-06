@@ -13,11 +13,15 @@ import org.rainfall.configuration.ConcurrencyConfig;
 import org.rainfall.configuration.ReportingConfig;
 import org.rainfall.generator.ByteArrayGenerator;
 import org.rainfall.generator.StringGenerator;
+import org.rainfall.jcache.operation.OperationWeight;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.rainfall.execution.Executions.times;
 import static org.rainfall.jcache.CacheConfig.cacheConfig;
 import static org.rainfall.jcache.JCacheOperations.put;
+import static org.rainfall.jcache.operation.OperationWeight.OPERATION.PUT;
+import static org.rainfall.jcache.operation.OperationWeight.OPERATION.PUTIFABSENT;
+import static org.rainfall.jcache.operation.OperationWeight.operation;
 
 /**
  * @author Aurelien Broszniowski
@@ -38,7 +42,8 @@ public class CrudTest {
       CacheConfig cacheConfig = cacheConfig()
           .caches(one)
           .using(StringGenerator.fixedLength(10), ByteArrayGenerator.fixedLength(128))
-          .sequentially();
+          .sequentially()
+          .weights(operation(PUT, 0.50), operation(PUTIFABSENT, 0.30));
       ConcurrencyConfig concurrency = ConcurrencyConfig.concurrencyConfig()
           .threads(4).timeout(5, MINUTES);
       ReportingConfig reporting = ReportingConfig.reportingConfig(ReportingConfig.text());
@@ -46,7 +51,7 @@ public class CrudTest {
       Scenario scenario = Scenario.scenario("Ehcache load")
 //          .using(iteration(from(0), sequentially(), times(10000)))
 //          .exec(putIfAbsent(0.51))
-          .exec(put(0.50));
+          .exec(put());
 
       Runner.setUp(scenario)
           .executed(times(300000))

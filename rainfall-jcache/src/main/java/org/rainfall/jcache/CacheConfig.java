@@ -4,10 +4,15 @@ import net.sf.ehcache.Ehcache;
 import org.rainfall.Configuration;
 import org.rainfall.ObjectGenerator;
 import org.rainfall.generator.IterationSequenceGenerator;
+import org.rainfall.jcache.operation.OperationWeight;
+import org.rainfall.utils.PseudoRandom;
+import org.rainfall.utils.RangeMap;
 
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 /**
  * @author Aurelien Broszniowski
@@ -19,6 +24,8 @@ public class CacheConfig extends Configuration {
   private ObjectGenerator keyGenerator = null;
   private ObjectGenerator valueGenerator = null;
   private IterationSequenceGenerator sequenceGenerator = null;
+  private RangeMap<OperationWeight> weights = new RangeMap<OperationWeight>();
+  private PseudoRandom randomizer = new PseudoRandom();
 
   public static CacheConfig cacheConfig() {
     return new CacheConfig();
@@ -50,6 +57,20 @@ public class CacheConfig extends Configuration {
     return this;
   }
 
+  public CacheConfig weights(OperationWeight... operationWeights) {
+    double totalWeight = 0;
+    for (OperationWeight weight : operationWeights) {
+      totalWeight+=weight.getWeight();
+    }
+    if (totalWeight>1.0) {
+      throw new IllegalStateException("Sum of all operation weights is higher than 1.0 (100%)");
+    }
+    this.weights = new RangeMap<OperationWeight>();
+    for (OperationWeight weight : operationWeights) {
+      this.weights.put(weight.getWeight(), weight);
+    }
+    return this;
+  }
 
   public List<Ehcache> getCaches() {
     return caches;
@@ -65,5 +86,13 @@ public class CacheConfig extends Configuration {
 
   public IterationSequenceGenerator getSequenceGenerator() {
     return sequenceGenerator;
+  }
+
+  public RangeMap<OperationWeight> getOperationWeights() {
+    return weights;
+  }
+
+  public PseudoRandom getRandomizer() {
+    return randomizer;
   }
 }

@@ -10,6 +10,6 @@ import org.rainfall.statistics.StatisticsObserver;
 
 public interface Reporter<K extends Enum<K>> {
 
-  void report(StatisticsObserver<K>  statisticsObserver);
+  void report(StatisticsObserver<K> statisticsObserver);
 
 }

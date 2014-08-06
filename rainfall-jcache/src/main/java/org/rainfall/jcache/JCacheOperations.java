@@ -10,7 +10,9 @@ import org.rainfall.jcache.operation.PutOperation;
 
 public class JCacheOperations {
 
-  public static PutOperation put(final double weight) {
-    return new PutOperation(weight);
+  public static PutOperation put() {
+    return new PutOperation();
   }
+
+
 }

@@ -34,6 +34,5 @@ public class Times extends Execution {
         operation.exec(configurations, assertions);
       }
     }
-
   }
 }

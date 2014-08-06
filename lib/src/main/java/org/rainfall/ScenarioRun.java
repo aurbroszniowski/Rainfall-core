@@ -18,6 +18,7 @@ public class ScenarioRun {
 
   private Runner runner;
   private Scenario scenario;
+  //TODO : is it possible to generify?
   private Map<Class<? extends Configuration>, Configuration> configurations = new ConcurrentHashMap<Class<? extends Configuration>, Configuration>();
   private List<AssertionEvaluator> assertions = new ArrayList<AssertionEvaluator>();
   private List<Execution> executions = new ArrayList<Execution>();
