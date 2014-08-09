@@ -11,18 +11,17 @@ import java.util.Set;
  * @author Aurelien Broszniowski
  */
 
-public class TextReporter<K extends Enum<K>> implements Reporter {
+public class TextReporter implements Reporter {
 
   @Override
   public void report(StatisticsObserver statisticsObserver) {
 
-    //TODO : fix Generics unchecked call? why interface doestnt heritate from Generic
-    Set<K> keys = statisticsObserver.getCounter().keySet();
+    Set keys = statisticsObserver.getCounter().keySet();
     StringBuilder sb = new StringBuilder();
     sb.append("KEY \t counter \t minLatency \t maxLatency \t averageLatency \n");
     //TODO add write lock instead - read is permitted ? or improve concurrency on another way
     synchronized (statisticsObserver.getCounter()) {
-      for (K key : keys) {
+      for (Object key : keys) {
         Long minLatency = (Long)statisticsObserver.getMinLatency().get(key);
         Long maxLatency = (Long)statisticsObserver.getMaxLatency().get(key);
         sb.append(key).append(" \t\t ")

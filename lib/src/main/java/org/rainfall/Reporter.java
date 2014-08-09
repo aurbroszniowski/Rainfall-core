@@ -8,8 +8,8 @@ import org.rainfall.statistics.StatisticsObserver;
  * @author Aurelien Broszniowski
  */
 
-public interface Reporter<K extends Enum<K>> {
+public interface Reporter {
 
-  void report(StatisticsObserver<K> statisticsObserver);
+  void report(StatisticsObserver statisticsObserver);
 
 }
