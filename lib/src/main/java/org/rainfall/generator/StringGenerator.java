@@ -2,7 +2,7 @@ package org.rainfall.generator;
 
 import org.rainfall.ObjectGenerator;
 
-import java.security.SecureRandom;
+import java.util.UUID;
 
 /**
  * @author Aurelien Broszniowski
@@ -10,18 +10,22 @@ import java.security.SecureRandom;
 
 public class StringGenerator implements ObjectGenerator {
 
-  private final int length;
-  SecureRandom rnd = new SecureRandom();
+  private final String randomString;
 
   public StringGenerator(final int length) {
-    this.length = length;
+    if (length <= 0) {
+      throw new IllegalStateException("Can not generate a String with a length less or equal to 0");
+    }
+    String baseRandom = UUID.randomUUID().toString();
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < 1 + (length / baseRandom.length()); i++)
+      sb.append(baseRandom);
+    this.randomString = sb.subSequence(0, length).toString();
   }
 
   @Override
   public Object generate(final long seed) {
-    byte[] randomBytes = new byte[length];
-    rnd.nextBytes(randomBytes);
-    return randomBytes.toString();    // TODO : convert bytes to String
+    return "" + this.randomString;   // return a new instance
   }
 
   public static ObjectGenerator fixedLength(final int length) {

@@ -32,6 +32,7 @@ public class PutOperation extends Operation {
       ObjectGenerator keyGenerator = cacheConfig.getKeyGenerator();
       ObjectGenerator valueGenerator = cacheConfig.getValueGenerator();
       for (Ehcache cache : caches) {
+        //TODO : implement derived stats? cache has put/get/remove etc.
         StatisticsObserver<JCacheResult> observer = StatisticsManager.getStatisticObserver(cache.getName(), JCacheResult.class);
         long start = observer.start();
         try {
