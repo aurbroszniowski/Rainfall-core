@@ -7,13 +7,14 @@ import net.sf.ehcache.config.Configuration;
 import net.sf.ehcache.config.MemoryUnit;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.rainfall.Runner;
 import org.rainfall.Scenario;
 import org.rainfall.configuration.ConcurrencyConfig;
 import org.rainfall.configuration.ReportingConfig;
 import org.rainfall.generator.ByteArrayGenerator;
 import org.rainfall.generator.StringGenerator;
-import org.rainfall.jcache.operation.OperationWeight;
+import org.rainfall.utils.SystemTest;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.rainfall.execution.Executions.times;
@@ -27,6 +28,7 @@ import static org.rainfall.jcache.operation.OperationWeight.operation;
  * @author Aurelien Broszniowski
  */
 
+@Category(SystemTest.class)
 public class CrudTest {
 
   @Test

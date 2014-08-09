@@ -1,10 +1,12 @@
 package org.rainfall.web;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.rainfall.Runner;
 import org.rainfall.Scenario;
 import org.rainfall.configuration.ConcurrencyConfig;
 import org.rainfall.configuration.ReportingConfig;
+import org.rainfall.utils.SystemTest;
 import org.rainfall.web.configuration.HttpConfig;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
@@ -21,6 +23,7 @@ import static org.rainfall.web.configuration.HttpConfig.httpConfig;
  * @author Aurelien Broszniowski
  */
 
+@Category(SystemTest.class)
 public class BasicTest {
 
   @Test
