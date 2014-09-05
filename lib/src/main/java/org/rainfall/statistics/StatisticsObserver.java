@@ -11,22 +11,29 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class StatisticsObserver<K extends Enum<K>> {
 
+  private final K[] keys;
+
+  private final Map<K, Long> timestamps;
   private final Map<K, AtomicLong> counter;
   private final Map<K, Long> minLatency;
   private final Map<K, Long> maxLatency;
   private final Map<K, Double> averageLatency;
 
   public StatisticsObserver(final Class<K> results) {
+    this.keys = results.getEnumConstants();
+
+    this.timestamps = Collections.synchronizedMap(new EnumMap<K, Long>(results));
     this.counter = new EnumMap<K, AtomicLong>(results);
     this.minLatency = Collections.synchronizedMap(new EnumMap<K, Long>(results));
     this.maxLatency = Collections.synchronizedMap(new EnumMap<K, Long>(results));
     this.averageLatency = Collections.synchronizedMap(new EnumMap<K, Double>(results));
 
-    for (K t : results.getEnumConstants()) {
-      this.counter.put(t, new AtomicLong(0));
-      this.minLatency.put(t, Long.MAX_VALUE);
-      this.maxLatency.put(t, Long.MIN_VALUE);
-      this.averageLatency.put(t, 0.0);
+    for (K k : keys) {
+      this.timestamps.put(k, System.nanoTime());
+      this.counter.put(k, new AtomicLong(0));
+      this.minLatency.put(k, Long.MAX_VALUE);
+      this.maxLatency.put(k, Long.MIN_VALUE);
+      this.averageLatency.put(k, 0.0);
     }
   }
 
@@ -37,6 +44,8 @@ public class StatisticsObserver<K extends Enum<K>> {
   public void end(final long start, final K result) {
     long end = System.nanoTime();
     long latency = (end - start) / 1000000;
+
+    this.timestamps.put(result, start );
 
     long nbResults = counter.get(result).getAndIncrement();
 
@@ -60,19 +69,32 @@ public class StatisticsObserver<K extends Enum<K>> {
     return sum.longValue();
   }
 
-  public Map<K, AtomicLong> getCounter() {
-    return counter;
+  public K[] getKeys() {
+    return keys;
   }
 
-  public Map<K, Long> getMinLatency() {
-    return minLatency;
+  public Long getTimestamps(K key) {
+    return timestamps.get(key);
   }
 
-  public Map<K, Long> getMaxLatency() {
-    return maxLatency;
+  public Long getTimestamp() {
+    return timestamps.get(keys[0]);
   }
 
-  public Map<K, Double> getAverageLatency() {
-    return averageLatency;
+  public AtomicLong getCounter(K key) {
+    return counter.get(key);
   }
+
+  public Long getMinLatency(K key) {
+    return minLatency.get(key);
+  }
+
+  public Long getMaxLatency(K key) {
+    return maxLatency.get(key);
+  }
+
+  public Double getAverageLatency(K key) {
+    return averageLatency.get(key);
+  }
+
 }

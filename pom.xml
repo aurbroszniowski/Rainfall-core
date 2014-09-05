@@ -30,6 +30,15 @@
       <version>1.9.5</version>
       <scope>test</scope>
     </dependency>
+
+    <dependency>
+      <groupId>jsr166e</groupId>
+      <artifactId>jsr166e</artifactId>
+      <version>1.1</version>
+      <scope>system</scope>
+      <systemPath>/work/projects/Rainfall-xtra/jsr166e.jar</systemPath>
+    </dependency>
+
   </dependencies>
 
   <build>

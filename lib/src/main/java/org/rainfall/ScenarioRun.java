@@ -1,5 +1,6 @@
 package org.rainfall;
 
+import jsr166e.ConcurrentHashMapV8;
 import org.rainfall.configuration.ConcurrencyConfig;
 import org.rainfall.configuration.ReportingConfig;
 import org.rainfall.statistics.StatisticsThread;
@@ -8,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Aurelien Broszniowski
@@ -16,15 +16,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ScenarioRun {
 
-  private Runner runner;
   private Scenario scenario;
   //TODO : is it possible to generify?
-  private Map<Class<? extends Configuration>, Configuration> configurations = new ConcurrentHashMap<Class<? extends Configuration>, Configuration>();
+  private Map<Class<? extends Configuration>, Configuration> configurations = new ConcurrentHashMapV8<Class<? extends Configuration>, Configuration>();
   private List<AssertionEvaluator> assertions = new ArrayList<AssertionEvaluator>();
   private List<Execution> executions = new ArrayList<Execution>();
 
-  public ScenarioRun(final Runner runner, final Scenario scenario) {
-    this.runner = runner;
+  public ScenarioRun(final Scenario scenario) {
     this.scenario = scenario;
     initDefaultConfigurations();
   }

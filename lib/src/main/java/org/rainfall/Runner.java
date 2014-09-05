@@ -11,7 +11,7 @@ public class Runner {
 
   // add scenario beExecuted
   public static ScenarioRun setUp(Scenario scenario) {
-    return new ScenarioRun(new Runner(), scenario);
+    return new ScenarioRun(scenario);
   }
 
   public void start(final ScenarioRun run) {

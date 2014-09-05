@@ -5,8 +5,8 @@ import org.rainfall.Configuration;
 import org.rainfall.Execution;
 import org.rainfall.Operation;
 import org.rainfall.Scenario;
+import org.rainfall.Unit;
 import org.rainfall.configuration.ConcurrencyConfig;
-import org.rainfall.unit.User;
 
 import java.util.List;
 import java.util.Map;
@@ -19,21 +19,21 @@ import java.util.Map;
 
 public class AtOnce extends Execution {
   private final int nb;
-  private final User users;
+  private final Unit unit;
 
-  public AtOnce(final int nb, final User users) {
+  public AtOnce(final int nb, final Unit unit) {
     this.nb = nb;
-    this.users = users;
+    this.unit = unit;
   }
 
-  public void execute(final int threadNb, final Scenario scenario, final Map<Class<? extends Configuration>,
-      Configuration> configurations, final List<AssertionEvaluator> assertions) {
-    List<Operation> operations = scenario.getOperations();
+  public void execute(final int threadNb, final Scenario scenario,
+                      final Map<Class<? extends Configuration>, Configuration> configurations,
+                      final List<AssertionEvaluator> assertions) {
 
     ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
     int max = concurrencyConfig.getNbIterationsForThread(threadNb, nb);
     for (int i = 0; i < max; i++) {
-      for (Operation operation : operations) {
+      for (Operation operation : scenario.getOperations()) {
         operation.exec(configurations, assertions);
       }
     }

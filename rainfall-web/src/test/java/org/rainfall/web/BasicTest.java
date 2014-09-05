@@ -11,6 +11,10 @@ import org.rainfall.web.configuration.HttpConfig;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.rainfall.execution.Executions.atOnce;
+import static org.rainfall.execution.Executions.constantUsersPerSec;
+import static org.rainfall.execution.Executions.inParallel;
+import static org.rainfall.unit.TimeMeasurement.during;
+import static org.rainfall.unit.TimeMeasurement.every;
 import static org.rainfall.unit.Units.seconds;
 import static org.rainfall.unit.Units.users;
 import static org.rainfall.web.WebAssertions.isLessThan;
@@ -32,7 +36,7 @@ public class BasicTest {
         .baseURL("http://search.twitter.com");
     ConcurrencyConfig concurrency = ConcurrencyConfig.concurrencyConfig()
         .threads(4).timeout(5, MINUTES);
-    ReportingConfig reporting = ReportingConfig.reportingConfig(ReportingConfig.text());
+    ReportingConfig reporting = ReportingConfig.reportingConfig(ReportingConfig.text(), ReportingConfig.html());
 
     Scenario scenario = Scenario.scenario("Twitter search")
         .exec(http("Recherche Crocro").get("/search.json?q=crocro"))
@@ -40,7 +44,9 @@ public class BasicTest {
         .exec(http("Recherche Java").get("/search.json?q=java"));
 
     Runner.setUp(scenario)
-        .executed(atOnce(5, users), nothingFor(5, seconds), atOnce(5, users))
+        .executed(atOnce(5, users), nothingFor(5, seconds), atOnce(5, users),
+            constantUsersPerSec(5, during(10, seconds)),
+            inParallel(5, users, every(2, seconds), during(10, seconds)))
         .config(httpConf, concurrency, reporting)
         .assertion(responseTime(), isLessThan(1, seconds))
         .start();

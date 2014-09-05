@@ -27,7 +27,7 @@ public class ScenarioRunTest {
   public void testCorrectInstantiation() {
     Runner runner = mock(Runner.class);
     Scenario scenario = mock(Scenario.class);
-    ScenarioRun scenarioRun = new ScenarioRun(runner, scenario);
+    ScenarioRun scenarioRun = new ScenarioRun(scenario);
 
     assertThat(scenarioRun.getConfiguration(ConcurrencyConfig.class), is(notNullValue()));
   }
@@ -36,7 +36,7 @@ public class ScenarioRunTest {
   public void testTimeoutOnScenario() {
     Runner runner = mock(Runner.class);
     Scenario scenario = mock(Scenario.class);
-    ScenarioRun scenarioRun = new ScenarioRun(runner, scenario);
+    ScenarioRun scenarioRun = new ScenarioRun(scenario);
 //    ConcurrencyConfig concurrencyConfig = mock(ConcurrencyConfig.class);
 //    when(concurrencyConfig.getTimeoutInSeconds()).thenReturn(4L);
     ((ConcurrencyConfig)scenarioRun.getConfiguration(ConcurrencyConfig.class)).timeout(4, SECONDS);
