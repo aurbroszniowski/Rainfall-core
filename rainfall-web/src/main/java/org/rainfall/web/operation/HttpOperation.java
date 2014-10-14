@@ -5,6 +5,7 @@ import org.rainfall.Configuration;
 import org.rainfall.Operation;
 import org.rainfall.statistics.StatisticsManager;
 import org.rainfall.statistics.StatisticsObserver;
+import org.rainfall.statistics.Task;
 import org.rainfall.web.configuration.HttpConfig;
 import org.rainfall.web.statistics.HttpResult;
 
@@ -44,17 +45,18 @@ public class HttpOperation extends Operation {
     if (path != null) {
       url += path;
     }
-    long start = httpObserver.start();
-    System.out.println(">>> Get page for URL  = " + url + " (" + description + ")");
-    try {
-      Thread.sleep(new Random(System.currentTimeMillis()).nextInt(500));
-    } catch (InterruptedException e) {
-      e.printStackTrace();  //TODO : implement real http get
-    }
-    if (new Random(System.currentTimeMillis()).nextBoolean())
-      httpObserver.end(start, HttpResult.OK);
-    else
-      httpObserver.end(start, HttpResult.KO);
+
+    this.httpObserver.measure(new Task<HttpResult>() {
+      @Override
+      public HttpResult definition() throws Exception {
+        Thread.sleep(new Random(System.currentTimeMillis()).nextInt(500));
+        if (new Random(System.currentTimeMillis()).nextBoolean())
+          return HttpResult.OK;
+        else
+          return HttpResult.KO;
+      }
+    });
+
     //TODO : evaluate assertions
   }
 

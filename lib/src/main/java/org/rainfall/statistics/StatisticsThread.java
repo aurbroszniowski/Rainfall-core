@@ -23,14 +23,18 @@ public class StatisticsThread extends Thread {
   @Override
   public void run() {
     while (!stopped) {
-      ConcurrentHashMap<String, StatisticsObserver> statisticObservers = StatisticsManager.getStatisticObservers();
-      Set<Reporter> reporters = reportingConfig.getReporters();
+      System.out.println("*** Displaying stats");
 
-      for (StatisticsObserver observer : statisticObservers.values()) {
-        for (Reporter reporter : reporters) {
-          reporter.report(observer);
+      ConcurrentHashMap<String, StatisticsObserver> statisticObservers = StatisticsManager.getStatisticObservers();
+
+      Set<Reporter> reporters = reportingConfig.getReporters();
+      for (Reporter reporter : reporters) {
+        for (StatisticsObserver observer : statisticObservers.values()) {
+        reporter.report(observer);
         }
       }
+      System.out.println("******");
+
       try {
         sleep(1000);
       } catch (InterruptedException e) {
