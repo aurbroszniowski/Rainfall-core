@@ -43,7 +43,7 @@ public class TextReporter<K extends Enum<K>> implements Reporter<K> {
     K[] results = statistics.getKeys();
     for (K result : results) {
       sb.append(timestamp).append(" \t\t ");
-      sb.append("Number of operations: ").append(statistics.getCounter().get(result) / 1000000L).append(" ops");
+      sb.append("Number of operations: ").append(statistics.getCounter().get(result)).append(" ops");
       sb.append("Average Latency : ").append(statistics.getLatency().get(result) / 1000000L).append("ms");
       sb.append(System.getProperty("line.separator"));
     }

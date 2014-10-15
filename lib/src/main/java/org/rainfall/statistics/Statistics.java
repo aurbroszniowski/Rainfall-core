@@ -73,10 +73,15 @@ public class Statistics<K extends Enum<K>> {
   public Double averageLatencyInMs() {
     Double average = 0.0d;
     synchronized (latencies) {
+      int counter = 0;
       for (Enum<K> key : keys) {
-        average += latencies.get(key);
+        Long latency = latencies.get(key);
+        if (latency > 0) {
+          average += latency;
+          counter++;
+        }
       }
-      average /= keys.length;
+      average /= counter;
     }
     return average / 1000000L;
   }
