@@ -31,6 +31,9 @@ public class TextReporter<K extends Enum<K>> implements Reporter<K> {
 
   @Override
   public void report(final List<Statistics<K>> statistics) {
+    int totalNbOfOperations = 0;
+    Double totalLatency = 0d;
+
     for (Statistics<K> next : statistics) {
       StringBuilder sb = new StringBuilder();
       sb.append("KEY \t counter \t minLatency \t maxLatency \t averageLatencyInMs \n");
@@ -38,20 +41,25 @@ public class TextReporter<K extends Enum<K>> implements Reporter<K> {
       //TODO add calculation of total nb of ops / average latency
       System.out.println("** " + (timestamp));
       sb.append(timestamp).append(" \t\t ");
-      sb.append("Total operations: ").append(next.sumOfCounters()).append(" ops");
+      sb.append("Total operations: ").append(next.sumOfCounters()).append(" ops - ");
+      totalNbOfOperations += next.sumOfCounters();
       sb.append("Average Latency : ").append(next.averageLatencyInMs()).append("ms");
+      totalLatency += next.averageLatencyInMs();
       sb.append(System.getProperty("line.separator"));
       K[] results = next.getKeys();
       for (K result : results) {
         sb.append(timestamp).append(" \t\t ");
         sb.append("Number of operations: ").append(next.getCounter().get(result)).append(" ops");
-        sb.append("Average Latency : ").append(next.getLatency().get(result)).append("ms");
+        sb.append("Average Latency : ").append(next.getLatency().get(result)/1000000L).append("ms");
         sb.append(System.getProperty("line.separator"));
       }
       sb.append("--------------------------------------------------------------------------------------------");
       sb.append(System.getProperty("line.separator"));
       System.out.println(sb.toString());
     }
+
+    System.out.println("Final total nb of operations:" + totalNbOfOperations);
+    System.out.println("Final average:" + (totalLatency / totalNbOfOperations));
   }
 
 }
