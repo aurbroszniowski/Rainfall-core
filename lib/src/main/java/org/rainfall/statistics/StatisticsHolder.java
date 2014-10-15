@@ -14,18 +14,27 @@
  * limitations under the License.
  */
 
-package org.rainfall;
-
-import org.rainfall.statistics.StatisticsHolder;
+package org.rainfall.statistics;
 
 /**
- * A reporter is a class that will send the metrics to some output (text, file, etc.)
- *
  * @author Aurelien Broszniowski
  */
 
-public interface Reporter<K extends Enum<K>> {
+public class StatisticsHolder<K extends Enum<K>> {
 
-  void report(final StatisticsHolder<K> holder);
+  private Long timestamp;
+  private Statistics<K> statistics;
 
+  public StatisticsHolder(final Long timestamp, final Statistics<K> statistics) {
+    this.timestamp = timestamp;
+    this.statistics = statistics;
+  }
+
+  public Long getTimestamp() {
+    return timestamp;
+  }
+
+  public Statistics<K> getStatistics() {
+    return statistics;
+  }
 }

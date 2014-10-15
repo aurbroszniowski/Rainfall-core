@@ -18,8 +18,7 @@ package org.rainfall.reporting;
 
 import org.rainfall.Reporter;
 import org.rainfall.statistics.Statistics;
-
-import java.util.List;
+import org.rainfall.statistics.StatisticsHolder;
 
 /**
  * report the statistics to the text console
@@ -30,28 +29,26 @@ import java.util.List;
 public class TextReporter<K extends Enum<K>> implements Reporter<K> {
 
   @Override
-  public void report(final List<Statistics<K>> statistics) {
-    for (Statistics<K> next : statistics) {
-      StringBuilder sb = new StringBuilder();
-      sb.append("KEY \t counter \t minLatency \t maxLatency \t averageLatencyInMs \n");
-      Long timestamp = next.getTimestamp();
-      //TODO add calculation of total nb of ops / average latency
-      System.out.println("** " + (timestamp));
+  public void report(final StatisticsHolder<K> holder) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("KEY \t counter \t minLatency \t maxLatency \t averageLatencyInMs \n");
+    Long timestamp = holder.getTimestamp();
+    //TODO add calculation of total nb of ops / average latency
+    System.out.println("** " + (timestamp));
+    sb.append(timestamp).append(" \t\t ");
+    Statistics<K> statistics = holder.getStatistics();
+    sb.append("Total operations: ").append(statistics.sumOfCounters()).append(" ops");
+    sb.append("Average Latency : ").append(statistics.averageLatencyInMs()).append("ms");
+    sb.append(System.getProperty("line.separator"));
+    K[] results = statistics.getKeys();
+    for (K result : results) {
       sb.append(timestamp).append(" \t\t ");
-      sb.append("Total operations: ").append(next.sumOfCounters()).append(" ops");
-      sb.append("Average Latency : ").append(next.averageLatencyInMs()).append("ms");
+      sb.append("Number of operations: ").append(statistics.getCounter().get(result) / 1000000L).append(" ops");
+      sb.append("Average Latency : ").append(statistics.getLatency().get(result) / 1000000L).append("ms");
       sb.append(System.getProperty("line.separator"));
-      K[] results = next.getKeys();
-      for (K result : results) {
-        sb.append(timestamp).append(" \t\t ");
-        sb.append("Number of operations: ").append(next.getCounter().get(result)).append(" ops");
-        sb.append("Average Latency : ").append(next.getLatency().get(result)).append("ms");
-        sb.append(System.getProperty("line.separator"));
-      }
-      sb.append("--------------------------------------------------------------------------------------------");
-      sb.append(System.getProperty("line.separator"));
-      System.out.println(sb.toString());
     }
+    sb.append("--------------------------------------------------------------------------------------------");
+    sb.append(System.getProperty("line.separator"));
+    System.out.println(sb.toString());
   }
-
 }

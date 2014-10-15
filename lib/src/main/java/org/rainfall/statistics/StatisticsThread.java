@@ -32,32 +32,32 @@ import java.util.concurrent.ConcurrentHashMap;
 public class StatisticsThread<K extends Enum<K>> extends Thread {
 
   boolean stopped = false;
-  private ReportingConfig reportingConfig;
+  private ReportingConfig<K> reportingConfig;
 
-  public StatisticsThread(final ReportingConfig reportingConfig) {
+  public StatisticsThread(final ReportingConfig<K> reportingConfig) {
     this.reportingConfig = reportingConfig;
   }
 
   @Override
+  @SuppressWarnings("unsigned")
   public void run() {
     boolean noStatToReport = true;
     while (!stopped && noStatToReport) {
-/*
       System.out.println("*** Displaying stats");
 
-      ConcurrentHashMap<String, StatisticsObserver> statisticObservers = StatisticsObserversFactory.getInstance().getStatisticObservers();
+      ConcurrentHashMap<String, StatisticsObserver> statisticObservers =
+          StatisticsObserversFactory.getInstance().getStatisticObservers();
 
-      Set<Reporter> reporters = reportingConfig.getReporters();
+      Set<Reporter<K>> reporters = reportingConfig.getReporters();
       noStatToReport = true;
-      for (StatisticsObserver observer : statisticObservers.values()) {
-        List statistics = observer.peekAll();
-        for (Reporter reporter : reporters) {
-          reporter.report(statistics);
+      for (StatisticsObserver<K> observer : statisticObservers.values()) {
+        StatisticsHolder<K> holder = observer.peek();
+        for (Reporter<K> reporter : reporters) {
+          reporter.report(holder);
         }
-        noStatToReport &= observer.hasEmptyQueue();
+//        noStatToReport &= observer.hasEmptyQueue();
       }
       System.out.println("******");
-*/
 
       try {
         sleep(1000);
@@ -69,20 +69,6 @@ public class StatisticsThread<K extends Enum<K>> extends Thread {
   }
 
   public void end() {
-    System.out.println("*** Displaying stats");
-
-    ConcurrentHashMap<String, StatisticsObserver> statisticObservers = StatisticsObserversFactory.getInstance().getStatisticObservers();
-
-    Set<Reporter> reporters = reportingConfig.getReporters();
-    for (StatisticsObserver observer : statisticObservers.values()) {
-      List statistics = observer.peekAll();
-      for (Reporter reporter : reporters) {
-        reporter.report(statistics);
-      }
-    }
-    System.out.println("******");
-
-
     this.stopped = true;
   }
 }

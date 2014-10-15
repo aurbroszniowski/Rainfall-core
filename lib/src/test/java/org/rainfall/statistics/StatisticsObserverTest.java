@@ -46,9 +46,8 @@ public class StatisticsObserverTest {
     observer.measure((Task<Results>)task);
     observer.measure((Task<Results>)task);
 
-    List<Statistics<Results>> statisticsList = observer.peekAll();
-    assertThat(statisticsList.size(), is(equalTo(1)));
-    Statistics<Results> resultsStatistics = statisticsList.get(0);
+    StatisticsHolder<Results> holder = observer.peek();
+    Statistics<Results> resultsStatistics = holder.getStatistics();
     long okLatency = okEnd - start;
     long koLatency = koEnd - start;
     double averageLatency = new Double(okLatency + koLatency) / 2 / 1000000L;
