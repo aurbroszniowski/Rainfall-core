@@ -3,7 +3,7 @@ package org.rainfall.web.operation;
 import org.rainfall.AssertionEvaluator;
 import org.rainfall.Configuration;
 import org.rainfall.Operation;
-import org.rainfall.statistics.StatisticsManager;
+import org.rainfall.statistics.StatisticsObserversFactory;
 import org.rainfall.statistics.StatisticsObserver;
 import org.rainfall.statistics.Task;
 import org.rainfall.web.configuration.HttpConfig;
@@ -20,7 +20,7 @@ import java.util.Random;
 public class HttpOperation extends Operation {
   private String description;
   private String path = null;
-  private StatisticsObserver<HttpResult> httpObserver = StatisticsManager.getStatisticObserver("http", HttpResult.class);
+  private StatisticsObserver<HttpResult> httpObserver = StatisticsObserversFactory.<HttpResult>getInstance().getStatisticObserver("http", HttpResult.class);
 
   public HttpOperation(final String description) {
     this.description = description;

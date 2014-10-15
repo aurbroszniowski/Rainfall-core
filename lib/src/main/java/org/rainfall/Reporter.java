@@ -1,6 +1,8 @@
 package org.rainfall;
 
-import org.rainfall.statistics.StatisticsObserver;
+import org.rainfall.statistics.Statistics;
+
+import java.util.List;
 
 /**
  * A reporter is a class that will send the metrics to some output (text, file, etc.)
@@ -10,6 +12,6 @@ import org.rainfall.statistics.StatisticsObserver;
 
 public interface Reporter<K extends Enum<K>> {
 
-  void report(StatisticsObserver<K> statisticsObserver);
+  void report(List<Statistics<K>> statistics);
 
 }

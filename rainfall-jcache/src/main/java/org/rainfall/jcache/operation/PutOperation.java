@@ -9,7 +9,7 @@ import org.rainfall.Operation;
 import org.rainfall.SequenceGenerator;
 import org.rainfall.jcache.CacheConfig;
 import org.rainfall.jcache.statistics.JCacheResult;
-import org.rainfall.statistics.StatisticsManager;
+import org.rainfall.statistics.StatisticsObserversFactory;
 import org.rainfall.statistics.StatisticsObserver;
 import org.rainfall.statistics.Task;
 
@@ -36,7 +36,7 @@ public class PutOperation extends Operation {
       final ObjectGenerator keyGenerator = cacheConfig.getKeyGenerator();
       final ObjectGenerator valueGenerator = cacheConfig.getValueGenerator();
       for (final Ehcache cache : caches) {
-        StatisticsObserver<JCacheResult> observer = StatisticsManager.getStatisticObserver(cache.getName(), JCacheResult.class);
+        StatisticsObserver<JCacheResult> observer = StatisticsObserversFactory.getInstance().getStatisticObserver(cache.getName(), JCacheResult.class);
         observer.measure(new Task<JCacheResult>() {
 
           @Override

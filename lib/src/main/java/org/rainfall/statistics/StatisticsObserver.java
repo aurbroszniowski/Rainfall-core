@@ -2,8 +2,8 @@ package org.rainfall.statistics;
 
 import jsr166e.ConcurrentHashMapV8;
 
-import java.util.Map;
-import java.util.PriorityQueue;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * @author Aurelien Broszniowski
@@ -12,15 +12,20 @@ import java.util.PriorityQueue;
 public class StatisticsObserver<K extends Enum<K>> {
 
   private final K[] keys;
-  private final ConcurrentHashMapV8<Long, Statistics<K>> statisticsMap = new ConcurrentHashMapV8<Long, Statistics<K>>();
-  private final PriorityQueue<Statistics<K>> statisticsQueue = new PriorityQueue<Statistics<K>>();
+  private final MeldablePriorityQueue<Long, Statistics<K>> statisticsQueue;
 
   public StatisticsObserver(final Class<K> results) {
     this.keys = results.getEnumConstants();
+    statisticsQueue = new MeldablePriorityQueue<Long, Statistics<K>>(new Comparator<Statistics<K>>() {
+      @Override
+      public int compare(final Statistics<K> o1, final Statistics<K> o2) {
+        return o1.getTimestamp().compareTo(o2.getTimestamp());
+      }
+    });
   }
 
   protected long getTime() {
-    return System.currentTimeMillis();
+    return System.nanoTime();
   }
 
   public void measure(Task<K> task) {
@@ -29,9 +34,9 @@ public class StatisticsObserver<K extends Enum<K>> {
       final K result = task.definition();
       final long end = getTime();
       final long latency = (end - start);
-      long timestamp = start;
-      this.statisticsMap.merge(timestamp,
-          new Statistics<K>(keys, result, latency), new ConcurrentHashMapV8.BiFun<Statistics<K>, Statistics<K>, Statistics<K>>() {
+      long timestamp = start/1000000L;
+      this.statisticsQueue.meld(timestamp,
+          new Statistics<K>(keys, timestamp, result, latency), new ConcurrentHashMapV8.BiFun<Statistics<K>, Statistics<K>, Statistics<K>>() {
         @Override
         public Statistics<K> apply(final Statistics<K> originalValue, final Statistics<K> newValue) {
           originalValue.increaseCounterAndSetLatency(result, latency);
@@ -47,7 +52,11 @@ public class StatisticsObserver<K extends Enum<K>> {
     return keys;
   }
 
-  public ConcurrentHashMapV8<Long, Statistics<K>> getStatisticsMap() {
-    return this.statisticsMap;
+  public List<Statistics<K>> peekAll() {
+    return this.statisticsQueue.peekAll(getTime() - 5000);
+  }
+
+  public boolean hasEmptyQueue() {
+    return statisticsQueue.size() == 0;
   }
 }
