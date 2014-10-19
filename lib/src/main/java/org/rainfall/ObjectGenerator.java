@@ -20,8 +20,8 @@ package org.rainfall;
  * @author Aurelien Broszniowski
  */
 
-public interface ObjectGenerator {
+public interface ObjectGenerator<T> {
 
-  Object generate(long seed);
+  T generate(long seed);
 
 }

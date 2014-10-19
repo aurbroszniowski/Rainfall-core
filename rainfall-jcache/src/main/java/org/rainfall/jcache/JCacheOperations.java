@@ -16,7 +16,9 @@
 
 package org.rainfall.jcache;
 
+import org.rainfall.jcache.operation.GetOperation;
 import org.rainfall.jcache.operation.PutOperation;
+import org.rainfall.jcache.operation.RemoveOperation;
 
 /**
  * Contains the helper methods to instantiate the JCache {@link org.rainfall.Operation} objects.
@@ -30,5 +32,12 @@ public class JCacheOperations {
     return new PutOperation();
   }
 
+  public static GetOperation get() {
+    return new GetOperation();
+  }
+
+  public static RemoveOperation remove() {
+    return new RemoveOperation();
+  }
 
 }

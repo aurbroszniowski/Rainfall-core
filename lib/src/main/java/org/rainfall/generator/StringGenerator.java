@@ -40,7 +40,7 @@ public class StringGenerator implements ObjectGenerator {
   }
 
   @Override
-  public Object generate(final long seed) {
+  public String generate(final long seed) {
     return "" + this.randomString;   // return a new instance
   }
 

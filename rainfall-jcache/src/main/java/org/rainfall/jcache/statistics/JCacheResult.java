@@ -21,5 +21,5 @@ package org.rainfall.jcache.statistics;
  */
 
 public enum JCacheResult {
-  OK, EXCEPTION
+  PUT, GET, MISS, REMOVE, EXCEPTION
 }

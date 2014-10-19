@@ -16,12 +16,7 @@
 
 package org.rainfall.jcache;
 
-import net.sf.ehcache.CacheManager;
-import net.sf.ehcache.Ehcache;
-import net.sf.ehcache.config.CacheConfiguration;
-import net.sf.ehcache.config.Configuration;
-import net.sf.ehcache.config.MemoryUnit;
-import org.junit.Assert;
+import org.ehcache.jcache.JCacheConfiguration;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.rainfall.Runner;
@@ -32,10 +27,19 @@ import org.rainfall.generator.ByteArrayGenerator;
 import org.rainfall.generator.StringGenerator;
 import org.rainfall.utils.SystemTest;
 
+import java.util.concurrent.TimeUnit;
+
+import javax.cache.Cache;
+import javax.cache.Caching;
+import javax.cache.configuration.MutableConfiguration;
+import javax.cache.expiry.Duration;
+import javax.cache.expiry.ModifiedExpiryPolicy;
+
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.rainfall.execution.Executions.times;
-import static org.rainfall.jcache.CacheConfig.cacheConfig;
+import static org.rainfall.jcache.JCacheOperations.get;
 import static org.rainfall.jcache.JCacheOperations.put;
+import static org.rainfall.jcache.JCacheOperations.remove;
 import static org.rainfall.jcache.operation.OperationWeight.OPERATION.PUT;
 import static org.rainfall.jcache.operation.OperationWeight.OPERATION.PUTIFABSENT;
 import static org.rainfall.jcache.operation.OperationWeight.operation;
@@ -49,40 +53,32 @@ public class CrudTest {
 
   @Test
   public void testLoad() {
+    Cache one = Caching.getCachingProvider().getCacheManager().createCache("testSimpleLoad",
+        new JCacheConfiguration<String, Byte>(new MutableConfiguration<String, Byte>().setStatisticsEnabled(true)
+            .setExpiryPolicyFactory(ModifiedExpiryPolicy.factoryOf(new Duration(TimeUnit.MINUTES, 10)))
+            .setStoreByValue(true)));
 
-    CacheManager manager = null;
-    try {
-      manager = new CacheManager(new Configuration().name("testSimpleLoad")
-          .maxBytesLocalHeap(16, MemoryUnit.MEGABYTES)
-          .defaultCache(new CacheConfiguration("default", 0)));
-      Ehcache one = manager.addCacheIfAbsent("one");
+    CacheConfig<String, Byte> cacheConfig = CacheConfig.<String, Byte>cacheConfig()
+        .caches(one)
+        .using(StringGenerator.fixedLength(10), ByteArrayGenerator.fixedLength(128))
+        .sequentially()
+        .weights(operation(PUT, 0.50), operation(PUTIFABSENT, 0.30));
+    ConcurrencyConfig concurrency = ConcurrencyConfig.concurrencyConfig()
+        .threads(4).timeout(5, MINUTES);
+    ReportingConfig reporting = ReportingConfig.reportingConfig(ReportingConfig.text());
 
-      CacheConfig cacheConfig = cacheConfig()
-          .caches(one)
-          .using(StringGenerator.fixedLength(10), ByteArrayGenerator.fixedLength(128))
-          .sequentially()
-          .weights(operation(PUT, 0.50), operation(PUTIFABSENT, 0.30));
-      ConcurrencyConfig concurrency = ConcurrencyConfig.concurrencyConfig()
-          .threads(4).timeout(5, MINUTES);
-      ReportingConfig reporting = ReportingConfig.reportingConfig(ReportingConfig.text());
-
-      Scenario scenario = Scenario.scenario("Ehcache load")
+    Scenario scenario = Scenario.scenario("Cache load")
 //          .using(iteration(from(0), sequentially(), times(10000)))
 //          .exec(putIfAbsent(0.51))
-          .exec(put());
+        .exec(put())
+        .exec(get())
+        .exec(remove());
 
-      Runner.setUp(scenario)
-          .executed(times(300000))
-          .config(cacheConfig, concurrency, reporting)
+    Runner.setUp(scenario)
+        .executed(times(300000))
+        .config(cacheConfig, concurrency, reporting)
 //          .assertion(latencyTime(), isLessThan(1, seconds))
-          .start();
-
-      Assert.assertTrue(one.getSize() > 0);
-    } finally {
-      if (manager != null)
-        manager.shutdown();
-    }
-
+        .start();
   }
 
 }

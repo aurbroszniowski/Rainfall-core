@@ -25,7 +25,7 @@ package org.rainfall.jcache.operation;
 
 public class OperationWeight {
 
-  public enum OPERATION {PUT, PUTIFABSENT}
+  public enum OPERATION {PUT, PUTIFABSENT, GET, REMOVE}
 
   private double weight = 0.0;
   private OPERATION operation;

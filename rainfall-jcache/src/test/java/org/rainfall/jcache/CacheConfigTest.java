@@ -16,8 +16,9 @@
 
 package org.rainfall.jcache;
 
-import net.sf.ehcache.Ehcache;
 import org.junit.Test;
+
+import javax.cache.Cache;
 
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -31,9 +32,9 @@ public class CacheConfigTest {
 
   @Test
   public void testAddCachesWillReturnCaches() {
-    Ehcache cache1 = mock(Ehcache.class);
-    Ehcache cache2 = mock(Ehcache.class);
-    CacheConfig cacheConfig = new CacheConfig();
+    Cache<String, String> cache1 = mock(Cache.class);
+    Cache<String, String> cache2 = mock(Cache.class);
+    CacheConfig<String, String> cacheConfig = new CacheConfig<String, String>();
     cacheConfig.caches(cache1, cache2);
     assertThat(cacheConfig.getCaches(), hasItems(cache1, cache2));
   }

@@ -16,7 +16,6 @@
 
 package org.rainfall.jcache;
 
-import net.sf.ehcache.Ehcache;
 import org.rainfall.Configuration;
 import org.rainfall.ObjectGenerator;
 import org.rainfall.generator.IterationSequenceGenerator;
@@ -28,29 +27,31 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.cache.Cache;
+
 /**
  * @author Aurelien Broszniowski
  */
 
-public class CacheConfig extends Configuration {
+public class CacheConfig<K, V> extends Configuration {
 
-  private List<Ehcache> caches = new ArrayList<Ehcache>();
+  private List<Cache<K, V>> caches = new ArrayList<Cache<K, V>>();
   private ObjectGenerator keyGenerator = null;
-  private ObjectGenerator valueGenerator = null;
+  private ObjectGenerator  valueGenerator = null;
   private IterationSequenceGenerator sequenceGenerator = null;
   private RangeMap<OperationWeight.OPERATION> weights = new RangeMap<OperationWeight.OPERATION>();
   private PseudoRandom randomizer = new PseudoRandom();
 
-  public static CacheConfig cacheConfig() {
-    return new CacheConfig();
+  public static <K,V> CacheConfig<K,V> cacheConfig() {
+    return new CacheConfig<K,V>();
   }
 
-  public CacheConfig caches(final Ehcache... caches) {
+  public CacheConfig<K,V> caches(final Cache<K, V>... caches) {
     Collections.addAll(this.caches, caches);
     return this;
   }
 
-  public CacheConfig using(final ObjectGenerator keyGenerator, final ObjectGenerator valueGenerator) {
+  public CacheConfig<K,V> using(final ObjectGenerator  keyGenerator, final ObjectGenerator  valueGenerator) {
     if (this.keyGenerator != null) {
       throw new IllegalStateException("KeyGenerator already chosen.");
     }
@@ -63,7 +64,7 @@ public class CacheConfig extends Configuration {
     return this;
   }
 
-  public CacheConfig sequentially() {
+  public CacheConfig<K,V> sequentially() {
     if (this.sequenceGenerator != null) {
       throw new IllegalStateException("SequenceGenerator already chosen.");
     }
@@ -71,7 +72,7 @@ public class CacheConfig extends Configuration {
     return this;
   }
 
-  public CacheConfig weights(OperationWeight... operationWeights) {
+  public CacheConfig<K,V> weights(OperationWeight... operationWeights) {
     double totalWeight = 0;
     for (OperationWeight weight : operationWeights) {
       totalWeight += weight.getWeight();
@@ -86,15 +87,15 @@ public class CacheConfig extends Configuration {
     return this;
   }
 
-  public List<Ehcache> getCaches() {
+  public List<Cache<K, V>> getCaches() {
     return caches;
   }
 
-  public ObjectGenerator getKeyGenerator() {
+  public ObjectGenerator  getKeyGenerator() {
     return keyGenerator;
   }
 
-  public ObjectGenerator getValueGenerator() {
+  public ObjectGenerator  getValueGenerator() {
     return valueGenerator;
   }
 
