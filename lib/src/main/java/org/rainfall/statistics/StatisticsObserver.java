@@ -16,11 +16,6 @@
 
 package org.rainfall.statistics;
 
-import jsr166e.ConcurrentHashMapV8;
-
-import java.util.Comparator;
-import java.util.List;
-
 /**
  * @author Aurelien Broszniowski
  */
@@ -28,16 +23,13 @@ import java.util.List;
 public class StatisticsObserver<K extends Enum<K>> {
 
   private final K[] keys;
-  private final MeldablePriorityQueue<Long, Statistics<K>> statisticsQueue;
+  private final Statistics<K> statistics;
+  private long timestamp;
+  private Long previousCounter = 0L;
 
   public StatisticsObserver(final Class<K> results) {
     this.keys = results.getEnumConstants();
-    statisticsQueue = new MeldablePriorityQueue<Long, Statistics<K>>(new Comparator<Statistics<K>>() {
-      @Override
-      public int compare(final Statistics<K> o1, final Statistics<K> o2) {
-        return o1.getTimestamp().compareTo(o2.getTimestamp());
-      }
-    });
+    this.statistics = new Statistics<K>(results.getEnumConstants());
   }
 
   protected long getTime() {
@@ -50,15 +42,8 @@ public class StatisticsObserver<K extends Enum<K>> {
       final K result = task.definition();
       final long end = getTime();
       final long latency = (end - start);
-      long timestamp = start/1000000L;
-      this.statisticsQueue.meld(timestamp,
-          new Statistics<K>(keys, timestamp, result, latency), new ConcurrentHashMapV8.BiFun<Statistics<K>, Statistics<K>, Statistics<K>>() {
-        @Override
-        public Statistics<K> apply(final Statistics<K> originalValue, final Statistics<K> newValue) {
-          originalValue.increaseCounterAndSetLatency(result, latency);
-          return originalValue;
-        }
-      });
+      this.timestamp = start / 1000000L;
+      this.statistics.increaseCounterAndSetLatency(result, latency);
     } catch (Exception e) {
       throw new RuntimeException("Exception in measured task " + task.toString(), e);
     }
@@ -68,11 +53,15 @@ public class StatisticsObserver<K extends Enum<K>> {
     return keys;
   }
 
-  public List<Statistics<K>> peekAll() {
-    return this.statisticsQueue.peekAll(getTime() - 5000);
+  public StatisticsHolder<K> peek() {
+    return new StatisticsHolder<K>(this.timestamp, statistics);
   }
 
   public boolean hasEmptyQueue() {
-    return statisticsQueue.size() == 0;
+    if (this.previousCounter.equals(this.statistics.sumOfCounters())) {
+      return true;
+    }
+    this.previousCounter = this.statistics.sumOfCounters();
+    return false;
   }
 }

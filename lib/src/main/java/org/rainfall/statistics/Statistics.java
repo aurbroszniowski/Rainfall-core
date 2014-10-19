@@ -27,19 +27,15 @@ import jsr166e.ConcurrentHashMapV8;
 public class Statistics<K extends Enum<K>> {
 
   private final K[] keys;
-  private final Long timestamp;
   private final ConcurrentHashMapV8<K, Long> counters = new ConcurrentHashMapV8<K, Long>();
   private final ConcurrentHashMapV8<K, Long> latencies = new ConcurrentHashMapV8<K, Long>();
 
-  public Statistics(K[] keys, final Long timestamp, final K result, final Long latency) {
+  public Statistics(K[] keys) {
     this.keys = keys;
-    this.timestamp = timestamp;
     for (K key : keys) {
       this.counters.put(key, new Long(0));
       this.latencies.put(key, new Long(0));
     }
-    this.counters.put(result, new Long(1));
-    this.latencies.put(result, latency);
   }
 
   public void increaseCounterAndSetLatency(final K result, Long latency) {
@@ -62,10 +58,6 @@ public class Statistics<K extends Enum<K>> {
 
   public ConcurrentHashMapV8<K, Long> getLatency() {
     return latencies;
-  }
-
-  public Long getTimestamp() {
-    return timestamp;
   }
 
   public Long sumOfCounters() {
