@@ -29,6 +29,7 @@ public class Statistics<K extends Enum<K>> {
   private final K[] keys;
   private final ConcurrentHashMapV8<K, Long> counters = new ConcurrentHashMapV8<K, Long>();
   private final ConcurrentHashMapV8<K, Double> latencies = new ConcurrentHashMapV8<K, Double>();
+  private final Long startTime;
 
   public Statistics(K[] keys) {
     this.keys = keys;
@@ -36,6 +37,7 @@ public class Statistics<K extends Enum<K>> {
       this.counters.put(key, 0L);
       this.latencies.put(key, 0.0d);
     }
+    this.startTime = getTime();
   }
 
   public void increaseCounterAndSetLatency(final K result, Long latency) {
@@ -52,18 +54,34 @@ public class Statistics<K extends Enum<K>> {
     return keys;
   }
 
-  public ConcurrentHashMapV8<K, Long> getCounter() {
-    return counters;
+  public Long getCounter(K key) {
+    return counters.get(key);
   }
 
-  public ConcurrentHashMapV8<K, Double> getLatency() {
-    return latencies;
+  public Double getLatency(K key) {
+    return latencies.get(key);
+  }
+
+  public Long getTps(K key) {
+    long cnt, length;
+    synchronized (startTime) {
+      length = getTime() - this.startTime;
+      if (length < 1000000000L) {
+        return 0L;
+      }
+      cnt = this.counters.get(key);
+    }
+    return cnt / (length / 1000000000L);
+  }
+
+  protected long getTime() {
+    return System.nanoTime();
   }
 
   public Long sumOfCounters() {
     Long total = 0L;
     synchronized (counters) {
-      for (Enum<K> key : keys) {
+      for (K key : keys) {
         total += counters.get(key);
       }
     }
@@ -74,7 +92,7 @@ public class Statistics<K extends Enum<K>> {
     Double average = 0.0d;
     synchronized (latencies) {
       int counter = 0;
-      for (Enum<K> key : keys) {
+      for (K key : keys) {
         double latency = latencies.get(key);
         if (latency > 0) {
           average += latency;
@@ -84,5 +102,17 @@ public class Statistics<K extends Enum<K>> {
       average /= counter;
     }
     return average;
+  }
+
+  public Long averageTps() {
+    long cnt, length;
+    synchronized (startTime) {
+      length = getTime() - this.startTime;
+      if (length < 1000000000L) {
+        return 0L;
+      }
+      cnt = sumOfCounters();
+    }
+    return cnt / (length / 1000000000L);
   }
 }

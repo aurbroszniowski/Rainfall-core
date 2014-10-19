@@ -37,13 +37,15 @@ public class TextReporter<K extends Enum<K>> implements Reporter<K> {
     sb.append(System.getProperty("line.separator"));
     Statistics<K> statistics = holder.getStatistics();
     sb.append("Total operations: ").append(statistics.sumOfCounters()).append(" ops \t");
-    sb.append("Average Latency : ").append(String.format("%.2f", statistics.averageLatencyInMs())).append("ms");
+    sb.append("Average Latency: ").append(String.format("%.2f", statistics.averageLatencyInMs())).append("ms \t");
+    sb.append("Average TPS: ").append(statistics.averageTps());
     sb.append(System.getProperty("line.separator"));
     K[] results = statistics.getKeys();
     for (K result : results) {
       sb.append(result).append(" \t\t ");
-      sb.append("Number of operations: ").append(statistics.getCounter().get(result)).append(" ops \t");
-      sb.append("Average Latency : ").append(String.format("%.2f", statistics.getLatency().get(result))).append("ms");
+      sb.append("Number of operations: ").append(statistics.getCounter(result)).append(" ops \t");
+      sb.append("Average Latency: ").append(String.format("%.2f", statistics.getLatency(result))).append("ms \t");
+      sb.append("TPS: ").append(statistics.getTps(result));
       sb.append(System.getProperty("line.separator"));
     }
     sb.append("--------------------------------------------------------------------------------------------");
