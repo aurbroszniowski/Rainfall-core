@@ -28,13 +28,13 @@ public class Statistics<K extends Enum<K>> {
 
   private final K[] keys;
   private final ConcurrentHashMapV8<K, Long> counters = new ConcurrentHashMapV8<K, Long>();
-  private final ConcurrentHashMapV8<K, Long> latencies = new ConcurrentHashMapV8<K, Long>();
+  private final ConcurrentHashMapV8<K, Double> latencies = new ConcurrentHashMapV8<K, Double>();
 
   public Statistics(K[] keys) {
     this.keys = keys;
     for (K key : keys) {
-      this.counters.put(key, new Long(0));
-      this.latencies.put(key, new Long(0));
+      this.counters.put(key, 0L);
+      this.latencies.put(key, 0.0d);
     }
   }
 
@@ -42,7 +42,7 @@ public class Statistics<K extends Enum<K>> {
     //TODO improve the atomicity
     synchronized (counters.get(result)) {
       long cnt = this.counters.get(result);
-      long updatedLatency = (this.latencies.get(result) * cnt + latency) / (cnt + 1);
+      double updatedLatency = (this.latencies.get(result) * cnt + (latency / 1000000L)) / (cnt + 1);
       this.latencies.put(result, updatedLatency);  //TODO : use merge
       this.counters.put(result, ++cnt);          //TODO use merge
     }
@@ -56,7 +56,7 @@ public class Statistics<K extends Enum<K>> {
     return counters;
   }
 
-  public ConcurrentHashMapV8<K, Long> getLatency() {
+  public ConcurrentHashMapV8<K, Double> getLatency() {
     return latencies;
   }
 
@@ -75,7 +75,7 @@ public class Statistics<K extends Enum<K>> {
     synchronized (latencies) {
       int counter = 0;
       for (Enum<K> key : keys) {
-        Long latency = latencies.get(key);
+        double latency = latencies.get(key);
         if (latency > 0) {
           average += latency;
           counter++;
@@ -83,6 +83,6 @@ public class Statistics<K extends Enum<K>> {
       }
       average /= counter;
     }
-    return average / 1000000L;
+    return average;
   }
 }

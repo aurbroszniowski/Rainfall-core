@@ -25,6 +25,7 @@ import java.util.Random;
 public class PseudoRandom extends Random {
 
   //TODO : avoid instantiation on every operation exec
+  //TODO : use a pool of randomizer in order to avoid threads waiting
   public Double nextDouble(final long next) {
     return new Random(next).nextDouble();
   }

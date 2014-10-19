@@ -29,13 +29,13 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.rainfall.execution.Executions.atOnce;
 import static org.rainfall.execution.Executions.constantUsersPerSec;
 import static org.rainfall.execution.Executions.inParallel;
+import static org.rainfall.execution.Executions.nothingFor;
 import static org.rainfall.unit.TimeMeasurement.during;
 import static org.rainfall.unit.TimeMeasurement.every;
 import static org.rainfall.unit.Units.seconds;
 import static org.rainfall.unit.Units.users;
 import static org.rainfall.web.WebAssertions.isLessThan;
 import static org.rainfall.web.WebAssertions.responseTime;
-import static org.rainfall.web.WebExecutions.nothingFor;
 import static org.rainfall.web.WebOperations.http;
 import static org.rainfall.web.configuration.HttpConfig.httpConfig;
 

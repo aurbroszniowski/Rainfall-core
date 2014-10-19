@@ -16,10 +16,9 @@
 
 package org.rainfall.statistics;
 
-import org.rainfall.configuration.ReportingConfig;
 import org.rainfall.Reporter;
+import org.rainfall.configuration.ReportingConfig;
 
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -43,8 +42,6 @@ public class StatisticsThread<K extends Enum<K>> extends Thread {
   public void run() {
     boolean noStatToReport = true;
     while (!stopped && noStatToReport) {
-      System.out.println("*** Displaying stats");
-
       ConcurrentHashMap<String, StatisticsObserver> statisticObservers =
           StatisticsObserversFactory.getInstance().getStatisticObservers();
 
@@ -57,8 +54,6 @@ public class StatisticsThread<K extends Enum<K>> extends Thread {
         }
 //        noStatToReport &= observer.hasEmptyQueue();
       }
-      System.out.println("******");
-
       try {
         sleep(1000);
       } catch (InterruptedException e) {

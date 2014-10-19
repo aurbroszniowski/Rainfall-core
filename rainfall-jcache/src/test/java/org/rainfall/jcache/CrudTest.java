@@ -36,13 +36,16 @@ import javax.cache.expiry.Duration;
 import javax.cache.expiry.ModifiedExpiryPolicy;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
+import static org.rainfall.execution.Executions.nothingFor;
 import static org.rainfall.execution.Executions.times;
 import static org.rainfall.jcache.JCacheOperations.get;
 import static org.rainfall.jcache.JCacheOperations.put;
 import static org.rainfall.jcache.JCacheOperations.remove;
+import static org.rainfall.jcache.operation.OperationWeight.OPERATION.GET;
 import static org.rainfall.jcache.operation.OperationWeight.OPERATION.PUT;
-import static org.rainfall.jcache.operation.OperationWeight.OPERATION.PUTIFABSENT;
+import static org.rainfall.jcache.operation.OperationWeight.OPERATION.REMOVE;
 import static org.rainfall.jcache.operation.OperationWeight.operation;
+import static org.rainfall.unit.Units.seconds;
 
 /**
  * @author Aurelien Broszniowski
@@ -62,20 +65,19 @@ public class CrudTest {
         .caches(one)
         .using(StringGenerator.fixedLength(10), ByteArrayGenerator.fixedLength(128))
         .sequentially()
-        .weights(operation(PUT, 0.50), operation(PUTIFABSENT, 0.30));
+        .weights(operation(PUT, 0.10), operation(GET, 0.80), operation(REMOVE, 0.10));
     ConcurrencyConfig concurrency = ConcurrencyConfig.concurrencyConfig()
         .threads(4).timeout(5, MINUTES);
     ReportingConfig reporting = ReportingConfig.reportingConfig(ReportingConfig.text());
 
     Scenario scenario = Scenario.scenario("Cache load")
 //          .using(iteration(from(0), sequentially(), times(10000)))
-//          .exec(putIfAbsent(0.51))
         .exec(put())
         .exec(get())
         .exec(remove());
 
     Runner.setUp(scenario)
-        .executed(times(300000))
+        .executed(times(400000), nothingFor(10, seconds))
         .config(cacheConfig, concurrency, reporting)
 //          .assertion(latencyTime(), isLessThan(1, seconds))
         .start();

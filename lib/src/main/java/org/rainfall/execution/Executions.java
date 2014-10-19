@@ -17,6 +17,7 @@
 package org.rainfall.execution;
 
 import org.rainfall.Unit;
+import org.rainfall.unit.TimeDivision;
 import org.rainfall.unit.TimeMeasurement;
 
 /**
@@ -39,5 +40,9 @@ public class Executions {
 
   public static ConstantUsersPerSec constantUsersPerSec(int nbUsers, TimeMeasurement timeMeasurement) {
     return new ConstantUsersPerSec(nbUsers, timeMeasurement);
+  }
+
+  public static NothingFor nothingFor(int nb, TimeDivision timeDivision) {
+    return new NothingFor(nb, timeDivision);
   }
 }

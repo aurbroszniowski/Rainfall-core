@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.rainfall.web.execution;
+package org.rainfall.execution;
 
 import org.rainfall.AssertionEvaluator;
 import org.rainfall.Configuration;
@@ -42,7 +42,6 @@ public class NothingFor extends Execution {
 
   @Override
   public void execute(final int threadNb, final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions) {
-    System.out.println(">>> Sleep " + nb);
     try {
       Thread.sleep(timeDivision.getTimeUnit().toMillis(nb));
     } catch (InterruptedException ex) {

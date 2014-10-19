@@ -18,8 +18,6 @@ package org.rainfall.statistics;
 
 import org.junit.Test;
 
-import java.util.List;
-
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -48,9 +46,9 @@ public class StatisticsObserverTest {
 
     StatisticsHolder<Results> holder = observer.peek();
     Statistics<Results> resultsStatistics = holder.getStatistics();
-    long okLatency = okEnd - start;
-    long koLatency = koEnd - start;
-    double averageLatency = new Double(okLatency + koLatency) / 2 / 1000000L;
+    double okLatency = (okEnd - start) / 1000000L;
+    double koLatency = (koEnd - start) / 1000000L;
+    double averageLatency = (okLatency + koLatency) / 2;
     assertThat(resultsStatistics.averageLatencyInMs(), is(equalTo(averageLatency)));
     assertThat(resultsStatistics.sumOfCounters(), is(equalTo(2L)));
     assertThat(resultsStatistics.getLatency().get(Results.OK), is(equalTo(okLatency)));
