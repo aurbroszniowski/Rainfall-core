@@ -32,6 +32,7 @@ import static org.rainfall.execution.Executions.inParallel;
 import static org.rainfall.execution.Executions.nothingFor;
 import static org.rainfall.unit.TimeMeasurement.during;
 import static org.rainfall.unit.TimeMeasurement.every;
+import static org.rainfall.unit.Units.minutes;
 import static org.rainfall.unit.Units.seconds;
 import static org.rainfall.unit.Units.users;
 import static org.rainfall.web.WebAssertions.isLessThan;
@@ -49,15 +50,15 @@ public class BasicTest {
   @Test
   public void testBasic() {
     HttpConfig httpConf = httpConfig()
-        .baseURL("http://search.twitter.com");
+        .baseURL("https://www.google.fr");
     ConcurrencyConfig concurrency = ConcurrencyConfig.concurrencyConfig()
         .threads(4).timeout(5, MINUTES);
     ReportingConfig reporting = ReportingConfig.reportingConfig(ReportingConfig.text(), ReportingConfig.html());
 
-    Scenario scenario = Scenario.scenario("Twitter search")
-        .exec(http("Recherche Crocro").get("/search.json?q=crocro"))
-        .exec(http("Recherche Gatling").get("/search.json?q=gatling"))
-        .exec(http("Recherche Java").get("/search.json?q=java"));
+    Scenario scenario = Scenario.scenario("Google search")
+        .exec(http("Recherche Crocro").get("/?").queryParam("q", "Crocro"))
+        .exec(http("Recherche Gatling").post("/?#q=Gatling").queryParam("q", "Gatling"))
+        .exec(http("Recherche Java").get("/?#q=Java").queryParam("q", "Java"));
 
     Runner.setUp(scenario)
         .executed(atOnce(5, users), nothingFor(5, seconds), atOnce(5, users),

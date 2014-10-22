@@ -16,18 +16,32 @@
 
 package org.rainfall.web.operation;
 
+import org.apache.http.Consts;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicNameValuePair;
 import org.rainfall.AssertionEvaluator;
 import org.rainfall.Configuration;
 import org.rainfall.Operation;
-import org.rainfall.statistics.StatisticsObserversFactory;
 import org.rainfall.statistics.StatisticsObserver;
+import org.rainfall.statistics.StatisticsObserversFactory;
 import org.rainfall.statistics.Task;
 import org.rainfall.web.configuration.HttpConfig;
 import org.rainfall.web.statistics.HttpResult;
 
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 /**
  * @author Aurelien Broszniowski
@@ -36,14 +50,29 @@ import java.util.Random;
 public class HttpOperation extends Operation {
   private String description;
   private String path = null;
-  private StatisticsObserver<HttpResult> httpObserver = StatisticsObserversFactory.<HttpResult>getInstance().getStatisticObserver("http", HttpResult.class);
+  private StatisticsObserver<HttpResult> httpObserver =
+      StatisticsObserversFactory.<HttpResult>getInstance().getStatisticObserver("http", HttpResult.class);
+  private HttpRequest operation;
+  private List<NameValuePair> queryParams = new ArrayList<NameValuePair>();
 
-  public HttpOperation(final String description) {
+  public HttpOperation(String description) {
     this.description = description;
   }
 
-  public Operation get(final String path) {
+  public HttpOperation get(String path) {
     this.path = path;
+    this.operation = HttpRequest.GET;
+    return this;
+  }
+
+  public HttpOperation post(String path) {
+    this.path = path;
+    this.operation = HttpRequest.POST;
+    return this;
+  }
+
+  public HttpOperation queryParam(String key, String value) {
+    queryParams.add(new BasicNameValuePair(key, value));
     return this;
   }
 
@@ -57,16 +86,19 @@ public class HttpOperation extends Operation {
     if (url == null) {
       throw new RuntimeException("baseURL of org.rainfall.web.HttpConfig is missing");
     }
+    final HttpClient client = HttpClientBuilder.create().build();
 
     if (path != null) {
       url += path;
     }
 
+    final String finalUrl = url;
     this.httpObserver.measure(new Task<HttpResult>() {
       @Override
       public HttpResult definition() throws Exception {
-        Thread.sleep(new Random(System.currentTimeMillis()).nextInt(500));
-        if (new Random(System.currentTimeMillis()).nextBoolean())
+
+        HttpResponse response = client.execute(httpRequest(finalUrl));
+        if (response.getStatusLine().getStatusCode() == 200)
           return HttpResult.OK;
         else
           return HttpResult.KO;
@@ -76,4 +108,22 @@ public class HttpOperation extends Operation {
     //TODO : evaluate assertions
   }
 
+  private HttpRequestBase httpRequest(final String finalUrl) {
+    try {
+      if (HttpRequest.GET.equals(this.operation)) {
+        HttpGet request = new HttpGet(new URIBuilder(finalUrl).setParameters(this.queryParams).build());
+        return request;
+      } else if (HttpRequest.POST.equals(this.operation)) {
+        HttpPost request = new HttpPost(new URIBuilder(finalUrl).setParameters(this.queryParams).build());
+        return request;
+      }
+    } catch (URISyntaxException e) {
+      return null;
+    }
+    return null;
+  }
+
+  public enum HttpRequest {
+    GET, POST
+  }
 }

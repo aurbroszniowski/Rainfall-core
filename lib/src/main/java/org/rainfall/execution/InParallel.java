@@ -33,7 +33,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
 /**
- * TODO : Unit test
+ * Execute scenario a number of times concurrently, repeat it every time measurement, during a time period
  * @author Aurelien Broszniowski
  */
 
