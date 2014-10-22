@@ -21,6 +21,7 @@ import org.rainfall.Configuration;
 import org.rainfall.ObjectGenerator;
 import org.rainfall.Operation;
 import org.rainfall.SequenceGenerator;
+import org.rainfall.TestException;
 import org.rainfall.jcache.CacheConfig;
 import org.rainfall.jcache.statistics.JCacheResult;
 import org.rainfall.statistics.StatisticsObserver;
@@ -42,7 +43,7 @@ import static org.rainfall.jcache.statistics.JCacheResult.PUT;
 public class PutOperation<K, V> extends Operation {
 
   @Override
-  public void exec(final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions) {
+  public void exec(final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions) throws TestException {
     CacheConfig<K, V> cacheConfig = (CacheConfig<K, V>)configurations.get(CacheConfig.class);
     SequenceGenerator sequenceGenerator = cacheConfig.getSequenceGenerator();
     final long next = sequenceGenerator.next();

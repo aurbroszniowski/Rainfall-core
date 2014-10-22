@@ -16,6 +16,8 @@
 
 package org.rainfall;
 
+import org.rainfall.unit.User;
+
 /**
  * This is a Unit for the parameter given to a {@link Execution} instance.
  * E.g. an execution like {@link org.rainfall.execution.AtOnce} will have as parameters a number of
@@ -25,5 +27,7 @@ package org.rainfall;
  */
 
 public abstract class Unit {
+
+  public static final Unit users = new User();
 
 }

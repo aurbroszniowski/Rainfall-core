@@ -40,13 +40,16 @@ public class StatisticsThread<K extends Enum<K>> extends Thread {
   @Override
   @SuppressWarnings("unsigned")
   public void run() {
-    boolean noStatToReport = true;
-    while (!stopped && noStatToReport) {
+    boolean statToReport = true;
+    if (reportingConfig == null) {
+      stopped = true;
+    }
+    while (!stopped && statToReport) {
       ConcurrentHashMap<String, StatisticsObserver> statisticObservers =
           StatisticsObserversFactory.getInstance().getStatisticObservers();
 
       Set<Reporter<K>> reporters = reportingConfig.getReporters();
-      noStatToReport = true;
+      statToReport = true;
       for (StatisticsObserver<K> observer : statisticObservers.values()) {
         StatisticsHolder<K> holder = observer.peek();
         for (Reporter<K> reporter : reporters) {

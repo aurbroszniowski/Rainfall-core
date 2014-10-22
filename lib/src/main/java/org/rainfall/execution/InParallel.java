@@ -21,10 +21,12 @@ import org.rainfall.Configuration;
 import org.rainfall.Execution;
 import org.rainfall.Operation;
 import org.rainfall.Scenario;
+import org.rainfall.TestException;
 import org.rainfall.Unit;
 import org.rainfall.configuration.ConcurrencyConfig;
 import org.rainfall.unit.TimeMeasurement;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -34,6 +36,7 @@ import java.util.concurrent.ScheduledFuture;
 
 /**
  * Execute scenario a number of times concurrently, repeat it every time measurement, during a time period
+ *
  * @author Aurelien Broszniowski
  */
 
@@ -51,20 +54,27 @@ public class InParallel extends Execution {
   }
 
   @Override
-  public void execute(final int threadNb, final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions) {
+  public void execute(final int threadNb, final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions) throws TestException {
     final ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
     // Use a scheduled thread pool in order to execute concurrent Scenarios
     ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(concurrencyConfig.getNbThreads());
+
+    final List<TestException> exceptions = new ArrayList<TestException>();
 
     // Schedule the scenario every second, until
     final ScheduledFuture<?> future = scheduler.scheduleAtFixedRate(new Runnable() {
       @Override
       public void run() {
-        int max = concurrencyConfig.getNbIterationsForThread(threadNb, nb);
-        for (int i = 0; i < max; i++) {
-          for (Operation operation : scenario.getOperations()) {
-            operation.exec(configurations, assertions);
+        try {
+          int max = concurrencyConfig.getNbIterationsForThread(threadNb, nb);
+          for (int i = 0; i < max; i++) {
+            for (Operation operation : scenario.getOperations()) {
+              operation.exec(configurations, assertions);
+            }
           }
+        } catch (TestException e) {
+          e.printStackTrace();
+          exceptions.add(new TestException(e));
         }
       }
     }, 0, every.getNb(), every.getTimeDivision().getTimeUnit());
@@ -78,9 +88,12 @@ public class InParallel extends Execution {
     try {
       future.get();
     } catch (InterruptedException e) {
-      throw new RuntimeException(e);
+      throw new TestException(e);
     } catch (ExecutionException e) {
-      throw new RuntimeException(e);
+      throw new TestException(e);
+    }
+    if (exceptions.size() > 0) {
+      throw exceptions.get(0);
     }
   }
 }

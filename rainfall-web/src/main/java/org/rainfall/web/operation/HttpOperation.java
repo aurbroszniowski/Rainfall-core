@@ -16,21 +16,19 @@
 
 package org.rainfall.web.operation;
 
-import org.apache.http.Consts;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
 import org.rainfall.AssertionEvaluator;
 import org.rainfall.Configuration;
 import org.rainfall.Operation;
+import org.rainfall.TestException;
 import org.rainfall.statistics.StatisticsObserver;
 import org.rainfall.statistics.StatisticsObserversFactory;
 import org.rainfall.statistics.Task;
@@ -39,7 +37,6 @@ import org.rainfall.web.statistics.HttpResult;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -77,14 +74,14 @@ public class HttpOperation extends Operation {
   }
 
   @Override
-  public void exec(final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions) {
+  public void exec(final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions) throws TestException {
     String url = null;
     HttpConfig httpConfig = (HttpConfig)configurations.get(HttpConfig.class);
     if (httpConfig != null) {
       url = httpConfig.getUrl();
     }
     if (url == null) {
-      throw new RuntimeException("baseURL of org.rainfall.web.HttpConfig is missing");
+      throw new TestException("baseURL of org.rainfall.web.HttpConfig is missing");
     }
     final HttpClient client = HttpClientBuilder.create().build();
 

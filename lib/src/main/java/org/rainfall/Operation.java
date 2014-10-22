@@ -27,6 +27,6 @@ import java.util.Map;
 
 public abstract class Operation {
 
-  public abstract void exec(final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions);
+  public abstract void exec(final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions) throws TestException;
 
 }

@@ -45,7 +45,7 @@ import static org.rainfall.jcache.operation.OperationWeight.OPERATION.GET;
 import static org.rainfall.jcache.operation.OperationWeight.OPERATION.PUT;
 import static org.rainfall.jcache.operation.OperationWeight.OPERATION.REMOVE;
 import static org.rainfall.jcache.operation.OperationWeight.operation;
-import static org.rainfall.unit.Units.seconds;
+import static org.rainfall.unit.TimeDivision.seconds;
 
 /**
  * @author Aurelien Broszniowski

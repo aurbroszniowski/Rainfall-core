@@ -16,6 +16,8 @@
 
 package org.rainfall.statistics;
 
+import org.rainfall.TestException;
+
 /**
  * @author Aurelien Broszniowski
  */
@@ -36,7 +38,7 @@ public class StatisticsObserver<K extends Enum<K>> {
     return System.nanoTime();
   }
 
-  public void measure(Task<K> task) {
+  public void measure(Task<K> task) throws TestException {
     try {
       final long start = getTime();
       final K result = task.definition();
@@ -45,7 +47,7 @@ public class StatisticsObserver<K extends Enum<K>> {
       this.timestamp = start / 1000000L;
       this.statistics.increaseCounterAndSetLatency(result, latency);
     } catch (Exception e) {
-      throw new RuntimeException("Exception in measured task " + task.toString(), e);
+      throw new TestException("Exception in measured task " + task.toString(), e);
     }
   }
 

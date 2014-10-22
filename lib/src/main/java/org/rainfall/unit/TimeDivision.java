@@ -28,6 +28,10 @@ public class TimeDivision extends Unit {
 
   private TimeUnit timeUnit;
 
+  public static final TimeDivision seconds = new TimeDivision(TimeUnit.SECONDS);
+
+  public static final TimeDivision minutes = new TimeDivision(TimeUnit.MINUTES);
+
   public TimeDivision(final TimeUnit timeUnit) {
     this.timeUnit = timeUnit;
   }

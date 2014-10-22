@@ -21,6 +21,7 @@ import org.rainfall.Configuration;
 import org.rainfall.Execution;
 import org.rainfall.Operation;
 import org.rainfall.Scenario;
+import org.rainfall.TestException;
 import org.rainfall.configuration.ConcurrencyConfig;
 
 import java.util.List;
@@ -40,7 +41,7 @@ public class Times extends Execution {
 
   @Override
   public void execute(final int threadNb, final Scenario scenario, final Map<Class<? extends Configuration>,
-      Configuration> configurations, final List<AssertionEvaluator> assertions) {
+      Configuration> configurations, final List<AssertionEvaluator> assertions) throws TestException {
     List<Operation> operations = scenario.getOperations();
 
     ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);

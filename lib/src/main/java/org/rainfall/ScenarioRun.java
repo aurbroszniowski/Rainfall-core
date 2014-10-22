@@ -70,13 +70,17 @@ public class ScenarioRun {
 
   // Start Scenario run
   public void start() {
-    //TODO : add generics to avoid cast or use a better map
+    //TODO : add generics ? cast?
     ReportingConfig reportingConfig = (ReportingConfig)configurations.get(ReportingConfig.class);
     StatisticsThread stats = new StatisticsThread(reportingConfig);
     stats.start();
 
     ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
-    concurrencyConfig.submit(executions, scenario, configurations, assertions);
+    try {
+      concurrencyConfig.submit(executions, scenario, configurations, assertions);
+    } catch (TestException e) {
+      throw new RuntimeException(e);
+    }
 
     stats.end();
     try {

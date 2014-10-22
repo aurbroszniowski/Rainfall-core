@@ -21,6 +21,7 @@ import org.rainfall.Configuration;
 import org.rainfall.Execution;
 import org.rainfall.Operation;
 import org.rainfall.Scenario;
+import org.rainfall.TestException;
 import org.rainfall.Unit;
 import org.rainfall.configuration.ConcurrencyConfig;
 
@@ -44,7 +45,7 @@ public class AtOnce extends Execution {
 
   public void execute(final int threadNb, final Scenario scenario,
                       final Map<Class<? extends Configuration>, Configuration> configurations,
-                      final List<AssertionEvaluator> assertions) {
+                      final List<AssertionEvaluator> assertions) throws TestException {
 
     ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
     int max = concurrencyConfig.getNbIterationsForThread(threadNb, nb);
