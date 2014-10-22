@@ -22,9 +22,9 @@ import org.rainfall.Runner;
 import org.rainfall.Scenario;
 import org.rainfall.configuration.ConcurrencyConfig;
 import org.rainfall.configuration.ReportingConfig;
-import org.rainfall.unit.TimeDivision;
 import org.rainfall.utils.SystemTest;
 import org.rainfall.web.configuration.HttpConfig;
+import org.rainfall.web.statistics.HttpResult;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.rainfall.Unit.users;
@@ -53,7 +53,7 @@ public class BasicTest {
         .baseURL("https://www.google.fr");
     ConcurrencyConfig concurrency = ConcurrencyConfig.concurrencyConfig()
         .threads(4).timeout(5, MINUTES);
-    ReportingConfig reporting = ReportingConfig.reportingConfig(ReportingConfig.text(), ReportingConfig.html());
+    ReportingConfig reporting = ReportingConfig.reportingConfig(ReportingConfig.text(), ReportingConfig.html(HttpResult.class));
 
     Scenario scenario = Scenario.scenario("Google search")
         .exec(http("Recherche Crocro").get("/?").queryParam("q", "Crocro"))

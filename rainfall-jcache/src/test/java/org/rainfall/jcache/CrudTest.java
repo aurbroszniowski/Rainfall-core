@@ -25,6 +25,7 @@ import org.rainfall.configuration.ConcurrencyConfig;
 import org.rainfall.configuration.ReportingConfig;
 import org.rainfall.generator.ByteArrayGenerator;
 import org.rainfall.generator.StringGenerator;
+import org.rainfall.jcache.statistics.JCacheResult;
 import org.rainfall.utils.SystemTest;
 
 import java.util.concurrent.TimeUnit;
@@ -68,7 +69,7 @@ public class CrudTest {
         .weights(operation(PUT, 0.10), operation(GET, 0.80), operation(REMOVE, 0.10));
     ConcurrencyConfig concurrency = ConcurrencyConfig.concurrencyConfig()
         .threads(4).timeout(5, MINUTES);
-    ReportingConfig reporting = ReportingConfig.reportingConfig(ReportingConfig.text());
+    ReportingConfig reporting = ReportingConfig.reportingConfig(ReportingConfig.text(), ReportingConfig.html(JCacheResult.class));
 
     Scenario scenario = Scenario.scenario("Cache load")
 //          .using(iteration(from(0), sequentially(), times(10000)))
@@ -77,7 +78,7 @@ public class CrudTest {
         .exec(remove());
 
     Runner.setUp(scenario)
-        .executed(times(400000), nothingFor(10, seconds))
+        .executed(times(5000000), nothingFor(10, seconds))
         .config(cacheConfig, concurrency, reporting)
 //          .assertion(latencyTime(), isLessThan(1, seconds))
         .start();
