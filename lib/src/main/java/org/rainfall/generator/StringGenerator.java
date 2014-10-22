@@ -27,8 +27,10 @@ import java.util.UUID;
 public class StringGenerator implements ObjectGenerator {
 
   private final String randomString;
+  private int length;
 
   public StringGenerator(final int length) {
+    this.length = length;
     if (length <= 0) {
       throw new IllegalStateException("Can not generate a String with a length less or equal to 0");
     }
@@ -41,7 +43,7 @@ public class StringGenerator implements ObjectGenerator {
 
   @Override
   public String generate(final long seed) {
-    return "" + this.randomString;   // return a new instance
+    return ("" + seed + this.randomString).substring(0, length);   // return a new instance
   }
 
   public static ObjectGenerator fixedLength(final int length) {
