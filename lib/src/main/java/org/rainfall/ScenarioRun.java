@@ -22,6 +22,7 @@ import org.rainfall.statistics.StatisticsThread;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,10 +50,7 @@ public class ScenarioRun {
 
   // Add executions
   public ScenarioRun executed(Execution... executions) throws SyntaxException {
-    if (this.executions != null) {
-      throw new SyntaxException("You already defined the executions");
-    }
-    this.executions = Arrays.asList(executions);
+    Collections.addAll(this.executions, executions);
     return this;
   }
 

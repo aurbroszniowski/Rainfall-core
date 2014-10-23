@@ -27,9 +27,16 @@ import org.rainfall.configuration.ConcurrencyConfig;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * This will execute the {@link Scenario} with {@link AtOnce#nb} occurrences of a specified {@link org.rainfall.Unit}
+ * <p/>
+ * TODO : this is not currently exactly at once because threads are looping to execute a subset of operations
  *
  * @author Aurelien Broszniowski
  */
@@ -43,16 +50,39 @@ public class AtOnce extends Execution {
     this.unit = unit;
   }
 
-  public void execute(final int threadNb, final Scenario scenario,
+  public void execute(final Scenario scenario,
                       final Map<Class<? extends Configuration>, Configuration> configurations,
                       final List<AssertionEvaluator> assertions) throws TestException {
 
     ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
-    int max = concurrencyConfig.getNbIterationsForThread(threadNb, nb);
-    for (int i = 0; i < max; i++) {
-      for (Operation operation : scenario.getOperations()) {
-        operation.exec(configurations, assertions);
+    int nbThreads = concurrencyConfig.getNbThreads();
+    ExecutorService executor = Executors.newFixedThreadPool(nbThreads);
+
+    for (int threadNb = 0; threadNb < nbThreads; threadNb++) {
+      final int max = concurrencyConfig.getNbIterationsForThread(threadNb, nb);
+      executor.submit(new Callable() {
+
+        @Override
+        public Object call() throws Exception {
+          List<Operation> operations = scenario.getOperations();
+          for (int i = 0; i < max; i++) {
+            for (Operation operation : operations) {
+              operation.exec(configurations, assertions);
+            }
+          }
+          return null;
+        }
+      });
+    }
+    executor.shutdown();
+    try {
+      long timeoutInSeconds = ((ConcurrencyConfig)configurations.get(ConcurrencyConfig.class)).getTimeoutInSeconds();
+      boolean success = executor.awaitTermination(timeoutInSeconds, SECONDS);
+      if (!success) {
+        throw new TestException("Execution of Scenario timed out after " + timeoutInSeconds + " seconds.");
       }
+    } catch (InterruptedException e) {
+      throw new TestException("Execution of Scenario didn't stop correctly.", e);
     }
   }
 }

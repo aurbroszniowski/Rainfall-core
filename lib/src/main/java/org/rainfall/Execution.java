@@ -27,6 +27,6 @@ import java.util.Map;
 
 public abstract class Execution {
 
-  public abstract void execute(final int threadNb, final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions) throws TestException;
+  public abstract void execute(final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions) throws TestException;
 
 }

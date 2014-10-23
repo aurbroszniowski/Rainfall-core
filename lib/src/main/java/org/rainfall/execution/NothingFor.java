@@ -41,7 +41,7 @@ public class NothingFor extends Execution {
   }
 
   @Override
-  public void execute(final int threadNb, final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions) {
+  public void execute(final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions) {
     try {
       Thread.sleep(timeDivision.getTimeUnit().toMillis(nb));
     } catch (InterruptedException ex) {

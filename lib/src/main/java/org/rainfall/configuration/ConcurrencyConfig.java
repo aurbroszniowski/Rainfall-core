@@ -40,7 +40,6 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 public class ConcurrencyConfig extends Configuration {
 
   private int nbThreads = 1;
-  private ExecutorService executor = Executors.newFixedThreadPool(nbThreads);
   private final Map<Integer, AtomicInteger> nbIterationsPerThread = new HashMap<Integer, AtomicInteger>();
   private long timeoutInSeconds = 600L;
 
@@ -50,7 +49,6 @@ public class ConcurrencyConfig extends Configuration {
 
   public ConcurrencyConfig threads(final int nbThreads) {
     this.nbThreads = nbThreads;
-    this.executor = Executors.newFixedThreadPool(nbThreads);
     return this;
   }
 
@@ -85,32 +83,7 @@ public class ConcurrencyConfig extends Configuration {
 
   public void submit(final List<Execution> executions, final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions) throws TestException {
     for (final Execution execution : executions) {
-      for (int i = 0; i < nbThreads; i++) {
-        final int threadNb = i;
-        executor.submit(new Callable() {
-
-          @Override
-          public Object call() throws Exception {
-            execution.execute(threadNb, scenario, configurations, assertions);
-            return null;
-          }
-        });
-      }
-    }
-    executor.shutdown();
-    try {
-      long timeoutInSeconds = ((ConcurrencyConfig)configurations.get(ConcurrencyConfig.class)).getTimeoutInSeconds();
-      boolean success = executor.awaitTermination(timeoutInSeconds, SECONDS);
-      if (!success) {
-        throw new TestException("Execution of Scenario timed out after " + timeoutInSeconds + " seconds.");
-      }
-    } catch (InterruptedException e) {
-      throw new TestException("Execution of Scenario didn't stop correctly.", e);
+      execution.execute(scenario, configurations, assertions);
     }
   }
-
-  public ExecutorService getExecutor() {
-    return executor;
-  }
-
 }
