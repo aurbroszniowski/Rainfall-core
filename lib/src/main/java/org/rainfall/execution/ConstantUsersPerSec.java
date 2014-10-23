@@ -20,7 +20,7 @@ import org.rainfall.unit.TimeMeasurement;
 
 import static org.rainfall.Unit.users;
 import static org.rainfall.unit.TimeDivision.seconds;
-import static org.rainfall.unit.TimeInterval.every;
+import static org.rainfall.unit.Every.every;
 
 /**
  * Schedule a Scenario execution for nbUsers every timeMeasurement

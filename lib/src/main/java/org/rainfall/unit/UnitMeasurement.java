@@ -21,26 +21,17 @@ import org.rainfall.Unit;
 /**
  * @author Aurelien Broszniowski
  */
-
-public class TimeInterval extends Unit {
+public class UnitMeasurement extends Unit {
 
   private final int nb;
-  private final TimeDivision timeDivision;
+  private final Unit unit;
 
-  public TimeInterval(final int nb, final TimeDivision timeDivision) {
+  public UnitMeasurement(int nb, Unit unit) {
     this.nb = nb;
-    this.timeDivision = timeDivision;
-  }
-
-  public static TimeInterval every(int nb, TimeDivision timeDivision) {
-    return new TimeInterval(nb, timeDivision);
+    this.unit = unit;
   }
 
   public int getNb() {
     return nb;
-  }
-
-  public TimeDivision getTimeDivision() {
-    return timeDivision;
   }
 }

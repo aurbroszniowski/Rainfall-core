@@ -17,9 +17,11 @@
 package org.rainfall.execution;
 
 import org.rainfall.Unit;
+import org.rainfall.unit.During;
+import org.rainfall.unit.Every;
+import org.rainfall.unit.From;
 import org.rainfall.unit.TimeDivision;
-import org.rainfall.unit.TimeInterval;
-import org.rainfall.unit.TimeMeasurement;
+import org.rainfall.unit.To;
 
 /**
  * @author Aurelien Broszniowski
@@ -35,15 +37,19 @@ public class Executions {
     return new Times(occurrences);
   }
 
-  public static InParallel inParallel(int nb, Unit unit, TimeInterval every, TimeMeasurement during) {
+  public static InParallel inParallel(int nb, Unit unit, Every every, During during) {
     return new InParallel(nb, unit, every, during);
   }
 
-  public static ConstantUsersPerSec constantUsersPerSec(int nbUsers, TimeMeasurement timeMeasurement) {
-    return new ConstantUsersPerSec(nbUsers, timeMeasurement);
+  public static ConstantUsersPerSec constantUsersPerSec(int nbUsers, During during) {
+    return new ConstantUsersPerSec(nbUsers, during);
   }
 
   public static NothingFor nothingFor(int nb, TimeDivision timeDivision) {
     return new NothingFor(nb, timeDivision);
+  }
+
+  public static Ramp ramp(From from, To to, Every every, During during) {
+    return new Ramp(from, to, every, during);
   }
 }

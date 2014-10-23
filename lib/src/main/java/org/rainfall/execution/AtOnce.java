@@ -36,7 +36,6 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 /**
  * This will execute the {@link Scenario} with {@link AtOnce#nb} occurrences of a specified {@link org.rainfall.Unit}
  * <p/>
- * TODO : verify if this pool is executing tasks simultaneously rather than one after another
  *
  * @author Aurelien Broszniowski
  */

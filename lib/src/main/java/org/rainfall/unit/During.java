@@ -16,33 +16,16 @@
 
 package org.rainfall.unit;
 
-import org.rainfall.Unit;
-
-import java.util.concurrent.TimeUnit;
-
 /**
  * @author Aurelien Broszniowski
  */
+public class During extends TimeMeasurement {
 
-public class TimeMeasurement extends Unit {
-
-  private final int nb;
-  private final TimeDivision timeDivision;
-
-  public TimeMeasurement(final int nb, final TimeDivision timeDivision) {
-    this.nb = nb;
-    this.timeDivision = timeDivision;
+  public static During during(int nb, TimeDivision timeDivision) {
+    return new During(nb, timeDivision);
   }
 
-  public double getNbInMs() {
-    return timeDivision.getTimeUnit().toMillis(nb);
-  }
-
-  public int getNb() {
-    return nb;
-  }
-
-  public TimeDivision getTimeDivision() {
-    return timeDivision;
+  public During(final int nb, final TimeDivision timeDivision) {
+    super(nb, timeDivision);
   }
 }
