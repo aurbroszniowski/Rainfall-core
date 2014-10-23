@@ -36,7 +36,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 /**
  * This will execute the {@link Scenario} with {@link AtOnce#nb} occurrences of a specified {@link org.rainfall.Unit}
  * <p/>
- * TODO : this is not currently exactly at once because threads are looping to execute a subset of operations
+ * TODO : verify if this pool is executing tasks simultaneously rather than one after another
  *
  * @author Aurelien Broszniowski
  */
@@ -60,19 +60,19 @@ public class AtOnce extends Execution {
 
     for (int threadNb = 0; threadNb < nbThreads; threadNb++) {
       final int max = concurrencyConfig.getNbIterationsForThread(threadNb, nb);
-      executor.submit(new Callable() {
+      for (int i = 0; i < max; i++) {
+        executor.submit(new Callable() {
 
-        @Override
-        public Object call() throws Exception {
-          List<Operation> operations = scenario.getOperations();
-          for (int i = 0; i < max; i++) {
+          @Override
+          public Object call() throws Exception {
+            List<Operation> operations = scenario.getOperations();
             for (Operation operation : operations) {
               operation.exec(configurations, assertions);
             }
+            return null;
           }
-          return null;
-        }
-      });
+        });
+      }
     }
     executor.shutdown();
     try {

@@ -35,7 +35,7 @@ import static org.rainfall.execution.Executions.inParallel;
 import static org.rainfall.execution.Executions.nothingFor;
 import static org.rainfall.unit.TimeDivision.seconds;
 import static org.rainfall.unit.TimeMeasurement.during;
-import static org.rainfall.unit.TimeMeasurement.every;
+import static org.rainfall.unit.TimeInterval.every;
 import static org.rainfall.web.WebAssertions.isLessThan;
 import static org.rainfall.web.WebAssertions.responseTime;
 import static org.rainfall.web.WebOperations.http;

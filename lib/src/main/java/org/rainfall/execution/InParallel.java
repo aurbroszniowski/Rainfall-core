@@ -24,12 +24,12 @@ import org.rainfall.Scenario;
 import org.rainfall.TestException;
 import org.rainfall.Unit;
 import org.rainfall.configuration.ConcurrencyConfig;
+import org.rainfall.unit.TimeInterval;
 import org.rainfall.unit.TimeMeasurement;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -45,10 +45,10 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 public class InParallel extends Execution {
   protected final int nb;
   protected final Unit unit;
-  protected final TimeMeasurement every;
+  protected final TimeInterval every;
   protected final TimeMeasurement during;
 
-  public InParallel(final int nb, final Unit unit, final TimeMeasurement every, final TimeMeasurement during) {
+  public InParallel(final int nb, final Unit unit, final TimeInterval every, final TimeMeasurement during) {
     this.nb = nb;
     this.unit = unit;
     this.every = every;

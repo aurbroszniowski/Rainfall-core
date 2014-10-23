@@ -18,6 +18,7 @@ package org.rainfall.execution;
 
 import org.rainfall.Unit;
 import org.rainfall.unit.TimeDivision;
+import org.rainfall.unit.TimeInterval;
 import org.rainfall.unit.TimeMeasurement;
 
 /**
@@ -34,7 +35,7 @@ public class Executions {
     return new Times(occurrences);
   }
 
-  public static InParallel inParallel(int nb, Unit unit, TimeMeasurement every, TimeMeasurement during) {
+  public static InParallel inParallel(int nb, Unit unit, TimeInterval every, TimeMeasurement during) {
     return new InParallel(nb, unit, every, during);
   }
 
