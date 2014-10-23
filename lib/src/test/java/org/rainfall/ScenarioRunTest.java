@@ -49,7 +49,7 @@ public class ScenarioRunTest {
   }
 
   @Test
-  public void testTimeoutOnScenario() throws TestException {
+  public void testTimeoutOnScenario() throws TestException, SyntaxException {
     Runner runner = mock(Runner.class);
     Scenario scenario = mock(Scenario.class);
     ScenarioRun scenarioRun = new ScenarioRun(scenario);

@@ -21,6 +21,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.rainfall.Runner;
 import org.rainfall.Scenario;
+import org.rainfall.SyntaxException;
 import org.rainfall.configuration.ConcurrencyConfig;
 import org.rainfall.configuration.ReportingConfig;
 import org.rainfall.generator.ByteArrayGenerator;
@@ -56,7 +57,7 @@ import static org.rainfall.unit.TimeDivision.seconds;
 public class CrudTest {
 
   @Test
-  public void testLoad() {
+  public void testLoad() throws SyntaxException {
     Cache one = Caching.getCachingProvider().getCacheManager().createCache("testSimpleLoad",
         new JCacheConfiguration<String, Byte>(new MutableConfiguration<String, Byte>().setStatisticsEnabled(true)
             .setExpiryPolicyFactory(ModifiedExpiryPolicy.factoryOf(new Duration(TimeUnit.MINUTES, 10)))

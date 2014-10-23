@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.rainfall.Runner;
 import org.rainfall.Scenario;
+import org.rainfall.SyntaxException;
 import org.rainfall.configuration.ConcurrencyConfig;
 import org.rainfall.configuration.ReportingConfig;
 import org.rainfall.utils.SystemTest;
@@ -48,7 +49,7 @@ import static org.rainfall.web.configuration.HttpConfig.httpConfig;
 public class BasicTest {
 
   @Test
-  public void testBasic() {
+  public void testBasic() throws SyntaxException {
     HttpConfig httpConf = httpConfig()
         .baseURL("https://www.google.fr");
     ConcurrencyConfig concurrency = ConcurrencyConfig.concurrencyConfig()

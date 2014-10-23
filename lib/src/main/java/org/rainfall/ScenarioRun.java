@@ -48,14 +48,16 @@ public class ScenarioRun {
   }
 
   // Add executions
-  public ScenarioRun executed(Execution... executions) {
+  public ScenarioRun executed(Execution... executions) throws SyntaxException {
+    if (this.executions != null) {
+      throw new SyntaxException("You already defined the executions");
+    }
     this.executions = Arrays.asList(executions);
     return this;
   }
 
   // Add configuration
   public ScenarioRun config(final Configuration... configs) {
-    // TODO : setup default concurrency and reporting configs
     for (Configuration config : configs) {
       this.configurations.put(config.getClass(), config);
     }
