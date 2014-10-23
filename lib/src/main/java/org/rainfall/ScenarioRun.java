@@ -37,7 +37,7 @@ public class ScenarioRun {
   //TODO : is it possible to generify?
   private Map<Class<? extends Configuration>, Configuration> configurations = new ConcurrentHashMap<Class<? extends Configuration>, Configuration>();
   private List<AssertionEvaluator> assertions = new ArrayList<AssertionEvaluator>();
-  private List<Execution> executions = new ArrayList<Execution>();
+  private List<Execution> executions = null;
 
   public ScenarioRun(final Scenario scenario) {
     this.scenario = scenario;
@@ -50,7 +50,10 @@ public class ScenarioRun {
 
   // Add executions
   public ScenarioRun executed(Execution... executions) throws SyntaxException {
-    Collections.addAll(this.executions, executions);
+    if (this.executions != null) {
+      throw new SyntaxException("Executions are already defined.");
+    }
+    this.executions = Arrays.asList(executions);
     return this;
   }
 

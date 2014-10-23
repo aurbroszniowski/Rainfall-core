@@ -50,7 +50,21 @@ public class ScenarioRunTest {
   }
 
   @Test
-  @Ignore
+  public void cantDefineExecutionsTwice() throws SyntaxException {
+    Scenario scenario = mock(Scenario.class);
+    ScenarioRun scenarioRun = new ScenarioRun(scenario);
+    Execution execution1 = mock(Execution.class);
+    Execution execution2 = mock(Execution.class);
+    scenarioRun.executed(execution1);
+    try {
+      scenarioRun.executed(execution2);
+      throw new AssertionError("Should have thrown an exception");
+    } catch (SyntaxException e) {
+      // expected
+    }
+  }
+
+  @Test
   public void testTimeoutOnScenario() throws TestException, SyntaxException {
     Runner runner = mock(Runner.class);
     Scenario scenario = mock(Scenario.class);
