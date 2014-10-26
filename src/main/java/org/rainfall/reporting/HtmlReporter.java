@@ -40,7 +40,7 @@ public class HtmlReporter<K extends Enum<K>> implements Reporter<K> {
   private String averageLatencyFile = "./target/report/averageLatency.csv";
   private String tpsFile = "./target/report/tps.csv";
 
-  public HtmlReporter(final Class<K> results) {
+  public HtmlReporter() {
 
     File dest = new File("./target/report");
     dest.mkdirs();
@@ -48,8 +48,8 @@ public class HtmlReporter<K extends Enum<K>> implements Reporter<K> {
     try {
       src = new File(HtmlReporter.class.getClass().getResource("/report").toURI());
       copyFolder(src, dest);
-      resetFile(averageLatencyFile, results);
-      resetFile(tpsFile, results);
+      resetFile(averageLatencyFile);
+      resetFile(tpsFile);
     } catch (URISyntaxException e) {
       throw new RuntimeException("Can not read report template");
     } catch (IOException e) {
@@ -57,22 +57,9 @@ public class HtmlReporter<K extends Enum<K>> implements Reporter<K> {
     }
   }
 
-  private void resetFile(final String filename, Class<K> results) {
+  private void resetFile(final String filename) {
     File file = new File(filename);
     file.delete();
-
-    try {
-      Writer output =  new BufferedWriter(new FileWriter(filename, false));
-      StringBuilder sb = new StringBuilder();
-      sb.append("timestamp");
-      for (K result : results.getEnumConstants()) {
-        sb.append(",").append(result);
-      }
-      output.append(sb.toString()).append("\n");
-      output.close();
-    } catch (IOException e) {
-      throw new RuntimeException("Can not write report data");
-    }
   }
 
   private void copyFolder(final File src, final File dest) throws IOException {
@@ -105,16 +92,19 @@ public class HtmlReporter<K extends Enum<K>> implements Reporter<K> {
     }
   }
 
-
   @Override
   public void report(final StatisticsHolder<K> holder) {
-
     Writer averageLatencyOutput;
     Writer tpsOutput;
     try {
+      Statistics<K> statistics = holder.getStatistics();
 
       averageLatencyOutput = new BufferedWriter(new FileWriter(averageLatencyFile, true));
+      if (new File(averageLatencyFile).length() == 0)
+        addHeader(averageLatencyOutput, statistics.getKeys());
       tpsOutput = new BufferedWriter(new FileWriter(tpsFile, true));
+      if (new File(tpsFile).length() == 0)
+        addHeader(tpsOutput, statistics.getKeys());
 
       Long timestamp = holder.getTimestamp();
 
@@ -123,7 +113,6 @@ public class HtmlReporter<K extends Enum<K>> implements Reporter<K> {
       averageLatencySb.append(timestamp);
       tpsSb.append(timestamp);
 
-      Statistics<K> statistics = holder.getStatistics();
       K[] results = statistics.getKeys();
       for (K result : results) {
         averageLatencySb.append(",").append(String.format("%.2f", statistics.getLatency(result)));
@@ -137,8 +126,14 @@ public class HtmlReporter<K extends Enum<K>> implements Reporter<K> {
     } catch (IOException e) {
       throw new RuntimeException("Can not write report data");
     }
-
   }
 
-
+  private void addHeader(Writer output, K[] keys) throws IOException {
+    StringBuilder sb = new StringBuilder();
+    sb.append("timestamp");
+    for (K key : keys) {
+      sb.append(",").append(key);
+    }
+    output.append(sb.toString()).append("\n");
+  }
 }
