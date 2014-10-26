@@ -23,6 +23,7 @@ import org.rainfall.Operation;
 import org.rainfall.Scenario;
 import org.rainfall.TestException;
 import org.rainfall.configuration.ConcurrencyConfig;
+import org.rainfall.statistics.StatisticsObserversFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -45,8 +46,9 @@ public class Times extends Execution {
   }
 
   @Override
-  public void execute(final Scenario scenario, final Map<Class<? extends Configuration>,
-      Configuration> configurations, final List<AssertionEvaluator> assertions) throws TestException {
+  public void execute(final StatisticsObserversFactory observersFactory, final Scenario scenario,
+                      final Map<Class<? extends Configuration>, Configuration> configurations,
+                      final List<AssertionEvaluator> assertions) throws TestException {
 
     ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
     int nbThreads = concurrencyConfig.getNbThreads();
@@ -61,7 +63,7 @@ public class Times extends Execution {
           List<Operation> operations = scenario.getOperations();
           for (int i = 0; i < max; i++) {
             for (Operation operation : operations) {
-              operation.exec(configurations, assertions);
+              operation.exec(observersFactory, configurations, assertions);
             }
           }
           return null;

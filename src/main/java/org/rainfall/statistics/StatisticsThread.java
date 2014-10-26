@@ -31,9 +31,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class StatisticsThread<K extends Enum<K>> extends Thread {
 
   boolean stopped = false;
+  private StatisticsObserversFactory observersFactory;
   private ReportingConfig<K> reportingConfig;
 
-  public StatisticsThread(final ReportingConfig<K> reportingConfig) {
+  public StatisticsThread(final StatisticsObserversFactory observersFactory, final ReportingConfig<K> reportingConfig) {
+    this.observersFactory = observersFactory;
     this.reportingConfig = reportingConfig;
   }
 
@@ -45,8 +47,7 @@ public class StatisticsThread<K extends Enum<K>> extends Thread {
       stopped = true;
     }
     while (!stopped && statToReport) {
-      ConcurrentHashMap<String, StatisticsObserver> statisticObservers =
-          StatisticsObserversFactory.getInstance().getStatisticObservers();
+      ConcurrentHashMap<String, StatisticsObserver> statisticObservers = observersFactory.getStatisticObservers();
 
       Set<Reporter<K>> reporters = reportingConfig.getReporters();
       statToReport = true;

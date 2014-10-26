@@ -16,6 +16,8 @@
 
 package org.rainfall;
 
+import org.rainfall.statistics.StatisticsObserversFactory;
+
 import java.util.List;
 import java.util.Map;
 
@@ -27,6 +29,8 @@ import java.util.Map;
 
 public abstract class Operation {
 
-  public abstract void exec(final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions) throws TestException;
+  public abstract void exec(final StatisticsObserversFactory statisticsObserversFactory,
+      final Map<Class<? extends Configuration>, Configuration> configurations,
+                            final List<AssertionEvaluator> assertions) throws TestException;
 
 }

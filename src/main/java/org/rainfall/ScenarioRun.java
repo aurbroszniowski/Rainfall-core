@@ -18,6 +18,7 @@ package org.rainfall;
 
 import org.rainfall.configuration.ConcurrencyConfig;
 import org.rainfall.configuration.ReportingConfig;
+import org.rainfall.statistics.StatisticsObserversFactory;
 import org.rainfall.statistics.StatisticsThread;
 
 import java.util.ArrayList;
@@ -37,6 +38,7 @@ public class ScenarioRun {
   private Map<Class<? extends Configuration>, Configuration> configurations = new ConcurrentHashMap<Class<? extends Configuration>, Configuration>();
   private List<AssertionEvaluator> assertions = new ArrayList<AssertionEvaluator>();
   private List<Execution> executions = null;
+  private StatisticsObserversFactory observersFactory = new StatisticsObserversFactory();
 
   public ScenarioRun(final Scenario scenario) {
     this.scenario = scenario;
@@ -74,12 +76,12 @@ public class ScenarioRun {
   public void start() {
     //TODO : add generics ? cast?
     ReportingConfig reportingConfig = (ReportingConfig)configurations.get(ReportingConfig.class);
-    StatisticsThread stats = new StatisticsThread(reportingConfig);
+    StatisticsThread stats = new StatisticsThread(observersFactory, reportingConfig);
     stats.start();
 
     ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
     try {
-      concurrencyConfig.submit(executions, scenario, configurations, assertions);
+      concurrencyConfig.submit(observersFactory, executions, scenario, configurations, assertions);
     } catch (TestException e) {
       throw new RuntimeException(e);
     }

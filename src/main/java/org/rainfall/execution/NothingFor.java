@@ -20,6 +20,7 @@ import org.rainfall.AssertionEvaluator;
 import org.rainfall.Configuration;
 import org.rainfall.Execution;
 import org.rainfall.Scenario;
+import org.rainfall.statistics.StatisticsObserversFactory;
 import org.rainfall.unit.TimeDivision;
 
 import java.util.List;
@@ -41,7 +42,9 @@ public class NothingFor extends Execution {
   }
 
   @Override
-  public void execute(final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions) {
+  public void execute(final StatisticsObserversFactory observersFactory, final Scenario scenario,
+                      final Map<Class<? extends Configuration>, Configuration> configurations,
+                      final List<AssertionEvaluator> assertions) {
     try {
       Thread.sleep(timeDivision.getTimeUnit().toMillis(nb));
     } catch (InterruptedException ex) {

@@ -24,11 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class StatisticsObserversFactory {
 
-  private static final StatisticsObserversFactory factory = new StatisticsObserversFactory();
-
-  public static StatisticsObserversFactory getInstance() { return factory; }
-
-  private StatisticsObserversFactory() {}
+  public StatisticsObserversFactory() {}
 
   private final ConcurrentHashMap<String, StatisticsObserver> observers = new ConcurrentHashMap<String, StatisticsObserver>();
 

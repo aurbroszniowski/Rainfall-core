@@ -21,6 +21,7 @@ import org.rainfall.Configuration;
 import org.rainfall.Execution;
 import org.rainfall.Scenario;
 import org.rainfall.TestException;
+import org.rainfall.statistics.StatisticsObserversFactory;
 
 import java.util.HashMap;
 import java.util.List;
@@ -76,9 +77,11 @@ public class ConcurrencyConfig extends Configuration {
     return nbIterationsPerThread.get(threadNb).intValue();
   }
 
-  public void submit(final List<Execution> executions, final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions) throws TestException {
+  public void submit(final StatisticsObserversFactory observersFactory, final List<Execution> executions,
+                     final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations,
+                     final List<AssertionEvaluator> assertions) throws TestException {
     for (final Execution execution : executions) {
-      execution.execute(scenario, configurations, assertions);
+      execution.execute(observersFactory, scenario, configurations, assertions);
     }
   }
 }

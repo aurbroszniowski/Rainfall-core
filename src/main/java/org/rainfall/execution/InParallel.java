@@ -24,6 +24,7 @@ import org.rainfall.Scenario;
 import org.rainfall.TestException;
 import org.rainfall.Unit;
 import org.rainfall.configuration.ConcurrencyConfig;
+import org.rainfall.statistics.StatisticsObserversFactory;
 import org.rainfall.unit.Every;
 import org.rainfall.unit.TimeMeasurement;
 
@@ -56,7 +57,9 @@ public class InParallel extends Execution {
   }
 
   @Override
-  public void execute(final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions) throws TestException {
+  public void execute(final StatisticsObserversFactory observersFactory, final Scenario scenario,
+                      final Map<Class<? extends Configuration>, Configuration> configurations,
+                      final List<AssertionEvaluator> assertions) throws TestException {
     final ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
     int nbThreads = concurrencyConfig.getNbThreads();
 
@@ -76,7 +79,7 @@ public class InParallel extends Execution {
           try {
             for (int i = 0; i < max; i++) {
               for (Operation operation : scenario.getOperations()) {
-                operation.exec(configurations, assertions);
+                operation.exec(observersFactory, configurations, assertions);
               }
             }
           } catch (TestException e) {
