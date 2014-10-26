@@ -14,25 +14,33 @@
  * limitations under the License.
  */
 
-package org.rainfall.web;
+package org.rainfall.unit;
 
 import org.rainfall.Unit;
-import org.rainfall.web.assertion.LessThanComparator;
-import org.rainfall.web.assertion.ResponseTime;
 
 /**
  * @author Aurelien Broszniowski
  */
 
-public class WebAssertions {
+public class TimeMeasurement extends Unit {
 
-  public static ResponseTime responseTime() {
-    return new ResponseTime();
+  private final int nb;
+  private final TimeDivision timeDivision;
+
+  public TimeMeasurement(final int nb, final TimeDivision timeDivision) {
+    this.nb = nb;
+    this.timeDivision = timeDivision;
   }
-//TODO : use matchers ? or other assertion api? to extend?
 
-  public static LessThanComparator isLessThan(long value, Unit unit) {
-    return new LessThanComparator(value, unit);
+  public double getNbInMs() {
+    return timeDivision.getTimeUnit().toMillis(nb);
   }
 
+  public int getNb() {
+    return nb;
+  }
+
+  public TimeDivision getTimeDivision() {
+    return timeDivision;
+  }
 }

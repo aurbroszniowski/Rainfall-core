@@ -36,8 +36,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
-
 /**
  * Execute scenario a number of times concurrently, repeat it every time measurement, during a time period
  *
