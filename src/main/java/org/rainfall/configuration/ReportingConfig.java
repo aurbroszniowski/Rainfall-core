@@ -47,8 +47,8 @@ public class ReportingConfig<K extends Enum<K>> extends Configuration {
     return new TextReporter();
   }
 
-  public static <K extends Enum<K>> Reporter html(final Class<K> result) {
-    return new HtmlReporter(result);
+  public static <K extends Enum<K>> Reporter html() {
+    return new HtmlReporter();
   }
 
   public Set<Reporter<K>> getReporters() {
