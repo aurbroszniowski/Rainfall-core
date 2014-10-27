@@ -31,11 +31,10 @@ import static org.mockito.Mockito.when;
 
 public class StatisticsObserverTest {
 
-/* TODO : fix
   @Test
   public void testCounterAndLatency() throws Exception {
     Task task = mock(Task.class);
-    StatisticsObserver observer = spy(new StatisticsObserver(Results.class));
+    StatisticsObserver observer = spy(new StatisticsObserver(Results.values()));
     long start = 55 * 1000000L;
     long okEnd = 125 * 1000000L;
     long koEnd = 140 * 1000000L;
@@ -45,8 +44,8 @@ public class StatisticsObserverTest {
     observer.measure((Task)task);
     observer.measure((Task)task);
 
-    StatisticsHolder<Results> holder = observer.peek();
-    Statistics<Results> resultsStatistics = holder.getStatistics();
+    StatisticsHolder holder = observer.peek();
+    Statistics resultsStatistics = holder.getStatistics();
     double okLatency = (okEnd - start) / 1000000L;
     double koLatency = (koEnd - start) / 1000000L;
     double averageLatency = (okLatency + koLatency) / 2;
@@ -60,9 +59,18 @@ public class StatisticsObserverTest {
 
   //TODO statisticsMap merge
 
-*/
 
-  public enum Results {
-    OK, KO
+  public static class Results extends Result {
+    public static Result OK = new Result("OK");
+    public static Result KO = new Result("KO");
+
+    public Results(final String result) {
+      super(result);
+    }
+
+    public static Result[] values() {
+      return new Result[] { OK, KO };
+    }
   }
+
 }

@@ -23,7 +23,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * TODO : write html reporter and use reporter(s)
  *
  * @author Aurelien Broszniowski
  */
