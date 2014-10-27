@@ -24,7 +24,7 @@ import java.util.UUID;
  * @author Aurelien Broszniowski
  */
 
-public class StringGenerator implements ObjectGenerator {
+public class StringGenerator implements ObjectGenerator<String> {
 
   private final String randomString;
   private int length;
@@ -46,7 +46,7 @@ public class StringGenerator implements ObjectGenerator {
     return ("" + seed + this.randomString).substring(0, length);   // return a new instance
   }
 
-  public static ObjectGenerator fixedLength(final int length) {
+  public static ObjectGenerator<String> fixedLength(final int length) {
     return new StringGenerator(length);
   }
 }

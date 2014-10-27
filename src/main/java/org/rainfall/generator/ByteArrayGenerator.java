@@ -19,12 +19,13 @@ package org.rainfall.generator;
 import org.rainfall.ObjectGenerator;
 
 import java.security.SecureRandom;
+import java.util.Arrays;
 
 /**
  * @author Aurelien Broszniowski
  */
 
-public class ByteArrayGenerator implements ObjectGenerator {
+public class ByteArrayGenerator implements ObjectGenerator<Byte[]> {
 
   private final int length;
   SecureRandom rnd = new SecureRandom();
@@ -34,13 +35,15 @@ public class ByteArrayGenerator implements ObjectGenerator {
   }
 
   @Override
-  public Object generate(final long seed) {
-    byte[] randomBytes = new byte[length];
-    rnd.nextBytes(randomBytes);
+  public Byte[] generate(final long seed) {
+    Byte[] randomBytes = new Byte[length];
+    for (int i = 0, len = randomBytes.length; i < len; i++) {
+      randomBytes[i] = (byte)i;
+    }
     return randomBytes;
   }
 
-  public static ObjectGenerator fixedLength(final int length) {
+  public static ObjectGenerator<Byte[]> fixedLength(final int length) {
     return new ByteArrayGenerator(length);
   }
 }
