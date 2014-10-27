@@ -24,8 +24,8 @@ import org.rainfall.statistics.StatisticsHolder;
  * @author Aurelien Broszniowski
  */
 
-public interface Reporter<K extends Enum<K>> {
+public interface Reporter {
 
-  void report(final StatisticsHolder<K> holder);
+  void report(final StatisticsHolder holder);
 
 }

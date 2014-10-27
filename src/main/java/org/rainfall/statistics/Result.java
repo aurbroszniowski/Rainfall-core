@@ -17,12 +17,23 @@
 package org.rainfall.statistics;
 
 /**
- * A task that can be measured.
+ * A result that is accounted by the {@link org.rainfall.statistics.StatisticsObserver}
  *
  * @author Aurelien Broszniowski
  */
+public class Result {
 
-public interface Task {
+  private String result;
 
-  Result definition() throws Exception;
+  public Result(String result) {
+    this.result = result;
+  }
+
+  public String value() {
+    return this.result;
+  }
+
+  public static Result valueOf(final String result) {
+    return new Result(result);
+  }
 }

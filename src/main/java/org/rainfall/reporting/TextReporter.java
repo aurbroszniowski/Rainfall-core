@@ -17,6 +17,7 @@
 package org.rainfall.reporting;
 
 import org.rainfall.Reporter;
+import org.rainfall.statistics.Result;
 import org.rainfall.statistics.Statistics;
 import org.rainfall.statistics.StatisticsHolder;
 
@@ -26,22 +27,22 @@ import org.rainfall.statistics.StatisticsHolder;
  * @author Aurelien Broszniowski
  */
 
-public class TextReporter<K extends Enum<K>> implements Reporter<K> {
+public class TextReporter implements Reporter {
 
   @Override
-  public void report(final StatisticsHolder<K> holder) {
+  public void report(final StatisticsHolder holder) {
     StringBuilder sb = new StringBuilder();
     Long timestamp = holder.getTimestamp();
     sb.append(timestamp).append(" \t\t ");
     sb.append("KEY \t counter \t minLatency \t maxLatency \t averageLatencyInMs ");
     sb.append(System.getProperty("line.separator"));
-    Statistics<K> statistics = holder.getStatistics();
+    Statistics statistics = holder.getStatistics();
     sb.append("Total operations: ").append(statistics.sumOfCounters()).append(" ops \t");
     sb.append("Average Latency: ").append(String.format("%.2f", statistics.averageLatencyInMs())).append("ms \t");
     sb.append("Average TPS: ").append(statistics.averageTps());
     sb.append(System.getProperty("line.separator"));
-    K[] results = statistics.getKeys();
-    for (K result : results) {
+    Result[] results = statistics.getKeys();
+    for (Result result : results) {
       sb.append(result).append(" \t\t ");
       sb.append("Number of operations: ").append(statistics.getCounter(result)).append(" ops \t");
       sb.append("Average Latency: ").append(String.format("%.2f", statistics.getLatency(result))).append("ms \t");

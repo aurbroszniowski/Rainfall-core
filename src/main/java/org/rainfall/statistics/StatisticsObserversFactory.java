@@ -28,9 +28,8 @@ public class StatisticsObserversFactory {
 
   private final ConcurrentHashMap<String, StatisticsObserver> observers = new ConcurrentHashMap<String, StatisticsObserver>();
 
-  @SuppressWarnings("unchecked")
-  public <K extends Enum<K>> StatisticsObserver<K> getStatisticObserver(final String name, final Class<K> results) {
-    this.observers.putIfAbsent(name, new StatisticsObserver<K>(results));
+  public StatisticsObserver getStatisticObserver(final String name, final Result[] results) {
+    this.observers.putIfAbsent(name, new StatisticsObserver(results));
     return observers.get(name);
   }
 

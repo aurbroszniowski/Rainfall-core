@@ -22,26 +22,26 @@ import org.rainfall.TestException;
  * @author Aurelien Broszniowski
  */
 
-public class StatisticsObserver<K extends Enum<K>> {
+public class StatisticsObserver {
 
-  private final K[] keys;
-  private final Statistics<K> statistics;
+  private final Result[] keys;
+  private final Statistics statistics;
   private long timestamp;
   private Long previousCounter = 0L;
 
-  public StatisticsObserver(final Class<K> results) {
-    this.keys = results.getEnumConstants();
-    this.statistics = new Statistics<K>(results.getEnumConstants());
+  public StatisticsObserver(Result[] results) {
+    this.keys = results;
+    this.statistics = new Statistics(results);
   }
 
   protected long getTime() {
     return System.nanoTime();
   }
 
-  public void measure(Task<K> task) throws TestException {
+  public void measure(Task task) throws TestException {
     try {
       final long start = getTime();
-      final K result = task.definition();
+      final Result result = task.definition();
       final long end = getTime();
       final long latency = (end - start);
       this.timestamp = start / 1000000L;
@@ -51,12 +51,12 @@ public class StatisticsObserver<K extends Enum<K>> {
     }
   }
 
-  public K[] getKeys() {
+  public Result[] getKeys() {
     return keys;
   }
 
-  public StatisticsHolder<K> peek() {
-    return new StatisticsHolder<K>(this.timestamp, statistics);
+  public StatisticsHolder peek() {
+    return new StatisticsHolder(this.timestamp, statistics);
   }
 
   public boolean hasEmptyQueue() {

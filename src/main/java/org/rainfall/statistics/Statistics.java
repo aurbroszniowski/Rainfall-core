@@ -24,23 +24,23 @@ import jsr166e.ConcurrentHashMapV8;
  * @author Aurelien Broszniowski
  */
 
-public class Statistics<K extends Enum<K>> {
+public class Statistics {
 
-  private final K[] keys;
-  private final ConcurrentHashMapV8<K, Long> counters = new ConcurrentHashMapV8<K, Long>();
-  private final ConcurrentHashMapV8<K, Double> latencies = new ConcurrentHashMapV8<K, Double>();
+  private final Result[] keys;
+  private final ConcurrentHashMapV8<Result, Long> counters = new ConcurrentHashMapV8<Result, Long>();
+  private final ConcurrentHashMapV8<Result, Double> latencies = new ConcurrentHashMapV8<Result, Double>();
   private final Long startTime;
 
-  public Statistics(K[] keys) {
+  public Statistics(Result[] keys) {
     this.keys = keys;
-    for (K key : keys) {
+    for (Result key : keys) {
       this.counters.put(key, 0L);
       this.latencies.put(key, 0.0d);
     }
     this.startTime = getTime();
   }
 
-  public void increaseCounterAndSetLatency(final K result, Long latency) {
+  public void increaseCounterAndSetLatency(Result result, Long latency) {
     //TODO improve the atomicity
     synchronized (counters.get(result)) {
       long cnt = this.counters.get(result);
@@ -50,19 +50,19 @@ public class Statistics<K extends Enum<K>> {
     }
   }
 
-  public K[] getKeys() {
+  public Result[] getKeys() {
     return keys;
   }
 
-  public Long getCounter(K key) {
+  public Long getCounter(Result key) {
     return counters.get(key);
   }
 
-  public Double getLatency(K key) {
+  public Double getLatency(Result key) {
     return latencies.get(key);
   }
 
-  public Long getTps(K key) {
+  public Long getTps(Result key) {
     long cnt, length;
     synchronized (startTime) {
       length = getTime() - this.startTime;
@@ -81,7 +81,7 @@ public class Statistics<K extends Enum<K>> {
   public Long sumOfCounters() {
     Long total = 0L;
     synchronized (counters) {
-      for (K key : keys) {
+      for (Result key : keys) {
         total += counters.get(key);
       }
     }
@@ -92,7 +92,7 @@ public class Statistics<K extends Enum<K>> {
     Double average = 0.0d;
     synchronized (latencies) {
       int counter = 0;
-      for (K key : keys) {
+      for (Result key : keys) {
         double latency = latencies.get(key);
         if (latency > 0) {
           average += latency;

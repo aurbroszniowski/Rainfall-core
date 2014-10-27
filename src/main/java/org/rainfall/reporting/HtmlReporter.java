@@ -17,6 +17,7 @@
 package org.rainfall.reporting;
 
 import org.rainfall.Reporter;
+import org.rainfall.statistics.Result;
 import org.rainfall.statistics.Statistics;
 import org.rainfall.statistics.StatisticsHolder;
 
@@ -35,7 +36,7 @@ import java.net.URISyntaxException;
  * @author Aurelien Broszniowski
  */
 
-public class HtmlReporter<K extends Enum<K>> implements Reporter<K> {
+public class HtmlReporter implements Reporter {
 
   private String averageLatencyFile = "./target/report/averageLatency.csv";
   private String tpsFile = "./target/report/tps.csv";
@@ -93,11 +94,11 @@ public class HtmlReporter<K extends Enum<K>> implements Reporter<K> {
   }
 
   @Override
-  public void report(final StatisticsHolder<K> holder) {
+  public void report(final StatisticsHolder holder) {
     Writer averageLatencyOutput;
     Writer tpsOutput;
     try {
-      Statistics<K> statistics = holder.getStatistics();
+      Statistics statistics = holder.getStatistics();
 
       averageLatencyOutput = new BufferedWriter(new FileWriter(averageLatencyFile, true));
       if (new File(averageLatencyFile).length() == 0)
@@ -113,8 +114,8 @@ public class HtmlReporter<K extends Enum<K>> implements Reporter<K> {
       averageLatencySb.append(timestamp);
       tpsSb.append(timestamp);
 
-      K[] results = statistics.getKeys();
-      for (K result : results) {
+      Result[] results = statistics.getKeys();
+      for (Result result : results) {
         averageLatencySb.append(",").append(String.format("%.2f", statistics.getLatency(result)));
         tpsSb.append(",").append(statistics.getTps(result));
       }
@@ -128,10 +129,10 @@ public class HtmlReporter<K extends Enum<K>> implements Reporter<K> {
     }
   }
 
-  private void addHeader(Writer output, K[] keys) throws IOException {
+  private void addHeader(Writer output, Result[] keys) throws IOException {
     StringBuilder sb = new StringBuilder();
     sb.append("timestamp");
-    for (K key : keys) {
+    for (Result key : keys) {
       sb.append(",").append(key);
     }
     output.append(sb.toString()).append("\n");

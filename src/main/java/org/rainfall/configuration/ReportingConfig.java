@@ -31,11 +31,11 @@ import java.util.Set;
  * @author Aurelien Broszniowski
  */
 
-public class ReportingConfig<K extends Enum<K>> extends Configuration {
+public class ReportingConfig extends Configuration {
 
-  private final Set<Reporter<K>> reporters = new HashSet<Reporter<K>>();
+  private final Set<Reporter> reporters = new HashSet<Reporter>();
 
-  public ReportingConfig(final Reporter<K>... reporters) {
+  public ReportingConfig(final Reporter... reporters) {
     Collections.addAll(this.reporters, reporters);
   }
 
@@ -47,11 +47,11 @@ public class ReportingConfig<K extends Enum<K>> extends Configuration {
     return new TextReporter();
   }
 
-  public static <K extends Enum<K>> Reporter html() {
+  public static Reporter html() {
     return new HtmlReporter();
   }
 
-  public Set<Reporter<K>> getReporters() {
+  public Set<Reporter> getReporters() {
     return reporters;
   }
 }

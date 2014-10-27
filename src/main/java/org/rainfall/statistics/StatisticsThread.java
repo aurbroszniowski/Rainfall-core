@@ -28,13 +28,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Aurelien Broszniowski
  */
 
-public class StatisticsThread<K extends Enum<K>> extends Thread {
+public class StatisticsThread extends Thread {
 
   boolean stopped = false;
   private StatisticsObserversFactory observersFactory;
-  private ReportingConfig<K> reportingConfig;
+  private ReportingConfig reportingConfig;
 
-  public StatisticsThread(final StatisticsObserversFactory observersFactory, final ReportingConfig<K> reportingConfig) {
+  public StatisticsThread(final StatisticsObserversFactory observersFactory, final ReportingConfig reportingConfig) {
     this.observersFactory = observersFactory;
     this.reportingConfig = reportingConfig;
   }
@@ -49,11 +49,11 @@ public class StatisticsThread<K extends Enum<K>> extends Thread {
     while (!stopped && statToReport) {
       ConcurrentHashMap<String, StatisticsObserver> statisticObservers = observersFactory.getStatisticObservers();
 
-      Set<Reporter<K>> reporters = reportingConfig.getReporters();
+      Set<Reporter> reporters = reportingConfig.getReporters();
       statToReport = true;
-      for (StatisticsObserver<K> observer : statisticObservers.values()) {
-        StatisticsHolder<K> holder = observer.peek();
-        for (Reporter<K> reporter : reporters) {
+      for (StatisticsObserver observer : statisticObservers.values()) {
+        StatisticsHolder holder = observer.peek();
+        for (Reporter reporter : reporters) {
           reporter.report(holder);
         }
 //        noStatToReport &= observer.hasEmptyQueue();

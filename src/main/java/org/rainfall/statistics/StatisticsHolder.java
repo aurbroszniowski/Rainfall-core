@@ -20,12 +20,12 @@ package org.rainfall.statistics;
  * @author Aurelien Broszniowski
  */
 
-public class StatisticsHolder<K extends Enum<K>> {
+public class StatisticsHolder {
 
   private Long timestamp;
-  private Statistics<K> statistics;
+  private Statistics statistics;
 
-  public StatisticsHolder(final Long timestamp, final Statistics<K> statistics) {
+  public StatisticsHolder(final Long timestamp, final Statistics statistics) {
     this.timestamp = timestamp;
     this.statistics = statistics;
   }
@@ -34,7 +34,7 @@ public class StatisticsHolder<K extends Enum<K>> {
     return timestamp;
   }
 
-  public Statistics<K> getStatistics() {
+  public Statistics getStatistics() {
     return statistics;
   }
 }
