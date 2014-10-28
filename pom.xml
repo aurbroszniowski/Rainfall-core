@@ -24,14 +24,6 @@
       <version>1.9.5</version>
       <scope>test</scope>
     </dependency>
-
-    <dependency>
-      <groupId>jsr166e</groupId>
-      <artifactId>jsr166e</artifactId>
-      <version>1.1</version>
-      <scope>system</scope>
-      <systemPath>${pom.basedir}/lib/jsr166e.jar</systemPath>
-    </dependency>
   </dependencies>
 
   <build>
@@ -81,6 +73,32 @@
           <source>1.6</source>
           <target>1.6</target>
         </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
