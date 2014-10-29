@@ -52,4 +52,8 @@ public class Executions {
   public static Ramp ramp(From from, To to, Every every, During during) {
     return new Ramp(from, to, every, during);
   }
+
+  public static RunsDuring during(int nb, TimeDivision timeDivision) {
+    return new RunsDuring(nb, timeDivision);
+  }
 }
