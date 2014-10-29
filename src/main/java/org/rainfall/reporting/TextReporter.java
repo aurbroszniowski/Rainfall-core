@@ -37,16 +37,16 @@ public class TextReporter implements Reporter {
     sb.append("KEY \t counter \t minLatency \t maxLatency \t averageLatencyInMs ");
     sb.append(System.getProperty("line.separator"));
     Statistics statistics = holder.getStatistics();
-    sb.append("Total operations: ").append(statistics.sumOfCounters()).append(" ops \t");
+    sb.append("Total operations: ").append(String.format("%,8d", statistics.sumOfCounters())).append(" ops \t");
     sb.append("Average Latency: ").append(String.format("%.2f", statistics.averageLatencyInMs())).append("ms \t");
-    sb.append("Average TPS: ").append(statistics.averageTps());
+    sb.append("Average TPS: ").append(String.format("%,8d", statistics.averageTps()));
     sb.append(System.getProperty("line.separator"));
     Result[] results = statistics.getKeys();
     for (Result result : results) {
-      sb.append(result).append(" \t\t ");
-      sb.append("Number of operations: ").append(statistics.getCounter(result)).append(" ops \t");
+      sb.append(result.value()).append(" \t\t ");
+      sb.append("Number of operations: ").append(String.format("%,8d", statistics.getCounter(result))).append(" ops \t");
       sb.append("Average Latency: ").append(String.format("%.2f", statistics.getLatency(result))).append("ms \t");
-      sb.append("TPS: ").append(statistics.getTps(result));
+      sb.append("TPS: ").append(String.format("%,8d", statistics.getTps(result)));
       sb.append(System.getProperty("line.separator"));
     }
     sb.append("--------------------------------------------------------------------------------------------");

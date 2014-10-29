@@ -83,7 +83,7 @@ public class ScenarioRun {
 
     Timer timer = new Timer();
     StatisticsThread stats = new StatisticsThread(observersFactory, reportingConfig);
-    timer.schedule(stats, 0L, 1000L);
+    timer.scheduleAtFixedRate(stats, 0L, 1000L);
 
     ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
     try {
