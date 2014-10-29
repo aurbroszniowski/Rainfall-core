@@ -19,17 +19,17 @@ package org.rainfall.statistics;
 import org.rainfall.Reporter;
 import org.rainfall.configuration.ReportingConfig;
 
+import java.util.Calendar;
 import java.util.Set;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- *
  * @author Aurelien Broszniowski
  */
 
-public class StatisticsThread extends Thread {
+public class StatisticsThread extends TimerTask {
 
-  boolean stopped = false;
   private StatisticsObserversFactory observersFactory;
   private ReportingConfig reportingConfig;
 
@@ -41,32 +41,16 @@ public class StatisticsThread extends Thread {
   @Override
   @SuppressWarnings("unsigned")
   public void run() {
-    boolean statToReport = true;
-    if (reportingConfig == null) {
-      stopped = true;
-    }
-    while (!stopped && statToReport) {
-      ConcurrentHashMap<String, StatisticsObserver> statisticObservers = observersFactory.getStatisticObservers();
+    System.out.println(Calendar.getInstance().getTime());
 
-      Set<Reporter> reporters = reportingConfig.getReporters();
-      statToReport = true;
-      for (StatisticsObserver observer : statisticObservers.values()) {
-        StatisticsHolder holder = observer.peek();
-        for (Reporter reporter : reporters) {
-          reporter.report(holder);
-        }
-//        noStatToReport &= observer.hasEmptyQueue();
+    ConcurrentHashMap<String, StatisticsObserver> statisticObservers = observersFactory.getStatisticObservers();
+
+    Set<Reporter> reporters = reportingConfig.getReporters();
+    for (StatisticsObserver observer : statisticObservers.values()) {
+      StatisticsHolder holder = observer.peek();
+      for (Reporter reporter : reporters) {
+        reporter.report(holder);
       }
-      try {
-        sleep(1000);
-      } catch (InterruptedException e) {
-        this.stopped = true;
-      }
-
     }
-  }
-
-  public void end() {
-    this.stopped = true;
   }
 }

@@ -25,7 +25,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Aurelien Broszniowski
@@ -74,10 +76,14 @@ public class ScenarioRun {
 
   // Start Scenario run
   public void start() {
+    long start = System.currentTimeMillis();
+
     //TODO : add generics ? cast?
     ReportingConfig reportingConfig = (ReportingConfig)configurations.get(ReportingConfig.class);
+
+    Timer timer = new Timer();
     StatisticsThread stats = new StatisticsThread(observersFactory, reportingConfig);
-    stats.start();
+    timer.schedule(stats, 0L, 1000L);
 
     ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
     try {
@@ -86,12 +92,10 @@ public class ScenarioRun {
       throw new RuntimeException(e);
     }
 
-    stats.end();
-    try {
-      stats.join();
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    }
+    stats.cancel();
+
+    long end = System.currentTimeMillis();
+    System.out.println("-> Taken:" + TimeUnit.MILLISECONDS.toSeconds(end - start));
   }
 
   public Scenario getScenario() {
