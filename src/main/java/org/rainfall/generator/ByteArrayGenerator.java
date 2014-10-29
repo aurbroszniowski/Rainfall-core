@@ -25,7 +25,7 @@ import java.util.Arrays;
  * @author Aurelien Broszniowski
  */
 
-public class ByteArrayGenerator implements ObjectGenerator<Byte[]> {
+public class ByteArrayGenerator implements ObjectGenerator<byte[]> {
 
   private final int length;
   SecureRandom rnd = new SecureRandom();
@@ -35,15 +35,13 @@ public class ByteArrayGenerator implements ObjectGenerator<Byte[]> {
   }
 
   @Override
-  public Byte[] generate(final long seed) {
-    Byte[] randomBytes = new Byte[length];
-    for (int i = 0, len = randomBytes.length; i < len; i++) {
-      randomBytes[i] = (byte)i;
-    }
-    return randomBytes;
+  public byte[] generate(final long seed) {
+    byte[] object = new byte[length];
+    Arrays.fill(object, (byte)rnd.nextInt());
+    return object;
   }
 
-  public static ObjectGenerator<Byte[]> fixedLength(final int length) {
+  public static ObjectGenerator<byte[]> fixedLength(final int length) {
     return new ByteArrayGenerator(length);
   }
 }

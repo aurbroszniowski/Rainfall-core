@@ -41,8 +41,6 @@ public class StatisticsThread extends TimerTask {
   @Override
   @SuppressWarnings("unsigned")
   public void run() {
-    System.out.println(Calendar.getInstance().getTime());
-
     ConcurrentHashMap<String, StatisticsObserver> statisticObservers = observersFactory.getStatisticObservers();
 
     Set<Reporter> reporters = reportingConfig.getReporters();
