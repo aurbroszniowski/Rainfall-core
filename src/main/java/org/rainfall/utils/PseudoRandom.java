@@ -17,12 +17,14 @@
 package org.rainfall.utils;
 
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author Aurelien Broszniowski
  */
 
 public class PseudoRandom extends Random {
+  private AtomicLong seed = new AtomicLong(System.nanoTime());
 
   //TODO : avoid instantiation on every operation exec
   //TODO : use a pool of randomizer in order to avoid threads waiting
