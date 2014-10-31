@@ -19,7 +19,8 @@ package org.rainfall.reporting;
 import org.rainfall.Reporter;
 import org.rainfall.statistics.Result;
 import org.rainfall.statistics.Statistics;
-import org.rainfall.statistics.StatisticsHolder;
+import org.rainfall.statistics.StatisticsObserver;
+import org.rainfall.statistics.StatisticsObserversFactory;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -31,6 +32,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.net.URISyntaxException;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Aurelien Broszniowski
@@ -94,11 +96,11 @@ public class HtmlReporter implements Reporter {
   }
 
   @Override
-  public void report(final StatisticsHolder holder) {
+  public void report(final StatisticsObserversFactory observersFactory) {
     Writer averageLatencyOutput;
     Writer tpsOutput;
-    try {
-      Statistics statistics = holder.getStatistics();
+ /* TODO  try {
+      Statistics statistics = statisticsObserver.getStatistics();
 
       averageLatencyOutput = new BufferedWriter(new FileWriter(averageLatencyFile, true));
       if (new File(averageLatencyFile).length() == 0)
@@ -107,7 +109,7 @@ public class HtmlReporter implements Reporter {
       if (new File(tpsFile).length() == 0)
         addHeader(tpsOutput, statistics.getKeys());
 
-      Long timestamp = holder.getTimestamp();
+      Long timestamp = statisticsObserver.getTimestamp();
 
       StringBuilder averageLatencySb = new StringBuilder();
       StringBuilder tpsSb = new StringBuilder();
@@ -126,7 +128,7 @@ public class HtmlReporter implements Reporter {
       tpsOutput.close();
     } catch (IOException e) {
       throw new RuntimeException("Can not write report data");
-    }
+    }*/
   }
 
   private void addHeader(Writer output, Result[] keys) throws IOException {

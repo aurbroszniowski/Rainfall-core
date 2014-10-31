@@ -20,6 +20,7 @@ import org.rainfall.Reporter;
 import org.rainfall.configuration.ReportingConfig;
 
 import java.util.Calendar;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
@@ -41,14 +42,9 @@ public class StatisticsThread extends TimerTask {
   @Override
   @SuppressWarnings("unsigned")
   public void run() {
-    ConcurrentHashMap<String, StatisticsObserver> statisticObservers = observersFactory.getStatisticObservers();
-
     Set<Reporter> reporters = reportingConfig.getReporters();
-    for (StatisticsObserver observer : statisticObservers.values()) {
-      StatisticsHolder holder = observer.peek();
-      for (Reporter reporter : reporters) {
-        reporter.report(holder);
-      }
+    for (Reporter reporter : reporters) {
+      reporter.report(observersFactory);
     }
   }
 }

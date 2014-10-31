@@ -76,6 +76,7 @@ public class ScenarioRun {
 
   // Start Scenario run
   public void start() {
+//    initStatistics();
     long start = System.currentTimeMillis();
 
     //TODO : add generics ? cast?
@@ -96,6 +97,17 @@ public class ScenarioRun {
 
     long end = System.currentTimeMillis();
     System.out.println("-> Taken:" + TimeUnit.MILLISECONDS.toSeconds(end - start));
+  }
+
+  private void initStatistics() {
+    try {
+      List<Operation> operations = scenario.getOperations();
+      for (Operation operation : operations) {
+        operation.exec(this.observersFactory, this.configurations, this.assertions);
+      }
+    } catch (TestException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public Scenario getScenario() {

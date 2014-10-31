@@ -16,6 +16,11 @@
 
 package org.rainfall.statistics;
 
+import org.rainfall.TestException;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -24,16 +29,60 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class StatisticsObserversFactory {
 
-  public StatisticsObserversFactory() {}
-
+  private StatisticsObserver totalStatistics = null;
   private final ConcurrentHashMap<String, StatisticsObserver> observers = new ConcurrentHashMap<String, StatisticsObserver>();
 
-  public StatisticsObserver getStatisticObserver(final String name, final Result[] results) {
+  //TODO : initialize once the map with  operations ? so we do not have to initialize it everytime and pass it in measure()
+  //TODO use a parameter type?  StatisticsObserver<? extends Result[]>
+  private StatisticsObserver getStatisticObserver(final String name, final Result[] results) {
+    //TODO get list of things measures caches...? in config add (measure...)
     this.observers.putIfAbsent(name, new StatisticsObserver(results));
     return observers.get(name);
   }
 
-  public ConcurrentHashMap<String, StatisticsObserver> getStatisticObservers() {
-    return this.observers;
+  public Set<String> getStatisticObserverKeys() {
+    return this.observers.keySet();
   }
+
+  public StatisticsObserver getStatisticObserver(String name) {
+    return this.observers.get(name);
+  }
+
+  public StatisticsObserver getTotalStatisticObserver() {
+    return this.totalStatistics;
+  }
+
+
+    private StatisticsObserver getTotalStatisticObserver(final Result[] results) {
+    if (totalStatistics == null)
+      totalStatistics = new StatisticsObserver(results);
+    return this.totalStatistics;
+  }
+
+  protected long getTime() {
+    return System.nanoTime();
+  }
+
+  public void measure(String name, Result[] results, Task task) throws TestException {
+    try {
+      final long start = getTime();
+      final Result result = task.definition();
+      final long end = getTime();
+      final long latency = (end - start);
+
+      StatisticsObserver totalStatisticObserver = getTotalStatisticObserver(results);
+      StatisticsObserver statisticObserver = getStatisticObserver(name, results);
+
+      long timestamp = start / 1000000L;
+      statisticObserver.setTimestamp(timestamp);
+      totalStatisticObserver.setTimestamp(timestamp);
+
+      statisticObserver.getStatistics().increaseCounterAndSetLatency(result, latency);
+      totalStatisticObserver.getStatistics().increaseCounterAndSetLatency(result, latency);
+
+    } catch (Exception e) {
+      throw new TestException("Exception in measured task " + task.toString(), e);
+    }
+  }
+
 }

@@ -20,6 +20,12 @@ import org.rainfall.Reporter;
 import org.rainfall.statistics.Result;
 import org.rainfall.statistics.Statistics;
 import org.rainfall.statistics.StatisticsHolder;
+import org.rainfall.statistics.StatisticsObserver;
+import org.rainfall.statistics.StatisticsObserversFactory;
+
+import java.text.NumberFormat;
+import java.util.Set;
+
 
 /**
  * report the statistics to the text console
@@ -29,14 +35,39 @@ import org.rainfall.statistics.StatisticsHolder;
 
 public class TextReporter implements Reporter {
 
+  private static final String FORMAT = "%-15s %-15s %12s %10s %10s";
+  //  private static final String FORMAT = "%-15s %-7s %12s %10s %10s %10s %10s %10s";
+  private static final NumberFormat nf = NumberFormat.getInstance();
+  private String CRLF = System.getProperty("line.separator");
+
   @Override
-  public void report(final StatisticsHolder holder) {
+  public void report(final StatisticsObserversFactory observersFactory) {
     StringBuilder sb = new StringBuilder();
-    Long timestamp = holder.getTimestamp();
+    sb.append("==================================================== CUMULATIVE =========================================")
+        .append(CRLF);
+    sb.append(String.format(FORMAT, "Cache", "Type", "Txn_Count", "TPS", "Avg_Lat"))
+//    sb.append(String.format(FORMAT, "Cache", "Type", "Txn_Count", "TPS", "Avg_Lat", "Min_Lat", "Max_Lat", "TotalExceptionCount"))
+        .append(CRLF);
+    sb.append("==========================================================================================================")
+        .append(CRLF);
+
+    Set<String> statKeys = observersFactory.getStatisticObserverKeys();
+    for (String statKey : statKeys) {
+      StatisticsObserver observer = observersFactory.getStatisticObserver(statKey);
+
+      StatisticsHolder holder = observer.peek();
+      logStats(sb, statKey, holder);
+    }
+    StatisticsObserver totalStatisticObserver = observersFactory.getTotalStatisticObserver();
+    if (totalStatisticObserver != null)
+      logStats(sb, "ALL", totalStatisticObserver.peek());
+
+/*
+    Long timestamp = statisticsObserver.getTimestamp();
     sb.append(timestamp).append(" \t\t ");
     sb.append("KEY \t counter \t minLatency \t maxLatency \t averageLatencyInMs ");
     sb.append(System.getProperty("line.separator"));
-    Statistics statistics = holder.getStatistics();
+    Statistics statistics = statisticsObserver.getStatistics();
     sb.append("Total operations: ").append(String.format("%,8d", statistics.sumOfCounters())).append(" ops \t");
     sb.append("Average Latency: ").append(String.format("%.2f", statistics.averageLatencyInMs())).append("ms \t");
     sb.append("Average TPS: ").append(String.format("%,8d", statistics.averageTps()));
@@ -44,13 +75,39 @@ public class TextReporter implements Reporter {
     Result[] results = statistics.getKeys();
     for (Result result : results) {
       sb.append(result.value()).append(" \t\t ");
-      sb.append("Number of operations: ").append(String.format("%,8d", statistics.getCounter(result))).append(" ops \t");
+      sb.append("Number of operations: ")
+          .append(String.format("%,8d", statistics.getCounter(result)))
+          .append(" ops \t");
       sb.append("Average Latency: ").append(String.format("%.2f", statistics.getLatency(result))).append("ms \t");
       sb.append("TPS: ").append(String.format("%,8d", statistics.getTps(result)));
-      sb.append(System.getProperty("line.separator"));
+
+      sb.append(CRLF);
     }
     sb.append("--------------------------------------------------------------------------------------------");
-    sb.append(System.getProperty("line.separator"));
+    sb.append(System.getProperty("line.separator"));*/
     System.out.println(sb.toString());
   }
+
+  private void logStats(StringBuilder sb, String name, StatisticsHolder holder) {
+    sb.append(holder.getTimestamp()).append(CRLF);
+    Statistics statistics = holder.getStatistics();
+    Result[] keys = statistics.getKeys();
+    for (Result key : keys) {
+      sb.append(String.format(FORMAT,
+          name,
+          key.value(),
+          nf.format(statistics.getCounter(key)),
+          nf.format(statistics.getTps(key)),
+          nf.format(statistics.getLatency(key))
+      )).append(CRLF);
+    }
+    sb.append(String.format(FORMAT,
+        name,
+        "TOTAL",
+        nf.format(statistics.sumOfCounters()),
+        nf.format(statistics.averageTps()),
+        nf.format(statistics.averageLatencyInMs())
+    )).append(CRLF);
+  }
+
 }

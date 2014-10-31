@@ -16,8 +16,6 @@
 
 package org.rainfall.statistics;
 
-import org.rainfall.TestException;
-
 /**
  * @author Aurelien Broszniowski
  */
@@ -34,28 +32,12 @@ public class StatisticsObserver {
     this.statistics = new Statistics(results);
   }
 
-  protected long getTime() {
-    return System.nanoTime();
-  }
-
-  public void measure(Task task) throws TestException {
-    try {
-      final long start = getTime();
-      final Result result = task.definition();
-      final long end = getTime();
-      final long latency = (end - start);
-      this.timestamp = start / 1000000L;
-      this.statistics.increaseCounterAndSetLatency(result, latency);
-    } catch (Exception e) {
-      throw new TestException("Exception in measured task " + task.toString(), e);
-    }
-  }
-
   public Result[] getKeys() {
     return keys;
   }
 
   public StatisticsHolder peek() {
+    //TODO : is instantiation needed?
     return new StatisticsHolder(this.timestamp, statistics);
   }
 
@@ -65,5 +47,13 @@ public class StatisticsObserver {
     }
     this.previousCounter = this.statistics.sumOfCounters();
     return false;
+  }
+
+  public void setTimestamp(final long timestamp) {
+    this.timestamp = timestamp;
+  }
+
+  public Statistics getStatistics() {
+    return statistics;
   }
 }
