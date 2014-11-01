@@ -16,6 +16,7 @@
 
 package org.rainfall.generator;
 
+import jsr166e.ThreadLocalRandom;
 import org.rainfall.ObjectGenerator;
 
 import java.security.SecureRandom;
@@ -28,7 +29,6 @@ import java.util.Arrays;
 public class ByteArrayGenerator implements ObjectGenerator<byte[]> {
 
   private final int length;
-  SecureRandom rnd = new SecureRandom();
 
   public ByteArrayGenerator(final int length) {
     this.length = length;
@@ -37,7 +37,7 @@ public class ByteArrayGenerator implements ObjectGenerator<byte[]> {
   @Override
   public byte[] generate(final long seed) {
     byte[] object = new byte[length];
-    Arrays.fill(object, (byte)rnd.nextInt());
+    Arrays.fill(object, (byte)ThreadLocalRandom.current().nextInt());
     return object;
   }
 
