@@ -22,15 +22,15 @@ package org.rainfall.statistics;
 
 public class StatisticsHolder {
 
-  private Long timestamp;
+  private long timestamp;
   private Statistics statistics;
 
-  public StatisticsHolder(final Long timestamp, final Statistics statistics) {
+  public StatisticsHolder(final long timestamp, final Statistics statistics) {
     this.timestamp = timestamp;
     this.statistics = statistics;
   }
 
-  public Long getTimestamp() {
+  public long getTimestamp() {
     return timestamp;
   }
 

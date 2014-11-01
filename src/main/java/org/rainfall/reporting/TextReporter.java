@@ -89,7 +89,7 @@ public class TextReporter implements Reporter {
   }
 
   private void logStats(StringBuilder sb, String name, StatisticsHolder holder) {
-    sb.append(holder.getTimestamp()).append(CRLF);
+    sb.append(format(holder.getTimestamp())).append(CRLF);
     Statistics statistics = holder.getStatistics();
     Result[] keys = statistics.getKeys();
     for (Result key : keys) {
@@ -108,6 +108,15 @@ public class TextReporter implements Reporter {
         nf.format(statistics.averageTps()),
         nf.format(statistics.averageLatencyInMs())
     )).append(CRLF);
+  }
+
+  private String format(final long timestamp) {
+    long timeInSec = timestamp / (1000 * 1000000L);
+    long second = timeInSec % 60;
+    long minute = (timeInSec / 60) % 60;
+    long hour = (timeInSec / 60 * 60) % 24;
+
+    return String.format("%02d:%02d:%02d", hour, minute, second);
   }
 
 }

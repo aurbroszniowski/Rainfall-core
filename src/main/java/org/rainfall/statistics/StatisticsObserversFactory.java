@@ -18,8 +18,6 @@ package org.rainfall.statistics;
 
 import org.rainfall.TestException;
 
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -31,6 +29,11 @@ public class StatisticsObserversFactory {
 
   private StatisticsObserver totalStatistics = null;
   private final ConcurrentHashMap<String, StatisticsObserver> observers = new ConcurrentHashMap<String, StatisticsObserver>();
+  private long startTimestamp;
+
+  public StatisticsObserversFactory(final long startTimestamp) {
+    this.startTimestamp = (startTimestamp * 1000000L) - getTime();
+  }
 
   //TODO : initialize once the map with  operations ? so we do not have to initialize it everytime and pass it in measure()
   //TODO use a parameter type?  StatisticsObserver<? extends Result>
@@ -53,7 +56,7 @@ public class StatisticsObserversFactory {
   }
 
 
-    private StatisticsObserver getTotalStatisticObserver(final Result[] results) {
+  private StatisticsObserver getTotalStatisticObserver(final Result[] results) {
     if (totalStatistics == null)
       totalStatistics = new StatisticsObserver(results);
     return this.totalStatistics;
@@ -73,7 +76,7 @@ public class StatisticsObserversFactory {
       StatisticsObserver totalStatisticObserver = getTotalStatisticObserver(results);
       StatisticsObserver statisticObserver = getStatisticObserver(name, results);
 
-      long timestamp = start / 1000000L;
+      long timestamp = startTimestamp + (start );
       statisticObserver.setTimestamp(timestamp);
       totalStatisticObserver.setTimestamp(timestamp);
 
@@ -84,5 +87,4 @@ public class StatisticsObserversFactory {
       throw new TestException("Exception in measured task " + task.toString(), e);
     }
   }
-
 }

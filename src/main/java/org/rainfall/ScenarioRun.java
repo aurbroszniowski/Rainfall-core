@@ -40,7 +40,7 @@ public class ScenarioRun {
   private Map<Class<? extends Configuration>, Configuration> configurations = new ConcurrentHashMap<Class<? extends Configuration>, Configuration>();
   private List<AssertionEvaluator> assertions = new ArrayList<AssertionEvaluator>();
   private List<Execution> executions = null;
-  private StatisticsObserversFactory observersFactory = new StatisticsObserversFactory();
+  private StatisticsObserversFactory observersFactory;
 
   public ScenarioRun(final Scenario scenario) {
     this.scenario = scenario;
@@ -78,6 +78,7 @@ public class ScenarioRun {
   public void start() {
 //    initStatistics();
     long start = System.currentTimeMillis();
+    observersFactory  = new StatisticsObserversFactory(start);
 
     //TODO : add generics ? cast?
     ReportingConfig reportingConfig = (ReportingConfig)configurations.get(ReportingConfig.class);
