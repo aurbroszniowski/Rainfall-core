@@ -27,27 +27,28 @@ import jsr166e.ConcurrentHashMapV8;
 public class Statistics {
 
   private final Result[] keys;
-  private final ConcurrentHashMapV8<Result, Long> counters = new ConcurrentHashMapV8<Result, Long>();
-  private final ConcurrentHashMapV8<Result, Double> latencies = new ConcurrentHashMapV8<Result, Double>();
+  private final ConcurrentHashMapV8<Result, Metrics> metrics = new ConcurrentHashMapV8<Result, Metrics>();
   private final Long startTime;
 
   public Statistics(Result[] keys) {
     this.keys = keys;
     for (Result key : keys) {
-      this.counters.put(key, 0L);
-      this.latencies.put(key, 0.0d);
+      this.metrics.put(key, new Metrics(0L, 0.0d));
     }
     this.startTime = getTime();
   }
 
-  public void increaseCounterAndSetLatency(Result result, Long latency) {
-    //TODO improve the atomicity
-    synchronized (counters.get(result)) {
-      long cnt = this.counters.get(result);
-      double updatedLatency = (this.latencies.get(result) * cnt + (latency / 1000000L)) / (cnt + 1);
-      this.latencies.put(result, updatedLatency);  //TODO : use merge
-      this.counters.put(result, ++cnt);          //TODO use merge
-    }
+  public void increaseCounterAndSetLatency(final Result result, final Double latency) {
+    metrics.merge(result, new Metrics(1L, latency), new ConcurrentHashMapV8.BiFun<Metrics, Metrics, Metrics>() {
+      @Override
+      public Metrics apply(final Metrics metrics1, final Metrics metrics2) {
+        long cnt = metrics.get(result).getCounter();
+        double updatedLatency = (metrics.get(result).getLatency() * cnt + (latency / 1000000L)) / (cnt + 1);
+        metrics1.setLatency(updatedLatency);
+        metrics1.setCounter(cnt + 1);
+        return metrics1;
+      }
+    });
   }
 
   public Result[] getKeys() {
@@ -55,11 +56,11 @@ public class Statistics {
   }
 
   public Long getCounter(Result key) {
-    return counters.get(key);
+    return metrics.get(key).getCounter();
   }
 
   public Double getLatency(Result key) {
-    return latencies.get(key);
+    return metrics.get(key).getLatency();
   }
 
   public Long getTps(Result key) {
@@ -69,7 +70,7 @@ public class Statistics {
       if (length < 1000000000L) {
         return 0L;
       }
-      cnt = this.counters.get(key);
+      cnt = this.metrics.get(key).getCounter();
     }
     return cnt / (length / 1000000000L);
   }
@@ -80,9 +81,9 @@ public class Statistics {
 
   public Long sumOfCounters() {
     Long total = 0L;
-    synchronized (counters) {
+    synchronized (metrics) {
       for (Result key : keys) {
-        total += counters.get(key);
+        total += metrics.get(key).getCounter();
       }
     }
     return total;
@@ -90,10 +91,10 @@ public class Statistics {
 
   public Double averageLatencyInMs() {
     Double average = 0.0d;
-    synchronized (latencies) {
+    synchronized (metrics) {
       int counter = 0;
       for (Result key : keys) {
-        double latency = latencies.get(key);
+        double latency = metrics.get(key).getLatency();
         if (latency > 0) {
           average += latency;
           counter++;

@@ -33,7 +33,7 @@ public class StatisticsObserversFactory {
   private final ConcurrentHashMap<String, StatisticsObserver> observers = new ConcurrentHashMap<String, StatisticsObserver>();
 
   //TODO : initialize once the map with  operations ? so we do not have to initialize it everytime and pass it in measure()
-  //TODO use a parameter type?  StatisticsObserver<? extends Result[]>
+  //TODO use a parameter type?  StatisticsObserver<? extends Result>
   private StatisticsObserver getStatisticObserver(final String name, final Result[] results) {
     //TODO get list of things measures caches...? in config add (measure...)
     this.observers.putIfAbsent(name, new StatisticsObserver(results));
@@ -68,7 +68,7 @@ public class StatisticsObserversFactory {
       final long start = getTime();
       final Result result = task.definition();
       final long end = getTime();
-      final long latency = (end - start);
+      final double latency = (end - start);
 
       StatisticsObserver totalStatisticObserver = getTotalStatisticObserver(results);
       StatisticsObserver statisticObserver = getStatisticObserver(name, results);
