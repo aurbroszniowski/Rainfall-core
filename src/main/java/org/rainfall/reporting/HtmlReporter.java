@@ -32,7 +32,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.net.URISyntaxException;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Set;
 
 /**
  * @author Aurelien Broszniowski
@@ -40,19 +40,15 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class HtmlReporter implements Reporter {
 
-  private String averageLatencyFile = "./target/report/averageLatency.csv";
-  private String tpsFile = "./target/report/tps.csv";
+  private String basedir = "./target/rainfall-report";
+  private String averageLatencyFile = "averageLatency.csv";
+  private String tpsFile = "tps.csv";
 
   public HtmlReporter() {
-
-    File dest = new File("./target/report");
-    dest.mkdirs();
-    File src;
     try {
-      src = new File(HtmlReporter.class.getClass().getResource("/report").toURI());
+      File src = new File(HtmlReporter.class.getClass().getResource("/report").toURI());
+      File dest = new File(this.basedir);
       copyFolder(src, dest);
-      resetFile(averageLatencyFile);
-      resetFile(tpsFile);
     } catch (URISyntaxException e) {
       throw new RuntimeException("Can not read report template");
     } catch (IOException e) {
@@ -60,16 +56,10 @@ public class HtmlReporter implements Reporter {
     }
   }
 
-  private void resetFile(final String filename) {
-    File file = new File(filename);
-    file.delete();
-  }
-
   private void copyFolder(final File src, final File dest) throws IOException {
     if (src.isDirectory()) {
-      if (!dest.exists()) {
-        dest.mkdir();
-      }
+      deleteDirectory(dest);
+      dest.mkdirs();
 
       String files[] = src.list();
 
@@ -99,44 +89,74 @@ public class HtmlReporter implements Reporter {
   public void report(final StatisticsObserversFactory observersFactory) {
     Writer averageLatencyOutput;
     Writer tpsOutput;
- /* TODO  try {
-      Statistics statistics = statisticsObserver.getStatistics();
+    try {
+      Set<String> keys = observersFactory.getStatisticObserverKeys();
+      for (String key : keys) {
+        StatisticsObserver statisticsObserver = observersFactory.getStatisticObserver(key);
 
-      averageLatencyOutput = new BufferedWriter(new FileWriter(averageLatencyFile, true));
-      if (new File(averageLatencyFile).length() == 0)
-        addHeader(averageLatencyOutput, statistics.getKeys());
-      tpsOutput = new BufferedWriter(new FileWriter(tpsFile, true));
-      if (new File(tpsFile).length() == 0)
-        addHeader(tpsOutput, statistics.getKeys());
+        Statistics statistics = statisticsObserver.getStatistics();
 
-      Long timestamp = statisticsObserver.getTimestamp();
+        String avgFilename = this.basedir + File.separatorChar + key + "-" + this.averageLatencyFile;
+        String tpsFilename = this.basedir + File.separatorChar + key + "-" + this.tpsFile;
 
-      StringBuilder averageLatencySb = new StringBuilder();
-      StringBuilder tpsSb = new StringBuilder();
-      averageLatencySb.append(timestamp);
-      tpsSb.append(timestamp);
+        averageLatencyOutput = new BufferedWriter(new FileWriter(avgFilename, true));
+        if (new File(avgFilename).length() == 0)
+          addHeader(averageLatencyOutput, statistics.getKeys());
+        tpsOutput = new BufferedWriter(new FileWriter(tpsFilename, true));
+        if (new File(tpsFilename).length() == 0)
+          addHeader(tpsOutput, statistics.getKeys());
 
-      Result[] results = statistics.getKeys();
-      for (Result result : results) {
-        averageLatencySb.append(",").append(String.format("%.2f", statistics.getLatency(result)));
-        tpsSb.append(",").append(statistics.getTps(result));
+        Long timestamp = statisticsObserver.getTimestamp();
+
+        StringBuilder averageLatencySb = new StringBuilder();
+        StringBuilder tpsSb = new StringBuilder();
+        averageLatencySb.append(timestamp);
+        tpsSb.append(timestamp);
+
+        Result[] results = statistics.getKeys();
+        for (Result result : results) {
+          averageLatencySb.append(",").append(String.format("%.2f", statistics.getLatency(result)));
+          tpsSb.append(",").append(statistics.getTps(result));
+        }
+        averageLatencyOutput.append(averageLatencySb.toString()).append("\n");
+        tpsOutput.append(tpsSb.toString()).append("\n");
+
+        averageLatencyOutput.close();
+        tpsOutput.close();
       }
-      averageLatencyOutput.append(averageLatencySb.toString()).append("\n");
-      tpsOutput.append(tpsSb.toString()).append("\n");
-
-      averageLatencyOutput.close();
-      tpsOutput.close();
     } catch (IOException e) {
       throw new RuntimeException("Can not write report data");
-    }*/
+    }
   }
 
   private void addHeader(Writer output, Result[] keys) throws IOException {
     StringBuilder sb = new StringBuilder();
     sb.append("timestamp");
     for (Result key : keys) {
-      sb.append(",").append(key);
+      sb.append(",").append(key.value());
     }
     output.append(sb.toString()).append("\n");
+  }
+
+  private  void deleteDirectory(File path)
+  {
+    if (path == null)
+      return;
+    if (path.exists())
+    {
+      for(File f : path.listFiles())
+      {
+        if(f.isDirectory())
+        {
+          deleteDirectory(f);
+          f.delete();
+        }
+        else
+        {
+          f.delete();
+        }
+      }
+      path.delete();
+    }
   }
 }

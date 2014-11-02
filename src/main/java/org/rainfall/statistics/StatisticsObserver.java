@@ -56,4 +56,8 @@ public class StatisticsObserver {
   public Statistics getStatistics() {
     return statistics;
   }
+
+  public long getTimestamp() {
+    return timestamp;
+  }
 }
