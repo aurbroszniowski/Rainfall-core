@@ -40,6 +40,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.GregorianCalendar;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.zip.ZipEntry;
@@ -56,7 +57,7 @@ public class HtmlReporter implements Reporter {
   private String tpsFile = "tps.csv";
   private String reportFile = this.basedir + File.pathSeparatorChar + "report.html";
   private final File jarFile = new File(getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
-
+  private final static String CRLF = System.getProperty("line.separator");
 
   public HtmlReporter() {
     try {
@@ -106,7 +107,7 @@ public class HtmlReporter implements Reporter {
   public void report(final StatisticsObserversFactory observersFactory) {
     try {
       if (!new File(reportFile).exists()) {
-//TODO        copyReportTemplate(observersFactory.getStatisticObserverKeys());
+        copyReportTemplate(observersFactory.getStatisticObserverKeys());
       }
 
       Set<String> keys = observersFactory.getStatisticObserverKeys();
@@ -116,6 +117,8 @@ public class HtmlReporter implements Reporter {
       reportToFile("total", observersFactory.getTotalStatisticObserver());
 
     } catch (IOException e) {
+      throw new RuntimeException("Can not write report data");
+    } catch (URISyntaxException e) {
       throw new RuntimeException("Can not write report data");
     }
   }
@@ -223,31 +226,32 @@ public class HtmlReporter implements Reporter {
   }
 
   private void copyReportTemplate(final Set<String> keys) throws IOException, URISyntaxException {
-    File src = new File(HtmlReporter.class.getClass().getResource("/template/Tps-template.html").toURI());
     StringBuilder sb = new StringBuilder();
     for (String key : keys) {
-      sb.append("reportTps('").append(getTpsFilename(key)).append("');").append(System.getProperty("line.separator"));
+      sb.append("reportTps('").append(getTpsFilename(key)).append("');").append(CRLF);
     }
     for (String key : keys) {
       sb.append("reportTps('")
           .append(getAverageLatencyFilename(key))
           .append("');")
-          .append(System.getProperty("line.separator"));
+          .append(CRLF);
     }
 
-    InputStream in = new FileInputStream(src);
-    OutputStream out = new FileOutputStream(reportFile);
-
-    byte[] buffer = new byte[(int)src.length()];
-
-    int length;
-    while ((length = in.read(buffer)) > 0) {
-      String bufferString = new String(buffer);
-      String replaced = bufferString.replace("!report!", sb.toString());
-      out.write(replaced.getBytes(), 0, length);
+    InputStream in = HtmlReporter.class.getClass().getResourceAsStream("/template/Tps-template.html");
+    Scanner scanner = new Scanner(in);
+    StringBuilder fileContents = new StringBuilder();
+    try {
+      while (scanner.hasNextLine()) {
+        fileContents.append(scanner.nextLine() + CRLF);
+      }
+    } finally {
+      scanner.close();
     }
-
     in.close();
+
+    byte[] replace = fileContents.toString().replace("!report!", sb.toString()).getBytes();
+    OutputStream out = new FileOutputStream(reportFile);
+    out.write(replace, 0, replace.length);
     out.close();
   }
 
