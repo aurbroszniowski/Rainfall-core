@@ -48,6 +48,7 @@ public class HtmlReporter implements Reporter {
   private String basedir = "./target/rainfall-report";
   private String averageLatencyFile = "averageLatency.csv";
   private String tpsFile = "tps.csv";
+  private String reportFile = this.basedir + File.pathSeparatorChar + "report.html";
 
   public HtmlReporter() {
     try {
@@ -61,22 +62,22 @@ public class HtmlReporter implements Reporter {
     }
   }
 
-  private void copyFolder(final File src, final File dest) throws IOException {
+  private void copyFolder(final File src, final File dst) throws IOException {
     if (src.isDirectory()) {
-      deleteDirectory(dest);
-      dest.mkdirs();
+      deleteDirectory(dst);
+      dst.mkdirs();
 
       String files[] = src.list();
 
       for (String file : files) {
         File srcFile = new File(src, file);
-        File destFile = new File(dest, file);
+        File destFile = new File(dst, file);
         copyFolder(srcFile, destFile);
       }
 
     } else {
       InputStream in = new FileInputStream(src);
-      OutputStream out = new FileOutputStream(dest);
+      OutputStream out = new FileOutputStream(dst);
 
       byte[] buffer = new byte[1024];
 
@@ -93,12 +94,19 @@ public class HtmlReporter implements Reporter {
   @Override
   public void report(final StatisticsObserversFactory observersFactory) {
     try {
+      if (!new File(reportFile).exists()) {
+        copyReportTemplate(observersFactory.getStatisticObserverKeys());
+      }
+
       Set<String> keys = observersFactory.getStatisticObserverKeys();
       for (String key : keys) {
         reportToFile(key, observersFactory.getStatisticObserver(key));
       }
       reportToFile("total", observersFactory.getTotalStatisticObserver());
+
     } catch (IOException e) {
+      throw new RuntimeException("Can not write report data");
+    } catch (URISyntaxException e) {
       throw new RuntimeException("Can not write report data");
     }
   }
@@ -107,8 +115,8 @@ public class HtmlReporter implements Reporter {
     if (statisticsObserver != null) {
       Statistics statistics = statisticsObserver.getStatistics();
 
-      String avgFilename = this.basedir + File.separatorChar + key + "-" + this.averageLatencyFile;
-      String tpsFilename = this.basedir + File.separatorChar + key + "-" + this.tpsFile;
+      String avgFilename = this.basedir + File.separatorChar + getAverageLatencyFilename(key);
+      String tpsFilename = this.basedir + File.separatorChar + getTpsFilename(key);
 
       Writer averageLatencyOutput;
       Writer tpsOutput;
@@ -138,6 +146,43 @@ public class HtmlReporter implements Reporter {
       averageLatencyOutput.close();
       tpsOutput.close();
     }
+  }
+
+  private String getTpsFilename(final String key) {
+    return key + "-" + this.tpsFile;
+  }
+
+  private String getAverageLatencyFilename(final String key) {
+    return key + "-" + this.averageLatencyFile;
+  }
+
+  private void copyReportTemplate(final Set<String> keys) throws IOException, URISyntaxException {
+    File src = new File(HtmlReporter.class.getClass().getResource("/template/Tps-template.html").toURI());
+    StringBuilder sb = new StringBuilder();
+    for (String key : keys) {
+      sb.append("reportTps('").append(getTpsFilename(key)).append("');").append(System.getProperty("line.separator"));
+    }
+    for (String key : keys) {
+      sb.append("reportTps('")
+          .append(getAverageLatencyFilename(key))
+          .append("');")
+          .append(System.getProperty("line.separator"));
+    }
+
+    InputStream in = new FileInputStream(src);
+    OutputStream out = new FileOutputStream(reportFile);
+
+    byte[] buffer = new byte[(int)src.length()];
+
+    int length;
+    while ((length = in.read(buffer)) > 0) {
+      String bufferString = new String (buffer);
+      String replaced = bufferString.replace("!report!", sb.toString());
+      out.write(replaced.getBytes(), 0, length);
+    }
+
+    in.close();
+    out.close();
   }
 
   private String formatTimestampInNano(final long timestamp) {
