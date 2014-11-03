@@ -22,6 +22,7 @@ import org.rainfall.statistics.Statistics;
 import org.rainfall.statistics.StatisticsObserver;
 import org.rainfall.statistics.StatisticsObserversFactory;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,13 +32,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.net.JarURLConnection;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.GregorianCalendar;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 /**
  * @author Aurelien Broszniowski
@@ -49,12 +55,18 @@ public class HtmlReporter implements Reporter {
   private String averageLatencyFile = "averageLatency.csv";
   private String tpsFile = "tps.csv";
   private String reportFile = this.basedir + File.pathSeparatorChar + "report.html";
+  private final File jarFile = new File(getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
+
 
   public HtmlReporter() {
     try {
-      File src = new File(HtmlReporter.class.getClass().getResource("/report").toURI());
-      File dest = new File(this.basedir);
-      copyFolder(src, dest);
+      deleteDirectory(new File(this.basedir));
+
+      if (jarFile.isFile()) {  // Run with JAR file
+        extractFromJar("/report", this.basedir);
+      } else {
+        extractFromPath(new File(HtmlReporter.class.getClass().getResource("/report").toURI()), new File(this.basedir));
+      }
     } catch (URISyntaxException e) {
       throw new RuntimeException("Can not read report template");
     } catch (IOException e) {
@@ -62,9 +74,8 @@ public class HtmlReporter implements Reporter {
     }
   }
 
-  private void copyFolder(final File src, final File dst) throws IOException {
+  private void extractFromPath(final File src, final File dst) throws IOException {
     if (src.isDirectory()) {
-      deleteDirectory(dst);
       dst.mkdirs();
 
       String files[] = src.list();
@@ -72,7 +83,7 @@ public class HtmlReporter implements Reporter {
       for (String file : files) {
         File srcFile = new File(src, file);
         File destFile = new File(dst, file);
-        copyFolder(srcFile, destFile);
+        extractFromPath(srcFile, destFile);
       }
 
     } else {
@@ -95,7 +106,7 @@ public class HtmlReporter implements Reporter {
   public void report(final StatisticsObserversFactory observersFactory) {
     try {
       if (!new File(reportFile).exists()) {
-        copyReportTemplate(observersFactory.getStatisticObserverKeys());
+//TODO        copyReportTemplate(observersFactory.getStatisticObserverKeys());
       }
 
       Set<String> keys = observersFactory.getStatisticObserverKeys();
@@ -105,8 +116,6 @@ public class HtmlReporter implements Reporter {
       reportToFile("total", observersFactory.getTotalStatisticObserver());
 
     } catch (IOException e) {
-      throw new RuntimeException("Can not write report data");
-    } catch (URISyntaxException e) {
       throw new RuntimeException("Can not write report data");
     }
   }
@@ -148,6 +157,63 @@ public class HtmlReporter implements Reporter {
     }
   }
 
+  /**
+   * extract the subdirectory from a jar on the classpath to {@code writeDirectory}
+   *
+   * @param sourceDirectory directory (in a jar on the classpath) to extract
+   * @param writeDirectory  the location to extract to
+   * @throws IOException if an IO exception occurs
+   */
+  public void extractFromJar(String sourceDirectory, String writeDirectory) throws IOException {
+    final URL dirURL = getClass().getResource(sourceDirectory);
+    final String path = sourceDirectory.substring(1);
+
+    if ((dirURL != null) && dirURL.getProtocol().equals("jar")) {
+      final JarURLConnection jarConnection = (JarURLConnection)dirURL.openConnection();
+      System.out.println("jarConnection is " + jarConnection);
+
+      final ZipFile jar = jarConnection.getJarFile();
+
+      final Enumeration<? extends ZipEntry> entries = jar.entries(); // gives ALL entries in jar
+
+      while (entries.hasMoreElements()) {
+        final ZipEntry entry = entries.nextElement();
+        final String name = entry.getName();
+        // System.out.println( name );
+        if (!name.startsWith(path)) {
+          // entry in wrong subdir -- don't copy
+          continue;
+        }
+        final String entryTail = name.substring(path.length());
+
+        final File f = new File(writeDirectory + File.separator + entryTail);
+        if (entry.isDirectory()) {
+          // if its a directory, create it
+          final boolean bMade = f.mkdir();
+          System.out.println((bMade ? "  creating " : "  unable to create ") + name);
+        } else {
+          System.out.println("  writing  " + name);
+          final InputStream is = jar.getInputStream(entry);
+          final OutputStream os = new BufferedOutputStream(new FileOutputStream(f));
+          final byte buffer[] = new byte[4096];
+          int readCount;
+          // write contents of 'is' to 'os'
+          while ((readCount = is.read(buffer)) > 0) {
+            os.write(buffer, 0, readCount);
+          }
+          os.close();
+          is.close();
+        }
+      }
+
+    } else if (dirURL == null) {
+      throw new IllegalStateException("can't find " + sourceDirectory + " on the classpath");
+    } else {
+      // not a "jar" protocol URL
+      throw new IllegalStateException("don't know how to handle extracting from " + dirURL);
+    }
+  }
+
   private String getTpsFilename(final String key) {
     return key + "-" + this.tpsFile;
   }
@@ -176,7 +242,7 @@ public class HtmlReporter implements Reporter {
 
     int length;
     while ((length = in.read(buffer)) > 0) {
-      String bufferString = new String (buffer);
+      String bufferString = new String(buffer);
       String replaced = bufferString.replace("!report!", sb.toString());
       out.write(replaced.getBytes(), 0, length);
     }
