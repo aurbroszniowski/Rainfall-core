@@ -32,7 +32,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.net.URISyntaxException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Set;
+import java.util.TimeZone;
 
 /**
  * @author Aurelien Broszniowski
@@ -87,46 +92,59 @@ public class HtmlReporter implements Reporter {
 
   @Override
   public void report(final StatisticsObserversFactory observersFactory) {
-    Writer averageLatencyOutput;
-    Writer tpsOutput;
     try {
       Set<String> keys = observersFactory.getStatisticObserverKeys();
       for (String key : keys) {
-        StatisticsObserver statisticsObserver = observersFactory.getStatisticObserver(key);
-
-        Statistics statistics = statisticsObserver.getStatistics();
-
-        String avgFilename = this.basedir + File.separatorChar + key + "-" + this.averageLatencyFile;
-        String tpsFilename = this.basedir + File.separatorChar + key + "-" + this.tpsFile;
-
-        averageLatencyOutput = new BufferedWriter(new FileWriter(avgFilename, true));
-        if (new File(avgFilename).length() == 0)
-          addHeader(averageLatencyOutput, statistics.getKeys());
-        tpsOutput = new BufferedWriter(new FileWriter(tpsFilename, true));
-        if (new File(tpsFilename).length() == 0)
-          addHeader(tpsOutput, statistics.getKeys());
-
-        Long timestamp = statisticsObserver.getTimestamp();
-
-        StringBuilder averageLatencySb = new StringBuilder();
-        StringBuilder tpsSb = new StringBuilder();
-        averageLatencySb.append(timestamp);
-        tpsSb.append(timestamp);
-
-        Result[] results = statistics.getKeys();
-        for (Result result : results) {
-          averageLatencySb.append(",").append(String.format("%.2f", statistics.getLatency(result)));
-          tpsSb.append(",").append(statistics.getTps(result));
-        }
-        averageLatencyOutput.append(averageLatencySb.toString()).append("\n");
-        tpsOutput.append(tpsSb.toString()).append("\n");
-
-        averageLatencyOutput.close();
-        tpsOutput.close();
+        reportToFile(key, observersFactory.getStatisticObserver(key));
       }
+      reportToFile("total", observersFactory.getTotalStatisticObserver());
     } catch (IOException e) {
       throw new RuntimeException("Can not write report data");
     }
+  }
+
+  private void reportToFile(final String key, final StatisticsObserver statisticsObserver) throws IOException {
+    if (statisticsObserver != null) {
+      Statistics statistics = statisticsObserver.getStatistics();
+
+      String avgFilename = this.basedir + File.separatorChar + key + "-" + this.averageLatencyFile;
+      String tpsFilename = this.basedir + File.separatorChar + key + "-" + this.tpsFile;
+
+      Writer averageLatencyOutput;
+      Writer tpsOutput;
+
+      averageLatencyOutput = new BufferedWriter(new FileWriter(avgFilename, true));
+      if (new File(avgFilename).length() == 0)
+        addHeader(averageLatencyOutput, statistics.getKeys());
+      tpsOutput = new BufferedWriter(new FileWriter(tpsFilename, true));
+      if (new File(tpsFilename).length() == 0)
+        addHeader(tpsOutput, statistics.getKeys());
+
+      String timestamp = formatTimestampInNano(statisticsObserver.getTimestamp());
+
+      StringBuilder averageLatencySb = new StringBuilder();
+      StringBuilder tpsSb = new StringBuilder();
+      averageLatencySb.append(timestamp);
+      tpsSb.append(timestamp);
+
+      Result[] results = statistics.getKeys();
+      for (Result result : results) {
+        averageLatencySb.append(",").append(String.format("%.2f", statistics.getLatency(result)));
+        tpsSb.append(",").append(statistics.getTps(result));
+      }
+      averageLatencyOutput.append(averageLatencySb.toString()).append("\n");
+      tpsOutput.append(tpsSb.toString()).append("\n");
+
+      averageLatencyOutput.close();
+      tpsOutput.close();
+    }
+  }
+
+  private String formatTimestampInNano(final long timestamp) {
+    Calendar calendar = GregorianCalendar.getInstance(TimeZone.getDefault());
+    calendar.setTime(new Date(timestamp / 1000000));
+    SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+    return sdf.format(calendar.getTime());
   }
 
   private void addHeader(Writer output, Result[] keys) throws IOException {
@@ -138,21 +156,15 @@ public class HtmlReporter implements Reporter {
     output.append(sb.toString()).append("\n");
   }
 
-  private  void deleteDirectory(File path)
-  {
+  private void deleteDirectory(File path) {
     if (path == null)
       return;
-    if (path.exists())
-    {
-      for(File f : path.listFiles())
-      {
-        if(f.isDirectory())
-        {
+    if (path.exists()) {
+      for (File f : path.listFiles()) {
+        if (f.isDirectory()) {
           deleteDirectory(f);
           f.delete();
-        }
-        else
-        {
+        } else {
           f.delete();
         }
       }
