@@ -23,27 +23,24 @@ package org.rainfall.statistics;
  */
 public class Metrics {
 
-  private Long counter;
-  private Double latency;
+  private long counter;
+  private double totalLatency;
 
   public Metrics(final Long counter, final Double latency) {
     this.counter = counter;
-    this.latency = latency;
+    this.totalLatency = latency;
   }
 
   public Long getCounter() {
     return counter;
   }
 
-  public void setCounter(final Long counter) {
-    this.counter = counter;
+  public synchronized void increaseCounter(Double latency) {
+    this.counter++;
+    this.totalLatency += latency;
   }
 
-  public Double getLatency() {
-    return latency;
-  }
-
-  public void setLatency(final Double latency) {
-    this.latency = latency;
+  public Double getAverageLatency() {
+    return totalLatency / counter;
   }
 }

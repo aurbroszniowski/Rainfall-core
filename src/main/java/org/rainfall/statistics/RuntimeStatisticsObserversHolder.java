@@ -25,36 +25,34 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Aurelien Broszniowski
  */
 
-public class StatisticsObserversFactory {
+public class RuntimeStatisticsObserversHolder implements StatisticsObserversHolder {
 
   private StatisticsObserver totalStatistics = null;
   private final ConcurrentHashMap<String, StatisticsObserver> observers = new ConcurrentHashMap<String, StatisticsObserver>();
   private long startTimestamp;
 
-  public StatisticsObserversFactory(final long startTimestamp) {
+  public RuntimeStatisticsObserversHolder(final long startTimestamp) {
     this.startTimestamp = (startTimestamp * 1000000L) - getTime();
   }
 
-  //TODO : initialize once the map with  operations ? so we do not have to initialize it everytime and pass it in measure()
-  //TODO use a parameter type?  StatisticsObserver<? extends Result>
-  private StatisticsObserver getStatisticObserver(final String name, final Result[] results) {
-    //TODO get list of things measures caches...? in config add (measure...)
-    this.observers.putIfAbsent(name, new StatisticsObserver(results));
-    return observers.get(name);
-  }
-
+  @Override
   public Set<String> getStatisticObserverKeys() {
     return this.observers.keySet();
   }
 
+  @Override
   public StatisticsObserver getStatisticObserver(String name) {
     return this.observers.get(name);
   }
 
+  @Override
   public StatisticsObserver getTotalStatisticObserver() {
     return this.totalStatistics;
   }
 
+  public void addStatisticsObserver(String name, StatisticsObserver statisticsObserver) {
+    this.observers.put(name, statisticsObserver);
+  }
 
   private StatisticsObserver getTotalStatisticObserver(final Result[] results) {
     if (totalStatistics == null)
@@ -66,6 +64,7 @@ public class StatisticsObserversFactory {
     return System.nanoTime();
   }
 
+  @Override
   public void measure(String name, Result[] results, Task task) throws TestException {
     try {
       final long start = getTime();
@@ -74,7 +73,7 @@ public class StatisticsObserversFactory {
       final double latency = (end - start);
 
       StatisticsObserver totalStatisticObserver = getTotalStatisticObserver(results);
-      StatisticsObserver statisticObserver = getStatisticObserver(name, results);
+      StatisticsObserver statisticObserver = this.observers.get(name);
 
       long timestamp = startTimestamp + (start );
       statisticObserver.setTimestamp(timestamp);

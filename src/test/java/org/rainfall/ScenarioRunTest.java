@@ -21,7 +21,7 @@ import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.rainfall.configuration.ConcurrencyConfig;
-import org.rainfall.statistics.StatisticsObserversFactory;
+import org.rainfall.statistics.RuntimeStatisticsObserversHolder;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.CoreMatchers.is;
@@ -83,7 +83,7 @@ public class ScenarioRunTest {
         System.out.println("end of sleep");
         return null;
       }
-    }).when(execution).execute(any(StatisticsObserversFactory.class), any(Scenario.class), anyMap(), anyList());
+    }).when(execution).execute(any(RuntimeStatisticsObserversHolder.class), any(Scenario.class), anyMap(), anyList());
 
     try {
       scenarioRun.start();

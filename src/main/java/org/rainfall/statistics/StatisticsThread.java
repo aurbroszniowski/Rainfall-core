@@ -19,11 +19,8 @@ package org.rainfall.statistics;
 import org.rainfall.Reporter;
 import org.rainfall.configuration.ReportingConfig;
 
-import java.util.Calendar;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.TimerTask;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Aurelien Broszniowski
@@ -31,10 +28,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class StatisticsThread extends TimerTask {
 
-  private StatisticsObserversFactory observersFactory;
+  private RuntimeStatisticsObserversHolder observersFactory;
   private ReportingConfig reportingConfig;
 
-  public StatisticsThread(final StatisticsObserversFactory observersFactory, final ReportingConfig reportingConfig) {
+  public StatisticsThread(final RuntimeStatisticsObserversHolder observersFactory, final ReportingConfig reportingConfig) {
     this.observersFactory = observersFactory;
     this.reportingConfig = reportingConfig;
   }

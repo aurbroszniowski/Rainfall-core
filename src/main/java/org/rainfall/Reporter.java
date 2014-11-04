@@ -16,7 +16,7 @@
 
 package org.rainfall;
 
-import org.rainfall.statistics.StatisticsObserversFactory;
+import org.rainfall.statistics.RuntimeStatisticsObserversHolder;
 
 /**
  * A reporter is a class that will send the metrics to some output (text, file, etc.)
@@ -26,6 +26,6 @@ import org.rainfall.statistics.StatisticsObserversFactory;
 
 public interface Reporter {
 
-  void report(final StatisticsObserversFactory observersFactory);
+  void report(final RuntimeStatisticsObserversHolder observersFactory);
 
 }

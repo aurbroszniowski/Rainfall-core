@@ -23,21 +23,16 @@ import org.rainfall.Operation;
 import org.rainfall.Scenario;
 import org.rainfall.TestException;
 import org.rainfall.configuration.ConcurrencyConfig;
-import org.rainfall.statistics.StatisticsObserversFactory;
+import org.rainfall.statistics.RuntimeStatisticsObserversHolder;
 import org.rainfall.unit.During;
 import org.rainfall.unit.TimeDivision;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -55,7 +50,7 @@ public class RunsDuring extends Execution {
   }
 
   @Override
-  public void execute(final StatisticsObserversFactory observersFactory, final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions) throws TestException {
+  public void execute(final RuntimeStatisticsObserversHolder observersFactory, final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions) throws TestException {
     ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
     int nbThreads = concurrencyConfig.getNbThreads();
 

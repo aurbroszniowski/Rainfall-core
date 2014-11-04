@@ -18,10 +18,10 @@ package org.rainfall.reporting;
 
 import org.rainfall.Reporter;
 import org.rainfall.statistics.Result;
+import org.rainfall.statistics.RuntimeStatisticsObserversHolder;
 import org.rainfall.statistics.Statistics;
 import org.rainfall.statistics.StatisticsHolder;
 import org.rainfall.statistics.StatisticsObserver;
-import org.rainfall.statistics.StatisticsObserversFactory;
 
 import java.text.NumberFormat;
 import java.util.Set;
@@ -41,7 +41,7 @@ public class TextReporter implements Reporter {
   private String CRLF = System.getProperty("line.separator");
 
   @Override
-  public void report(final StatisticsObserversFactory observersFactory) {
+  public void report(final RuntimeStatisticsObserversHolder observersFactory) {
     StringBuilder sb = new StringBuilder();
     sb.append("==================================================== CUMULATIVE =========================================")
         .append(CRLF);
@@ -78,7 +78,7 @@ public class TextReporter implements Reporter {
       sb.append("Number of operations: ")
           .append(String.format("%,8d", statistics.getCounter(result)))
           .append(" ops \t");
-      sb.append("Average Latency: ").append(String.format("%.2f", statistics.getLatency(result))).append("ms \t");
+      sb.append("Average Latency: ").append(String.format("%.2f", statistics.getAverageLatency(result))).append("ms \t");
       sb.append("TPS: ").append(String.format("%,8d", statistics.getTps(result)));
 
       sb.append(CRLF);
@@ -98,7 +98,7 @@ public class TextReporter implements Reporter {
           key.value(),
           nf.format(statistics.getCounter(key)),
           nf.format(statistics.getTps(key)),
-          nf.format(statistics.getLatency(key))
+          nf.format(statistics.getAverageLatency(key))
       )).append(CRLF);
     }
     sb.append(String.format(FORMAT,

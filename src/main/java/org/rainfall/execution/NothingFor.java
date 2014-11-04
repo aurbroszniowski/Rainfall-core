@@ -20,7 +20,7 @@ import org.rainfall.AssertionEvaluator;
 import org.rainfall.Configuration;
 import org.rainfall.Execution;
 import org.rainfall.Scenario;
-import org.rainfall.statistics.StatisticsObserversFactory;
+import org.rainfall.statistics.RuntimeStatisticsObserversHolder;
 import org.rainfall.unit.TimeDivision;
 
 import java.util.List;
@@ -42,7 +42,7 @@ public class NothingFor extends Execution {
   }
 
   @Override
-  public void execute(final StatisticsObserversFactory observersFactory, final Scenario scenario,
+  public void execute(final RuntimeStatisticsObserversHolder observersFactory, final Scenario scenario,
                       final Map<Class<? extends Configuration>, Configuration> configurations,
                       final List<AssertionEvaluator> assertions) {
     try {

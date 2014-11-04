@@ -28,7 +28,7 @@ public class Statistics {
 
   private final Result[] keys;
   private final ConcurrentHashMapV8<Result, Metrics> metrics = new ConcurrentHashMapV8<Result, Metrics>();
-  private final Long startTime;
+  private Long startTime;
 
   public Statistics(Result[] keys) {
     this.keys = keys;
@@ -39,16 +39,7 @@ public class Statistics {
   }
 
   public void increaseCounterAndSetLatency(final Result result, final Double latency) {
-    metrics.merge(result, new Metrics(1L, latency), new ConcurrentHashMapV8.BiFun<Metrics, Metrics, Metrics>() {
-      @Override
-      public Metrics apply(final Metrics metrics1, final Metrics metrics2) {
-        long cnt = metrics.get(result).getCounter();
-        double updatedLatency = (metrics.get(result).getLatency() * cnt + (latency / 1000000L)) / (cnt + 1);
-        metrics1.setLatency(updatedLatency);
-        metrics1.setCounter(cnt + 1);
-        return metrics1;
-      }
-    });
+    metrics.get(result).increaseCounter(latency);
   }
 
   public Result[] getKeys() {
@@ -59,8 +50,8 @@ public class Statistics {
     return metrics.get(key).getCounter();
   }
 
-  public Double getLatency(Result key) {
-    return metrics.get(key).getLatency();
+  public Double getAverageLatency(Result key) {
+    return metrics.get(key).getAverageLatency();
   }
 
   public Long getTps(Result key) {
@@ -94,7 +85,7 @@ public class Statistics {
     synchronized (metrics) {
       int counter = 0;
       for (Result key : keys) {
-        double latency = metrics.get(key).getLatency();
+        double latency = metrics.get(key).getAverageLatency();
         if (latency > 0) {
           average += latency;
           counter++;
@@ -115,5 +106,9 @@ public class Statistics {
       cnt = sumOfCounters();
     }
     return cnt / (length / 1000000000L);
+  }
+
+  void setStartTime(Long startTime) {
+    this.startTime = startTime;
   }
 }

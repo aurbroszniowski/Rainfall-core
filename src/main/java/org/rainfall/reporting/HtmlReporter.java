@@ -18,9 +18,9 @@ package org.rainfall.reporting;
 
 import org.rainfall.Reporter;
 import org.rainfall.statistics.Result;
+import org.rainfall.statistics.RuntimeStatisticsObserversHolder;
 import org.rainfall.statistics.Statistics;
 import org.rainfall.statistics.StatisticsObserver;
-import org.rainfall.statistics.StatisticsObserversFactory;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
@@ -104,7 +104,7 @@ public class HtmlReporter implements Reporter {
   }
 
   @Override
-  public void report(final StatisticsObserversFactory observersFactory) {
+  public void report(final RuntimeStatisticsObserversHolder observersFactory) {
     try {
       if (!new File(reportFile).exists()) {
         copyReportTemplate(observersFactory.getStatisticObserverKeys());
@@ -149,7 +149,7 @@ public class HtmlReporter implements Reporter {
 
       Result[] results = statistics.getKeys();
       for (Result result : results) {
-        averageLatencySb.append(",").append(String.format("%.2f", statistics.getLatency(result)));
+        averageLatencySb.append(",").append(String.format("%.2f", statistics.getAverageLatency(result)));
         tpsSb.append(",").append(statistics.getTps(result));
       }
       averageLatencyOutput.append(averageLatencySb.toString()).append("\n");

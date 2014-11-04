@@ -18,7 +18,8 @@ package org.rainfall;
 
 import org.rainfall.configuration.ConcurrencyConfig;
 import org.rainfall.configuration.ReportingConfig;
-import org.rainfall.statistics.StatisticsObserversFactory;
+import org.rainfall.statistics.InitStatisticsObserversHolder;
+import org.rainfall.statistics.RuntimeStatisticsObserversHolder;
 import org.rainfall.statistics.StatisticsThread;
 
 import java.util.ArrayList;
@@ -40,7 +41,7 @@ public class ScenarioRun {
   private Map<Class<? extends Configuration>, Configuration> configurations = new ConcurrentHashMap<Class<? extends Configuration>, Configuration>();
   private List<AssertionEvaluator> assertions = new ArrayList<AssertionEvaluator>();
   private List<Execution> executions = null;
-  private StatisticsObserversFactory observersFactory;
+  private RuntimeStatisticsObserversHolder observersHolder;
 
   public ScenarioRun(final Scenario scenario) {
     this.scenario = scenario;
@@ -76,20 +77,21 @@ public class ScenarioRun {
 
   // Start Scenario run
   public void start() {
-//    initStatistics();
     long start = System.currentTimeMillis();
-    observersFactory  = new StatisticsObserversFactory(start);
+    this.observersHolder = new RuntimeStatisticsObserversHolder(start);
+    initStatistics();
 
     //TODO : add generics ? cast?
     ReportingConfig reportingConfig = (ReportingConfig)configurations.get(ReportingConfig.class);
 
     Timer timer = new Timer();
-    StatisticsThread stats = new StatisticsThread(observersFactory, reportingConfig);
+    StatisticsThread stats = new StatisticsThread(observersHolder, reportingConfig);
     timer.scheduleAtFixedRate(stats, 0L, 1000L);
 
-    ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
     try {
-      concurrencyConfig.submit(observersFactory, executions, scenario, configurations, assertions);
+      for (final Execution execution : executions) {
+        execution.execute(observersHolder, scenario, configurations, assertions);
+      }
     } catch (TestException e) {
       throw new RuntimeException(e);
     }
@@ -104,7 +106,7 @@ public class ScenarioRun {
     try {
       List<Operation> operations = scenario.getOperations();
       for (Operation operation : operations) {
-        operation.exec(this.observersFactory, this.configurations, this.assertions);
+        operation.exec(new InitStatisticsObserversHolder(this.observersHolder), this.configurations, this.assertions);
       }
     } catch (TestException e) {
       throw new RuntimeException(e);

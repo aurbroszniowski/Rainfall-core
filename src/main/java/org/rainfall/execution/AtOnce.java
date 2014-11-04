@@ -24,7 +24,7 @@ import org.rainfall.Scenario;
 import org.rainfall.TestException;
 import org.rainfall.Unit;
 import org.rainfall.configuration.ConcurrencyConfig;
-import org.rainfall.statistics.StatisticsObserversFactory;
+import org.rainfall.statistics.RuntimeStatisticsObserversHolder;
 
 import java.util.List;
 import java.util.Map;
@@ -50,7 +50,8 @@ public class AtOnce extends Execution {
     this.unit = unit;
   }
 
-  public void execute(final StatisticsObserversFactory observersFactory, final Scenario scenario,
+  @Override
+  public void execute(final RuntimeStatisticsObserversHolder observersFactory, final Scenario scenario,
                       final Map<Class<? extends Configuration>, Configuration> configurations,
                       final List<AssertionEvaluator> assertions) throws TestException {
 
