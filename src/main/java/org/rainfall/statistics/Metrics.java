@@ -41,6 +41,6 @@ public class Metrics {
   }
 
   public Double getAverageLatency() {
-    return totalLatency / counter;
+    return totalLatency / counter / 1000000L;
   }
 }

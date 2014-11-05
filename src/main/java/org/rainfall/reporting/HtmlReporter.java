@@ -36,6 +36,7 @@ import java.net.JarURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
@@ -218,11 +219,27 @@ public class HtmlReporter implements Reporter {
   }
 
   private String getTpsFilename(final String key) {
-    return key + "-" + this.tpsFile;
+    return cleanFilename(key + "-" + this.tpsFile);
   }
 
   private String getAverageLatencyFilename(final String key) {
-    return key + "-" + this.averageLatencyFile;
+    return cleanFilename(key + "-" + this.averageLatencyFile);
+  }
+
+  private final static int[] illegalChars = { 34, 60, 62, 124, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+      17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 58, 42, 63, 92, 47, '@', '.', '\'', '"', '!', '#', '$',
+      '%', '^', '&', '*', '(', ')', '\\' };
+
+  public String cleanFilename(String filename) {
+    Arrays.sort(illegalChars);
+    StringBuilder cleanName = new StringBuilder();
+    for (int i = 0; i < filename.length(); i++) {
+      int c = (int)filename.charAt(i);
+      if (Arrays.binarySearch(illegalChars, c) < 0) {
+        cleanName.append((char)c);
+      }
+    }
+    return cleanName.toString();
   }
 
   private void copyReportTemplate(final Set<String> keys) throws IOException, URISyntaxException {
