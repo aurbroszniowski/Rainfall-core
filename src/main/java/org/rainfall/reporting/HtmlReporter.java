@@ -53,15 +53,18 @@ import java.util.zip.ZipFile;
 
 public class HtmlReporter implements Reporter {
 
-  private String basedir = "./target/rainfall-report";
+  private String basedir;
   private String averageLatencyFile = "averageLatency.csv";
   private String tpsFile = "tps.csv";
-  private String reportFile = this.basedir + File.pathSeparatorChar + "report.html";
+  private String reportFile;
   private final File jarFile = new File(getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
   private final static String CRLF = System.getProperty("line.separator");
 
   public HtmlReporter() {
     try {
+      this.basedir = new File("target/rainfall-report").getAbsoluteFile().getAbsolutePath();
+      this.reportFile = this.basedir + File.separatorChar + "report.html";
+
       deleteDirectory(new File(this.basedir));
 
       if (jarFile.isFile()) {  // Run with JAR file
@@ -219,11 +222,11 @@ public class HtmlReporter implements Reporter {
   }
 
   private String getTpsFilename(final String key) {
-    return cleanFilename(key + "-" + this.tpsFile);
+    return cleanFilename(key) + "-" + this.tpsFile;
   }
 
   private String getAverageLatencyFilename(final String key) {
-    return cleanFilename(key + "-" + this.averageLatencyFile);
+    return cleanFilename(key) + "-" + this.averageLatencyFile;
   }
 
   private final static int[] illegalChars = { 34, 60, 62, 124, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
@@ -245,14 +248,16 @@ public class HtmlReporter implements Reporter {
   private void copyReportTemplate(final Set<String> keys) throws IOException, URISyntaxException {
     StringBuilder sb = new StringBuilder();
     for (String key : keys) {
-      sb.append("reportTps('").append(getTpsFilename(key)).append("');").append(CRLF);
+      String tpsFilename = getTpsFilename(key);
+      sb.append("reportTps('").append(tpsFilename.substring(0, tpsFilename.length() - 4)).append("');").append(CRLF);
     }
+    sb.append("reportTps('total-tps');").append(CRLF);
     for (String key : keys) {
+      String averageLatencyFilename = getAverageLatencyFilename(key);
       sb.append("reportTps('")
-          .append(getAverageLatencyFilename(key))
-          .append("');")
-          .append(CRLF);
+          .append(averageLatencyFilename.substring(0, averageLatencyFilename.length() - 4)).append("');").append(CRLF);
     }
+    sb.append("reportTps('total-averageLatency');").append(CRLF);
 
     InputStream in = HtmlReporter.class.getClass().getResourceAsStream("/template/Tps-template.html");
     Scanner scanner = new Scanner(in);
