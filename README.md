@@ -4,13 +4,47 @@ Rainfall
 Rainfall is an extensible java framework to implement custom DSL based stress and performance tests in your application.
 
 It has a customisable fluent interface that lets you implement your own DSL when writing tests scenarios, and define your own tests actions and metrics.
-Rainfall is open to extensions, two of which are currently in progress,
+Rainfall is open to extensions, three of which are currently in progress,
 - Rainfall web is a Yet Another Web Application performance testing library
-- Rainfall JCache is a library to test the performance of caches solutions
+- Rainfall JCache is a library to test the performance of JSR107 caches solutions
+- Rainfall Ehcache is a library to test the performance of Ehcache 2 and 3
+
+
+Components
+----------
+[Rainfall-core](https://github.com/aurbroszniowski/Rainfall-core) is the core library containing the key elements of the framework.
+ When writing your framework implementation, you must include this library as a dependency.
+
+[Rainfall-web](https://github.com/aurbroszniowski/Rainfall-web) is the Web Application performance testing implementation.
+
+[Rainfall-jcache](https://github.com/aurbroszniowski/Rainfall-jcache) is the JSR107 caches performance testing implementation.
+
+[Rainfall-ehcache](https://github.com/aurbroszniowski/Rainfall-ehcache) is the Ehcache 2.x/3.x performance testing implementation.
 
 
 Quick start
 -----------
+
+This module is Rainfall-core.
+It contains the base classes that you will extend in order to write your own performance framework.
+
+*org.rainfall.Configuration*
+Your test will define a configuration (e.g. doing http calls to the twitter search page).
+
+*org.rainfall.Execution*
+Your test will define a scenario, made of a serie of executions (e.g. do nothing, do an operation once)
+
+*org.rainfall.Operation*
+Each execution of the test does some specific Operation (e.g. do the http call with some parameter)
+
+
+A certain number of those classes are already implemented and available for your tests. See details [on the wiki](wiki)
+
+
+Performance test
+----------------
+**Beware, Rainfall-core is only the core library, in order to write tests, you need to use an existing implementation 
+(e.g. Rainfall-jcache) or write an implementation yourself**
 
 Performance tests are written in java, we will cover a simple example using Rainfall web:
 
@@ -34,6 +68,7 @@ It will simulate 5 concurrent users doing nothing for 5 seconds then doing the o
 
 Build the project
 -----------------
+Rainfall is compiled with Java 6 or 7
 ```
   mvn clean install
 ```
@@ -44,7 +79,7 @@ Use it in your project
   <dependencies>
     <dependency>
       <groupId>org.rainfall</groupId>
-      <artifactId>lib</artifactId>
+      <artifactId>rainfall-core</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
   </dependencies>
@@ -52,17 +87,4 @@ Use it in your project
 
 Writing your own performance framework
 --------------------------------------
-The basic classes that you will extend are:
-
-org.rainfall.Configuration
-Your test will define a configuration (e.g. doing http calls to the twitter search page).
-
-org.rainfall.Execution
-Your test will define a scenario, made of a serie of executions (e.g. do nothing, do an operation once)
-
-org.rainfall.Operation
-Each execution of the test does some specific Operation (e.g. do the http call with some parameter)
-
-
-Currently, two performance frameworks are (partially) implemented : rainfall-web and rainfall-jcache
-You can refer to those modules to have some idea on how to write your own framework.
+You need to create a new project, similarly to one of the existing implementations (Rainfall-jcache, Rainfall-ehcache, Rainfall-web).
