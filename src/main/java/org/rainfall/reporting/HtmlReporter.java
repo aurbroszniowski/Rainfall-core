@@ -249,15 +249,19 @@ public class HtmlReporter implements Reporter {
     StringBuilder sb = new StringBuilder();
     for (String key : keys) {
       String tpsFilename = getTpsFilename(key);
-      sb.append("reportTps('").append(tpsFilename.substring(0, tpsFilename.length() - 4)).append("');").append(CRLF);
+      sb.append("report('").append(tpsFilename.substring(0, tpsFilename.length() - 4))
+          .append("', 'TPS - ").append(key)
+          .append("');").append(CRLF);
     }
-    sb.append("reportTps('total-tps');").append(CRLF);
+    sb.append("report('total-tps', 'Total TPS');").append(CRLF);
     for (String key : keys) {
       String averageLatencyFilename = getAverageLatencyFilename(key);
-      sb.append("reportTps('")
-          .append(averageLatencyFilename.substring(0, averageLatencyFilename.length() - 4)).append("');").append(CRLF);
+      sb.append("report('")
+          .append(averageLatencyFilename.substring(0, averageLatencyFilename.length() - 4))
+          .append("', 'Average latency - ").append(key)
+          .append("');").append(CRLF);
     }
-    sb.append("reportTps('total-averageLatency');").append(CRLF);
+    sb.append("report('total-averageLatency', 'Average Latency of all');").append(CRLF);
 
     InputStream in = HtmlReporter.class.getClass().getResourceAsStream("/template/Tps-template.html");
     Scanner scanner = new Scanner(in);

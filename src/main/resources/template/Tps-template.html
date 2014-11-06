@@ -28,6 +28,18 @@
 <script src="js/jquery-1.11.1.min.js"></script>
 <script src="js/d3.v3.min.js"></script>
 <script>
+    function addCommas(nStr) {
+        nStr += '';
+        x = nStr.split('.');
+        x1 = x[0];
+        x2 = x.length > 1 ? '.' + x[1] : '';
+        var rgx = /(\d+)(\d{3})/;
+        while (rgx.test(x1)) {
+            x1 = x1.replace(rgx, '$1' + ',' + '$2');
+        }
+        return x1 + x2;
+    }
+
     function addGraph(filename) {
         var margin = {top: 20, right: 55, bottom: 80, left: 80},
                 width = 1000 - margin.left - margin.right,
@@ -51,7 +63,10 @@
                 .scale(x)
                 .orient("bottom")
                 .tickSize(0, 6)
-                .tickFormat(function(d) { var seconds = d.substring(d.length - 2); if (seconds==='00' || seconds==='30') return (d); });
+                .tickFormat(function (d) {
+                    var seconds = d.substring(d.length - 2);
+                    if (seconds === '00' || seconds === '30') return (d);
+                });
 
         var yAxis = d3.svg.axis()
                 .scale(y)
@@ -132,7 +147,7 @@
                     .attr("transform", function (d, i) { return "translate(0," + i * 20 + ")"; });
 
             legend.append("rect")
-                    .attr("x", width - 18)
+                    .attr("x", width - 46)
                     .attr("width", 18)
                     .attr("height", 18)
                     .style("fill", color);
@@ -141,19 +156,20 @@
                     .attr("x", width - 24)
                     .attr("y", 9)
                     .attr("dy", ".35em")
-                    .style("text-anchor", "end")
-                    .text(function (d) { return d; });
+                    .style("text-anchor", "begin")
+                    .text(function (d) { return d + ' : ' + addCommas(data[data.length - 1][d]); });
         });
     }
 
-    function reportTps(filename) {
+    function report(filename, name) {
         $("body").append("<div id='" + filename + "'><div class='title'/><div class='graph'/></div>");
-        $("#" + filename + " .title").before("<h1>" + filename + "</h1>");
+        $("#" + filename + " .title").before("<h1>" + name + "</h1>");
         addGraph(filename);
     }
 
     $(document).ready(function () {
-        !report!
+        !report
+        !
     });
 </script>
 </body>
