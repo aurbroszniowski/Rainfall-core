@@ -38,7 +38,7 @@ Your test will define a scenario, made of a serie of executions (e.g. do nothing
 Each execution of the test does some specific Operation (e.g. do the http call with some parameter)
 
 
-A certain number of those classes are already implemented and available for your tests. See details [on the wiki](wiki)
+A certain number of those classes are already implemented and available for your tests. See details [on the wiki](https://github.com/aurbroszniowski/Rainfall-core/wiki)
 
 
 Performance test
