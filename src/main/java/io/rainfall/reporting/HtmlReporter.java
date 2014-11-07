@@ -59,6 +59,8 @@ public class HtmlReporter implements Reporter {
   private String reportFile;
   private final File jarFile = new File(getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
   private final static String CRLF = System.getProperty("line.separator");
+  private Calendar calendar = GregorianCalendar.getInstance(TimeZone.getDefault());
+  private SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 
   public HtmlReporter() {
     try {
@@ -282,9 +284,7 @@ public class HtmlReporter implements Reporter {
   }
 
   private String formatTimestampInNano(final long timestamp) {
-    Calendar calendar = GregorianCalendar.getInstance(TimeZone.getDefault());
-    calendar.setTime(new Date(timestamp));
-    SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+    calendar.setTime(new Date(timestamp / 1000000L));
     return sdf.format(calendar.getTime());
   }
 

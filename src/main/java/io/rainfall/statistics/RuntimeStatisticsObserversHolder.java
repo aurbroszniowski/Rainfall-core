@@ -75,7 +75,7 @@ public class RuntimeStatisticsObserversHolder implements StatisticsObserversHold
       StatisticsObserver totalStatisticObserver = getTotalStatisticObserver(results);
       StatisticsObserver statisticObserver = this.observers.get(name);
 
-      long timestamp = startTimestamp + (start );
+      long timestamp = startTimestamp + (start);
       statisticObserver.setTimestamp(timestamp);
       totalStatisticObserver.setTimestamp(timestamp);
 

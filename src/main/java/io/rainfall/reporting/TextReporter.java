@@ -24,7 +24,12 @@ import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.statistics.StatisticsObserver;
 
 import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Set;
+import java.util.TimeZone;
 
 
 /**
@@ -39,6 +44,8 @@ public class TextReporter implements Reporter {
   //  private static final String FORMAT = "%-15s %-7s %12s %10s %10s %10s %10s %10s";
   private static final NumberFormat nf = NumberFormat.getInstance();
   private String CRLF = System.getProperty("line.separator");
+  private Calendar calendar = GregorianCalendar.getInstance(TimeZone.getDefault());
+  private SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 
   @Override
   public void report(final RuntimeStatisticsObserversHolder observersFactory) {
@@ -66,7 +73,7 @@ public class TextReporter implements Reporter {
   }
 
   private void logStats(StringBuilder sb, String name, StatisticsHolder holder) {
-    sb.append(format(holder.getTimestamp())).append(CRLF);
+    sb.append(formatTimestampInNano(holder.getTimestamp())).append(CRLF);
     Statistics statistics = holder.getStatistics();
     Result[] keys = statistics.getKeys();
     for (Result key : keys) {
@@ -87,13 +94,8 @@ public class TextReporter implements Reporter {
     )).append(CRLF);
   }
 
-  private String format(final long timestamp) {
-    long timeInSec = timestamp / 1000;
-    long second = timeInSec % 60;
-    long minute = (timeInSec / 60) % 60;
-    long hour = (timeInSec / 60 * 60) % 24;
-
-    return String.format("%02d:%02d:%02d", hour, minute, second);
+  private String formatTimestampInNano(final long timestamp) {
+    calendar.setTime(new Date(timestamp / 1000000L));
+    return sdf.format(calendar.getTime());
   }
-
 }
