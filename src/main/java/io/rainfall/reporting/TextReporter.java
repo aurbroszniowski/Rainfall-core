@@ -62,29 +62,6 @@ public class TextReporter implements Reporter {
     if (totalStatisticObserver != null)
       logStats(sb, "ALL", totalStatisticObserver.peek());
 
-/*
-    Long timestamp = statisticsObserver.getTimestamp();
-    sb.append(timestamp).append(" \t\t ");
-    sb.append("KEY \t counter \t minLatency \t maxLatency \t averageLatencyInMs ");
-    sb.append(System.getProperty("line.separator"));
-    Statistics statistics = statisticsObserver.getStatistics();
-    sb.append("Total operations: ").append(String.format("%,8d", statistics.sumOfCounters())).append(" ops \t");
-    sb.append("Average Latency: ").append(String.format("%.2f", statistics.averageLatencyInMs())).append("ms \t");
-    sb.append("Average TPS: ").append(String.format("%,8d", statistics.averageTps()));
-    sb.append(System.getProperty("line.separator"));
-    Result[] results = statistics.getKeys();
-    for (Result result : results) {
-      sb.append(result.value()).append(" \t\t ");
-      sb.append("Number of operations: ")
-          .append(String.format("%,8d", statistics.getCounter(result)))
-          .append(" ops \t");
-      sb.append("Average Latency: ").append(String.format("%.2f", statistics.getAverageLatency(result))).append("ms \t");
-      sb.append("TPS: ").append(String.format("%,8d", statistics.getTps(result)));
-
-      sb.append(CRLF);
-    }
-    sb.append("--------------------------------------------------------------------------------------------");
-    sb.append(System.getProperty("line.separator"));*/
     System.out.println(sb.toString());
   }
 
@@ -98,7 +75,7 @@ public class TextReporter implements Reporter {
           key.value(),
           nf.format(statistics.getCounter(key)),
           nf.format(statistics.getTps(key)),
-          nf.format(statistics.getAverageLatency(key))
+          nf.format(statistics.getAverageLatencyInMs(key))
       )).append(CRLF);
     }
     sb.append(String.format(FORMAT,
@@ -106,12 +83,12 @@ public class TextReporter implements Reporter {
         "TOTAL",
         nf.format(statistics.sumOfCounters()),
         nf.format(statistics.averageTps()),
-        nf.format(statistics.averageLatencyInMs())
+        nf.format(statistics.totalAverageLatencyInMs())
     )).append(CRLF);
   }
 
   private String format(final long timestamp) {
-    long timeInSec = timestamp / (1000 * 1000000L);
+    long timeInSec = timestamp / 1000;
     long second = timeInSec % 60;
     long minute = (timeInSec / 60) % 60;
     long hour = (timeInSec / 60 * 60) % 24;

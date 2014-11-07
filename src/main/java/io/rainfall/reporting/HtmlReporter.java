@@ -153,7 +153,7 @@ public class HtmlReporter implements Reporter {
 
       Result[] results = statistics.getKeys();
       for (Result result : results) {
-        averageLatencySb.append(",").append(String.format("%.2f", statistics.getAverageLatency(result)));
+        averageLatencySb.append(",").append(String.format("%.2f", statistics.getAverageLatencyInMs(result)));
         tpsSb.append(",").append(statistics.getTps(result));
       }
       averageLatencyOutput.append(averageLatencySb.toString()).append("\n");
@@ -283,7 +283,7 @@ public class HtmlReporter implements Reporter {
 
   private String formatTimestampInNano(final long timestamp) {
     Calendar calendar = GregorianCalendar.getInstance(TimeZone.getDefault());
-    calendar.setTime(new Date(timestamp / 1000000));
+    calendar.setTime(new Date(timestamp));
     SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
     return sdf.format(calendar.getTime());
   }

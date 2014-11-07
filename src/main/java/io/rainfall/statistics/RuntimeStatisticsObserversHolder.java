@@ -79,8 +79,8 @@ public class RuntimeStatisticsObserversHolder implements StatisticsObserversHold
       statisticObserver.setTimestamp(timestamp);
       totalStatisticObserver.setTimestamp(timestamp);
 
-      statisticObserver.getStatistics().increaseCounterAndSetLatency(result, latency);
-      totalStatisticObserver.getStatistics().increaseCounterAndSetLatency(result, latency);
+      statisticObserver.getStatistics().increaseCounterAndSetLatencyInNs(result, latency);
+      totalStatisticObserver.getStatistics().increaseCounterAndSetLatencyInNs(result, latency);
 
     } catch (Exception e) {
       throw new TestException("Exception in measured task " + task.toString(), e);

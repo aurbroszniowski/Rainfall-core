@@ -47,11 +47,11 @@ public class StatisticsObserverTest {
     double okLatency = (okEnd - start) / 1000000L;
     double koLatency = (koEnd - start) / 1000000L;
     double averageLatency = (okLatency + koLatency) / 2;
-    assertThat(resultsStatistics.averageLatencyInMs(), is(equalTo(averageLatency)));
+    assertThat(resultsStatistics.totalAverageLatencyInMs(), is(equalTo(averageLatency)));
     assertThat(resultsStatistics.sumOfCounters(), is(equalTo(2L)));
-    assertThat(resultsStatistics.getAverageLatency(Results.OK), is(equalTo(okLatency)));
+    assertThat(resultsStatistics.getAverageLatencyInMs(Results.OK), is(equalTo(okLatency)));
     assertThat(resultsStatistics.getCounter(Results.OK), is(equalTo(1L)));
-    assertThat(resultsStatistics.getAverageLatency(Results.KO), is(equalTo(koLatency)));
+    assertThat(resultsStatistics.getAverageLatencyInMs(Results.KO), is(equalTo(koLatency)));
     assertThat(resultsStatistics.getCounter(Results.KO), is(equalTo(1L)));
 */
   }

@@ -2,12 +2,10 @@ package io.rainfall.statistics;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
+import java.math.BigDecimal;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -24,11 +22,11 @@ public class StatisticsTest {
     final Result[] keys = new Result[] { one, two, three };
     Statistics statistics = new Statistics(keys);
 
-    statistics.increaseCounterAndSetLatency(two, 10.5d);
-    statistics.increaseCounterAndSetLatency(two, 3.4d);
-    statistics.increaseCounterAndSetLatency(two, 9.7d);
+    statistics.increaseCounterAndSetLatencyInNs(two, 10.5d * 1000000L);
+    statistics.increaseCounterAndSetLatencyInNs(two, 3.4d * 1000000L);
+    statistics.increaseCounterAndSetLatencyInNs(two, 9.7d * 1000000L);
 
-    assertThat(statistics.getAverageLatency(two), is(((10.5d + 3.4d + 9.7d) / 3)));
+    assertThat(statistics.getAverageLatencyInMs(two), is(((10.5d + 3.4d + 9.7d) / 3)));
   }
 
   @Test
@@ -39,16 +37,17 @@ public class StatisticsTest {
     final Result[] keys = new Result[] { one, two, three };
     Statistics statistics = new Statistics(keys);
 
-    statistics.increaseCounterAndSetLatency(two, 10.5d);
-    statistics.increaseCounterAndSetLatency(two, 3.4d);
-    statistics.increaseCounterAndSetLatency(two, 9.7d);
-    statistics.increaseCounterAndSetLatency(one, 4.3d);
-    statistics.increaseCounterAndSetLatency(one, 6.3d);
-    statistics.increaseCounterAndSetLatency(two, 11.3d);
-    statistics.increaseCounterAndSetLatency(two, 6.2d);
+    statistics.increaseCounterAndSetLatencyInNs(two, 10.5d * 1000000L);
+    statistics.increaseCounterAndSetLatencyInNs(two, 3.4d * 1000000L);
+    statistics.increaseCounterAndSetLatencyInNs(two, 9.7d * 1000000L);
+    statistics.increaseCounterAndSetLatencyInNs(one, 4.3d * 1000000L);
+    statistics.increaseCounterAndSetLatencyInNs(one, 6.3d * 1000000L);
+    statistics.increaseCounterAndSetLatencyInNs(two, 11.3d * 1000000L);
+    statistics.increaseCounterAndSetLatencyInNs(two, 6.2d * 1000000L);
 
-    assertThat(statistics.averageLatencyInMs(), is((
-        ((10.5d + 3.4d + 9.7d + 11.3d + 6.2d) / 5) + ((4.3d + 6.3d) / 2)) / 2
+    assertThat(statistics.totalAverageLatencyInMs(), is(
+        new BigDecimal((((10.5d + 3.4d + 9.7d + 11.3d + 6.2d) / 5) + ((4.3d + 6.3d) / 2)) / 2).setScale(2, BigDecimal.ROUND_FLOOR)
+            .doubleValue()
     ));
   }
 
@@ -61,9 +60,9 @@ public class StatisticsTest {
 
     Statistics statistics = new Statistics(keys);
 
-    statistics.increaseCounterAndSetLatency(two, 10.5d);
-    statistics.increaseCounterAndSetLatency(two, 3.4d);
-    statistics.increaseCounterAndSetLatency(two, 9.7d);
+    statistics.increaseCounterAndSetLatencyInNs(two, 10.5d);
+    statistics.increaseCounterAndSetLatencyInNs(two, 3.4d);
+    statistics.increaseCounterAndSetLatencyInNs(two, 9.7d);
 
     assertThat(statistics.getCounter(two), is(3L));
   }
@@ -77,10 +76,10 @@ public class StatisticsTest {
 
     Statistics statistics = new Statistics(keys);
 
-    statistics.increaseCounterAndSetLatency(one, 10.5d);
-    statistics.increaseCounterAndSetLatency(two, 3.4d);
-    statistics.increaseCounterAndSetLatency(two, 9.7d);
-    statistics.increaseCounterAndSetLatency(three, 9.7d);
+    statistics.increaseCounterAndSetLatencyInNs(one, 10.5d);
+    statistics.increaseCounterAndSetLatencyInNs(two, 3.4d);
+    statistics.increaseCounterAndSetLatencyInNs(two, 9.7d);
+    statistics.increaseCounterAndSetLatencyInNs(three, 9.7d);
 
     assertThat(statistics.sumOfCounters(), is(4L));
   }
@@ -94,12 +93,12 @@ public class StatisticsTest {
 
     Statistics statistics = new Statistics(keys);
 
-    statistics.increaseCounterAndSetLatency(two, 10.5d);
-    statistics.increaseCounterAndSetLatency(three, 3.4d);
-    statistics.increaseCounterAndSetLatency(two, 3.4d);
-    statistics.increaseCounterAndSetLatency(two, 9.7d);
-    statistics.increaseCounterAndSetLatency(one, 9.7d);
-    statistics.increaseCounterAndSetLatency(three, 9.7d);
+    statistics.increaseCounterAndSetLatencyInNs(two, 10.5d);
+    statistics.increaseCounterAndSetLatencyInNs(three, 3.4d);
+    statistics.increaseCounterAndSetLatencyInNs(two, 3.4d);
+    statistics.increaseCounterAndSetLatencyInNs(two, 9.7d);
+    statistics.increaseCounterAndSetLatencyInNs(one, 9.7d);
+    statistics.increaseCounterAndSetLatencyInNs(three, 9.7d);
 
     assertThat(statistics.getCounter(one), is(1L));
     assertThat(statistics.getCounter(two), is(3L));
@@ -120,7 +119,7 @@ public class StatisticsTest {
     when(statistics.getTime()).thenReturn(endTime);
 
     for (int i = 0; i < 100; i++)
-      statistics.increaseCounterAndSetLatency(two, 50.5d);
+      statistics.increaseCounterAndSetLatencyInNs(two, 50.5d);
 
     long length = (15124 - 12) * 1000000L;
     long tps = 100 / (length / 1000000L / 1000L);
@@ -142,9 +141,9 @@ public class StatisticsTest {
     when(statistics.getTime()).thenReturn(endTime);
 
     for (int i = 0; i < 100; i++) {
-      statistics.increaseCounterAndSetLatency(one, 50.5d);
-      statistics.increaseCounterAndSetLatency(two, 50.5d);
-      statistics.increaseCounterAndSetLatency(three, 50.5d);
+      statistics.increaseCounterAndSetLatencyInNs(one, 50.5d);
+      statistics.increaseCounterAndSetLatencyInNs(two, 50.5d);
+      statistics.increaseCounterAndSetLatencyInNs(three, 50.5d);
     }
 
     long length = (15124 - 12) * 1000000L;

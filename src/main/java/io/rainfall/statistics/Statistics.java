@@ -38,7 +38,7 @@ public class Statistics {
     this.startTime = getTime();
   }
 
-  public void increaseCounterAndSetLatency(final Result result, final Double latency) {
+  public void increaseCounterAndSetLatencyInNs(final Result result, final Double latency) {
     metrics.get(result).increaseCounter(latency);
   }
 
@@ -50,7 +50,7 @@ public class Statistics {
     return metrics.get(key).getCounter();
   }
 
-  public Double getAverageLatency(Result key) {
+  public Double getAverageLatencyInMs(Result key) {
     return metrics.get(key).getAverageLatency();
   }
 
@@ -80,7 +80,7 @@ public class Statistics {
     return total;
   }
 
-  public Double averageLatencyInMs() {
+  public Double totalAverageLatencyInMs() {
     Double average = 0.0d;
     synchronized (metrics) {
       int counter = 0;
@@ -93,7 +93,7 @@ public class Statistics {
       }
       average /= counter;
     }
-    return average / 1000000L;
+    return average;
   }
 
   public Long averageTps() {
