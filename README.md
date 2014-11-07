@@ -28,13 +28,13 @@ Quick start
 This module is Rainfall-core.
 It contains the base classes that you will extend in order to write your own performance framework.
 
-*org.rainfall.Configuration*
+*io.rainfall.Configuration*
 Your test will define a configuration (e.g. doing http calls to the twitter search page).
 
-*org.rainfall.Execution*
+*io.rainfall.Execution*
 Your test will define a scenario, made of a serie of executions (e.g. do nothing, do an operation once)
 
-*org.rainfall.Operation*
+*io.rainfall.Operation*
 Each execution of the test does some specific Operation (e.g. do the http call with some parameter)
 
 
@@ -78,7 +78,7 @@ Use it in your project
 ```
   <dependencies>
     <dependency>
-      <groupId>org.rainfall</groupId>
+      <groupId>io.rainfall</groupId>
       <artifactId>rainfall-core</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
