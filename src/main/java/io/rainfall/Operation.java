@@ -27,9 +27,9 @@ import java.util.Map;
  * @author Aurelien Broszniowski
  */
 
-public abstract class Operation {
+public abstract class Operation<E extends Enum<E>> {
 
-  public abstract void exec(final StatisticsObserversHolder statisticsObserversHolder,
+  public abstract void exec(final StatisticsObserversHolder<E> statisticsObserversHolder,
                             final Map<Class<? extends Configuration>, Configuration> configurations,
                             final List<AssertionEvaluator> assertions) throws TestException;
 

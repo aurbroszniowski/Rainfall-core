@@ -24,37 +24,45 @@ import jsr166e.ConcurrentHashMapV8;
  * @author Aurelien Broszniowski
  */
 
-public class Statistics {
+public class Statistics<E extends Enum<E>> {
 
-  private final Result[] keys;
-  private final ConcurrentHashMapV8<Result, Metrics> metrics = new ConcurrentHashMapV8<Result, Metrics>();
-  private Long startTime;
+  private final E[] keys;
+  private final ConcurrentHashMapV8<Enum, Metrics> metrics = new ConcurrentHashMapV8<Enum, Metrics>();
+  private final Long startTime;
 
-  public Statistics(Result[] keys) {
+  public Statistics(E[] keys) {
     this.keys = keys;
-    for (Result key : keys) {
+    for (E key : keys) {
       this.metrics.put(key, new Metrics(0L, 0.0d));
     }
     this.startTime = getTime();
   }
 
-  public void increaseCounterAndSetLatencyInNs(final Result result, final Double latency) {
+  public Statistics(final E[] keys, final long startTime) {
+    this.keys = keys;
+    for (E key : keys) {
+      this.metrics.put(key, new Metrics(0L, 0.0d));
+    }
+    this.startTime = startTime;
+  }
+
+  public void increaseCounterAndSetLatencyInNs(final Enum result, final Double latency) {
     metrics.get(result).increaseCounter(latency);
   }
 
-  public Result[] getKeys() {
+  public E[] getKeys() {
     return keys;
   }
 
-  public Long getCounter(Result key) {
+  public Long getCounter(Enum key) {
     return metrics.get(key).getCounter();
   }
 
-  public Double getAverageLatencyInMs(Result key) {
+  public Double getAverageLatencyInMs(Enum key) {
     return metrics.get(key).getAverageLatency();
   }
 
-  public Long getTps(Result key) {
+  public Long getTps(Enum key) {
     long cnt, length;
     synchronized (startTime) {
       length = getTime() - this.startTime;
@@ -73,7 +81,7 @@ public class Statistics {
   public Long sumOfCounters() {
     Long total = 0L;
     synchronized (metrics) {
-      for (Result key : keys) {
+      for (E key : keys) {
         total += metrics.get(key).getCounter();
       }
     }
@@ -84,7 +92,7 @@ public class Statistics {
     Double average = 0.0d;
     synchronized (metrics) {
       int counter = 0;
-      for (Result key : keys) {
+      for (E key : keys) {
         double latency = metrics.get(key).getAverageLatency();
         if (latency > 0) {
           average += latency;
@@ -106,9 +114,5 @@ public class Statistics {
       cnt = sumOfCounters();
     }
     return cnt / (length / 1000000000L);
-  }
-
-  void setStartTime(Long startTime) {
-    this.startTime = startTime;
   }
 }

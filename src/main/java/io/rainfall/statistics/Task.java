@@ -22,7 +22,7 @@ package io.rainfall.statistics;
  * @author Aurelien Broszniowski
  */
 
-public interface Task {
+public interface Task<E extends Enum<E>> {
 
-  Result definition() throws Exception;
+  E definition() throws Exception;
 }

@@ -17,7 +17,6 @@
 package io.rainfall.reporting;
 
 import io.rainfall.Reporter;
-import io.rainfall.statistics.Result;
 import io.rainfall.statistics.RuntimeStatisticsObserversHolder;
 import io.rainfall.statistics.Statistics;
 import io.rainfall.statistics.StatisticsObserver;
@@ -51,7 +50,7 @@ import java.util.zip.ZipFile;
  * @author Aurelien Broszniowski
  */
 
-public class HtmlReporter implements Reporter {
+public class HtmlReporter<E extends Enum<E>> implements Reporter<E> {
 
   private String basedir;
   private String averageLatencyFile = "averageLatency.csv";
@@ -153,8 +152,8 @@ public class HtmlReporter implements Reporter {
       averageLatencySb.append(timestamp);
       tpsSb.append(timestamp);
 
-      Result[] results = statistics.getKeys();
-      for (Result result : results) {
+      Enum[] results = statistics.getKeys();
+      for (Enum result : results) {
         averageLatencySb.append(",").append(String.format("%.2f", statistics.getAverageLatencyInMs(result)));
         tpsSb.append(",").append(statistics.getTps(result));
       }
@@ -288,11 +287,11 @@ public class HtmlReporter implements Reporter {
     return sdf.format(calendar.getTime());
   }
 
-  private void addHeader(Writer output, Result[] keys) throws IOException {
+  private void addHeader(Writer output, Enum[] keys) throws IOException {
     StringBuilder sb = new StringBuilder();
     sb.append("timestamp");
-    for (Result key : keys) {
-      sb.append(",").append(key.value());
+    for (Enum key : keys) {
+      sb.append(",").append(key.name());
     }
     output.append(sb.toString()).append("\n");
   }

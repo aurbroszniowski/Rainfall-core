@@ -17,7 +17,6 @@
 package io.rainfall.reporting;
 
 import io.rainfall.Reporter;
-import io.rainfall.statistics.Result;
 import io.rainfall.statistics.RuntimeStatisticsObserversHolder;
 import io.rainfall.statistics.Statistics;
 import io.rainfall.statistics.StatisticsHolder;
@@ -38,7 +37,7 @@ import java.util.TimeZone;
  * @author Aurelien Broszniowski
  */
 
-public class TextReporter implements Reporter {
+public class TextReporter<E extends Enum<E>> implements Reporter<E> {
 
   private static final String FORMAT = "%-15s %-15s %12s %10s %10s";
   //  private static final String FORMAT = "%-15s %-7s %12s %10s %10s %10s %10s %10s";
@@ -48,7 +47,7 @@ public class TextReporter implements Reporter {
   private SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 
   @Override
-  public void report(final RuntimeStatisticsObserversHolder observersFactory) {
+  public void report(final RuntimeStatisticsObserversHolder<E> observersFactory) {
     StringBuilder sb = new StringBuilder();
     sb.append("==================================================== CUMULATIVE =========================================")
         .append(CRLF);
@@ -75,11 +74,11 @@ public class TextReporter implements Reporter {
   private void logStats(StringBuilder sb, String name, StatisticsHolder holder) {
     sb.append(formatTimestampInNano(holder.getTimestamp())).append(CRLF);
     Statistics statistics = holder.getStatistics();
-    Result[] keys = statistics.getKeys();
-    for (Result key : keys) {
+    Enum[] keys = statistics.getKeys();
+    for (Enum key : keys) {
       sb.append(String.format(FORMAT,
           name,
-          key.value(),
+          key.name(),
           nf.format(statistics.getCounter(key)),
           nf.format(statistics.getTps(key)),
           nf.format(statistics.getAverageLatencyInMs(key))

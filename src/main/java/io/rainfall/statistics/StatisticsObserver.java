@@ -20,19 +20,19 @@ package io.rainfall.statistics;
  * @author Aurelien Broszniowski
  */
 
-public class StatisticsObserver {
+public class StatisticsObserver<E extends Enum<E>> {
 
-  private final Result[] keys;
-  private final Statistics statistics;
+  private final E[] keys;
+  private final Statistics<E> statistics;
   private long timestamp;
   private Long previousCounter = 0L;
 
-  public StatisticsObserver(Result[] results) {
-    this.keys = results;
-    this.statistics = new Statistics(results);
+  public StatisticsObserver(Class<E> results) {
+    this.keys = results.getEnumConstants();
+    this.statistics = new Statistics<E>(keys);
   }
 
-  public Result[] getKeys() {
+  public E[] getKeys() {
     return keys;
   }
 
@@ -53,7 +53,7 @@ public class StatisticsObserver {
     this.timestamp = timestamp;
   }
 
-  public Statistics getStatistics() {
+  public Statistics<E> getStatistics() {
     return statistics;
   }
 

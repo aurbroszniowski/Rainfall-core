@@ -18,10 +18,6 @@ package io.rainfall.statistics;
 
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import static org.mockito.Mockito.mock;
-
 /**
  * @author Aurelien Broszniowski
  */
@@ -59,17 +55,6 @@ public class StatisticsObserverTest {
   //TODO statisticsMap merge
 
 
-  public static class Results extends Result {
-    public static Result OK = new Result("OK");
-    public static Result KO = new Result("KO");
-
-    public Results(final String result) {
-      super(result);
-    }
-
-    public static Result[] values() {
-      return new Result[] { OK, KO };
-    }
-  }
+  enum Results {OK, KO}
 
 }

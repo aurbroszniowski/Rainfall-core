@@ -25,10 +25,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Aurelien Broszniowski
  */
 
-public class RuntimeStatisticsObserversHolder implements StatisticsObserversHolder {
+public class RuntimeStatisticsObserversHolder<E extends Enum<E>> implements StatisticsObserversHolder<E> {
 
-  private StatisticsObserver totalStatistics = null;
-  private final ConcurrentHashMap<String, StatisticsObserver> observers = new ConcurrentHashMap<String, StatisticsObserver>();
+  private StatisticsObserver<E> totalStatistics = null;
+  private final ConcurrentHashMap<String, StatisticsObserver<E>> observers = new ConcurrentHashMap<String, StatisticsObserver<E>>();
   private long startTimestamp;
 
   public RuntimeStatisticsObserversHolder(final long startTimestamp) {
@@ -50,13 +50,13 @@ public class RuntimeStatisticsObserversHolder implements StatisticsObserversHold
     return this.totalStatistics;
   }
 
-  public void addStatisticsObserver(String name, StatisticsObserver statisticsObserver) {
+  public void addStatisticsObserver(String name, StatisticsObserver<E> statisticsObserver) {
     this.observers.put(name, statisticsObserver);
   }
 
-  private StatisticsObserver getTotalStatisticObserver(final Result[] results) {
+  private StatisticsObserver<E> getTotalStatisticObserver(Class<E> results) {
     if (totalStatistics == null)
-      totalStatistics = new StatisticsObserver(results);
+      totalStatistics = new StatisticsObserver<E>(results);
     return this.totalStatistics;
   }
 
@@ -65,15 +65,15 @@ public class RuntimeStatisticsObserversHolder implements StatisticsObserversHold
   }
 
   @Override
-  public void measure(String name, Result[] results, Task task) throws TestException {
+  public void measure(String name, Class<E> results, Task task) throws TestException {
     try {
       final long start = getTime();
-      final Result result = task.definition();
+      final Enum result = task.definition();
       final long end = getTime();
       final double latency = (end - start);
 
-      StatisticsObserver totalStatisticObserver = getTotalStatisticObserver(results);
-      StatisticsObserver statisticObserver = this.observers.get(name);
+      StatisticsObserver<E> totalStatisticObserver = getTotalStatisticObserver(results);
+      StatisticsObserver<E> statisticObserver = this.observers.get(name);
 
       long timestamp = startTimestamp + (start);
       statisticObserver.setTimestamp(timestamp);

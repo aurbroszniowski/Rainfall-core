@@ -35,6 +35,7 @@ public class Metrics {
     return counter;
   }
 
+  // TODO : should we add LongAdder ? and not have method synchronized?
   public synchronized void increaseCounter(Double latency) {
     this.counter++;
     this.totalLatency += latency;

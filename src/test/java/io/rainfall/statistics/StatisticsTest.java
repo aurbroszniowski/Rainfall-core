@@ -16,11 +16,11 @@ public class StatisticsTest {
 
   @Test
   public void testAverageLatency() {
-    Result one = new Result("ONE");
-    Result two = new Result("TWO");
-    Result three = new Result("THREE");
+    Result one = Result.ONE;
+    Result two = Result.TWO;
+    Result three = Result.THREE;
     final Result[] keys = new Result[] { one, two, three };
-    Statistics statistics = new Statistics(keys);
+    Statistics<Result> statistics = new Statistics<Result>(keys);
 
     statistics.increaseCounterAndSetLatencyInNs(two, 10.5d * 1000000L);
     statistics.increaseCounterAndSetLatencyInNs(two, 3.4d * 1000000L);
@@ -31,11 +31,11 @@ public class StatisticsTest {
 
   @Test
   public void testTotalAverageLatency() {
-    Result one = new Result("ONE");
-    Result two = new Result("TWO");
-    Result three = new Result("THREE");
+    Result one = Result.ONE;
+    Result two = Result.TWO;
+    Result three = Result.THREE;
     final Result[] keys = new Result[] { one, two, three };
-    Statistics statistics = new Statistics(keys);
+    Statistics<Result> statistics = new Statistics<Result>(keys);
 
     statistics.increaseCounterAndSetLatencyInNs(two, 10.5d * 1000000L);
     statistics.increaseCounterAndSetLatencyInNs(two, 3.4d * 1000000L);
@@ -53,12 +53,12 @@ public class StatisticsTest {
 
   @Test
   public void testCounter() {
-    Result one = new Result("ONE");
-    Result two = new Result("TWO");
-    Result three = new Result("THREE");
+    Result one = Result.ONE;
+    Result two = Result.TWO;
+    Result three = Result.THREE;
     final Result[] keys = new Result[] { one, two, three };
 
-    Statistics statistics = new Statistics(keys);
+    Statistics<Result> statistics = new Statistics<Result>(keys);
 
     statistics.increaseCounterAndSetLatencyInNs(two, 10.5d);
     statistics.increaseCounterAndSetLatencyInNs(two, 3.4d);
@@ -69,12 +69,12 @@ public class StatisticsTest {
 
   @Test
   public void testSumOfCounters() {
-    Result one = new Result("ONE");
-    Result two = new Result("TWO");
-    Result three = new Result("THREE");
+    Result one = Result.ONE;
+    Result two = Result.TWO;
+    Result three = Result.THREE;
     final Result[] keys = new Result[] { one, two, three };
 
-    Statistics statistics = new Statistics(keys);
+    Statistics<Result> statistics = new Statistics<Result>(keys);
 
     statistics.increaseCounterAndSetLatencyInNs(one, 10.5d);
     statistics.increaseCounterAndSetLatencyInNs(two, 3.4d);
@@ -86,12 +86,12 @@ public class StatisticsTest {
 
   @Test
   public void testCounterMultiple() {
-    Result one = new Result("ONE");
-    Result two = new Result("TWO");
-    Result three = new Result("THREE");
+    Result one = Result.ONE;
+    Result two = Result.TWO;
+    Result three = Result.THREE;
     final Result[] keys = new Result[] { one, two, three };
 
-    Statistics statistics = new Statistics(keys);
+    Statistics<Result> statistics = new Statistics<Result>(keys);
 
     statistics.increaseCounterAndSetLatencyInNs(two, 10.5d);
     statistics.increaseCounterAndSetLatencyInNs(three, 3.4d);
@@ -107,15 +107,14 @@ public class StatisticsTest {
 
   @Test
   public void testTps() {
-    Result one = new Result("ONE");
-    Result two = new Result("TWO");
-    Result three = new Result("THREE");
+    Result one = Result.ONE;
+    Result two = Result.TWO;
+    Result three = Result.THREE;
     final Result[] keys = new Result[] { one, two, three };
 
-    Statistics statistics = spy(new Statistics(keys));
     long startTime = 12 * 1000000L;
     long endTime = 15124 * 1000000L;
-    statistics.setStartTime(startTime);
+    Statistics<Result> statistics = spy(new Statistics<Result>(keys, startTime));
     when(statistics.getTime()).thenReturn(endTime);
 
     for (int i = 0; i < 100; i++)
@@ -129,15 +128,14 @@ public class StatisticsTest {
 
   @Test
   public void testTotalTps() {
-    Result one = new Result("ONE");
-    Result two = new Result("TWO");
-    Result three = new Result("THREE");
+    Result one = Result.ONE;
+    Result two = Result.TWO;
+    Result three = Result.THREE;
     final Result[] keys = new Result[] { one, two, three };
 
-    Statistics statistics = spy(new Statistics(keys));
     long startTime = 12 * 1000000L;
     long endTime = 15124 * 1000000L;
-    statistics.setStartTime(startTime);
+    Statistics<Result> statistics = spy(new Statistics<Result>(keys, startTime));
     when(statistics.getTime()).thenReturn(endTime);
 
     for (int i = 0; i < 100; i++) {
@@ -152,4 +150,5 @@ public class StatisticsTest {
     assertThat(statistics.averageTps(), is(tps));
   }
 
+  enum Result {ONE,TWO,THREE}
 }

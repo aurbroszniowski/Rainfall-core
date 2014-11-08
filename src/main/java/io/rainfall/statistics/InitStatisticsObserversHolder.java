@@ -7,11 +7,11 @@ import java.util.Set;
 /**
  * @author Aurelien Broszniowski
  */
-public class InitStatisticsObserversHolder implements StatisticsObserversHolder {
+public class InitStatisticsObserversHolder<E extends Enum<E>> implements StatisticsObserversHolder<E> {
 
-  private RuntimeStatisticsObserversHolder observersFactory;
+  private RuntimeStatisticsObserversHolder<E> observersFactory;
 
-  public InitStatisticsObserversHolder(final RuntimeStatisticsObserversHolder observersFactory) {
+  public InitStatisticsObserversHolder(RuntimeStatisticsObserversHolder<E> observersFactory) {
     this.observersFactory = observersFactory;
   }
 
@@ -31,7 +31,7 @@ public class InitStatisticsObserversHolder implements StatisticsObserversHolder 
   }
 
   @Override
-  public void measure(final String name, final Result[] results, final Task task) throws TestException {
-    observersFactory.addStatisticsObserver(name, new StatisticsObserver(results));
+  public void measure(final String name, final Class<E> results, final Task task) throws TestException {
+    observersFactory.addStatisticsObserver(name, new StatisticsObserver<E>(results));
   }
 }

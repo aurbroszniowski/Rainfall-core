@@ -24,8 +24,8 @@ import io.rainfall.statistics.RuntimeStatisticsObserversHolder;
  * @author Aurelien Broszniowski
  */
 
-public interface Reporter {
+public interface Reporter<E extends Enum <E>> {
 
-  void report(final RuntimeStatisticsObserversHolder observersFactory);
+  void report(final RuntimeStatisticsObserversHolder<E> observersFactory);
 
 }

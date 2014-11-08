@@ -7,7 +7,7 @@ import java.util.Set;
 /**
  * @author Aurelien Broszniowski
  */
-public interface StatisticsObserversHolder {
+public interface StatisticsObserversHolder<E extends Enum<E>> {
 
   Set<String> getStatisticObserverKeys();
 
@@ -15,6 +15,6 @@ public interface StatisticsObserversHolder {
 
   StatisticsObserver getTotalStatisticObserver();
 
-  void measure(String name, Result[] results, Task task) throws TestException;
+  void measure(String name, Class<E> results, Task task) throws TestException;
 
 }
