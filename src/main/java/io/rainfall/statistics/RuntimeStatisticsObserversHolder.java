@@ -32,7 +32,7 @@ public class RuntimeStatisticsObserversHolder<E extends Enum<E>> implements Stat
   private long startTimestamp;
 
   public RuntimeStatisticsObserversHolder(final long startTimestamp) {
-    this.startTimestamp = (startTimestamp * 1000000L) - getTime();
+    this.startTimestamp = - getTime();    // will start at 0
   }
 
   @Override

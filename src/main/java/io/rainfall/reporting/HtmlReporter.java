@@ -109,7 +109,7 @@ public class HtmlReporter<E extends Enum<E>> implements Reporter<E> {
   }
 
   @Override
-  public void report(final RuntimeStatisticsObserversHolder observersFactory) {
+  public void report(final RuntimeStatisticsObserversHolder<E> observersFactory) {
     try {
       if (!new File(reportFile).exists()) {
         copyReportTemplate(observersFactory.getStatisticObserverKeys());
