@@ -19,9 +19,9 @@ package io.rainfall.execution;
 import io.rainfall.AssertionEvaluator;
 import io.rainfall.Configuration;
 import io.rainfall.Execution;
-import io.rainfall.statistics.RuntimeStatisticsObserversHolder;
-import io.rainfall.unit.TimeDivision;
 import io.rainfall.Scenario;
+import io.rainfall.statistics.StatisticsHolder;
+import io.rainfall.unit.TimeDivision;
 
 import java.util.List;
 import java.util.Map;
@@ -42,9 +42,9 @@ public class NothingFor extends Execution {
   }
 
   @Override
-  public void execute(final RuntimeStatisticsObserversHolder observersFactory, final Scenario scenario,
-                      final Map<Class<? extends Configuration>, Configuration> configurations,
-                      final List<AssertionEvaluator> assertions) {
+  public <E extends Enum<E>> void execute(final StatisticsHolder<E> statisticsHolder, final Scenario scenario,
+                                          final Map<Class<? extends Configuration>, Configuration> configurations,
+                                          final List<AssertionEvaluator> assertions) {
     try {
       Thread.sleep(timeDivision.getTimeUnit().toMillis(nb));
     } catch (InterruptedException ex) {

@@ -32,7 +32,7 @@ public class StatisticsObserverTest {
     long start = 55 * 1000000L;
     long okEnd = 125 * 1000000L;
     long koEnd = 140 * 1000000L;
-    when(observer.getTime()).thenReturn(start, okEnd, start, koEnd);
+    when(observer.getTimeInNs()).thenReturn(start, okEnd, start, koEnd);
 
     when(task.definition()).thenReturn(Results.OK, Results.KO);
     observer.measure((Task)task);

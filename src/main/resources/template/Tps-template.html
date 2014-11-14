@@ -65,7 +65,7 @@
                 .tickSize(0, 6)
                 .tickFormat(function (d) {
                     var seconds = d.substring(d.length - 2);
-                    if (seconds === '00' || seconds === '30') return (d);
+                    if (seconds === '00' || seconds === '30') return (''+d);
                 });
 
         var yAxis = d3.svg.axis()

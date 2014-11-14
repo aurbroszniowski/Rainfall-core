@@ -17,7 +17,7 @@
 package io.rainfall;
 
 import io.rainfall.configuration.ConcurrencyConfig;
-import io.rainfall.statistics.RuntimeStatisticsObserversHolder;
+import io.rainfall.statistics.RuntimeStatisticsHolder;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
@@ -83,7 +83,7 @@ public class ScenarioRunTest {
         System.out.println("end of sleep");
         return null;
       }
-    }).when(execution).execute(any(RuntimeStatisticsObserversHolder.class), any(Scenario.class), anyMap(), anyList());
+    }).when(execution).execute(any(RuntimeStatisticsHolder.class), any(Scenario.class), anyMap(), anyList());
 
     try {
       scenarioRun.start();

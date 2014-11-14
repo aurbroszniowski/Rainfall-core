@@ -16,7 +16,7 @@
 
 package io.rainfall;
 
-import io.rainfall.statistics.RuntimeStatisticsObserversHolder;
+import io.rainfall.statistics.StatisticsHolder;
 
 import java.util.List;
 import java.util.Map;
@@ -29,8 +29,8 @@ import java.util.Map;
 
 public abstract class Execution {
 
-  public abstract void execute(final RuntimeStatisticsObserversHolder observersFactory, final Scenario scenario,
-                               final Map<Class<? extends Configuration>, Configuration> configurations,
-                               final List<AssertionEvaluator> assertions) throws TestException;
+  public abstract <E extends Enum<E>> void execute(final StatisticsHolder<E> statisticsHolder, final Scenario scenario,
+                                                   final Map<Class<? extends Configuration>, Configuration> configurations,
+                                                   final List<AssertionEvaluator> assertions) throws TestException;
 
 }

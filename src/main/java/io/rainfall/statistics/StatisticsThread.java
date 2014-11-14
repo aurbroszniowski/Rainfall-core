@@ -28,11 +28,11 @@ import java.util.TimerTask;
 
 public class StatisticsThread extends TimerTask {
 
-  private RuntimeStatisticsObserversHolder observersFactory;
+  private RuntimeStatisticsHolder statisticsHolder;
   private ReportingConfig reportingConfig;
 
-  public StatisticsThread(final RuntimeStatisticsObserversHolder observersFactory, final ReportingConfig reportingConfig) {
-    this.observersFactory = observersFactory;
+  public StatisticsThread(final RuntimeStatisticsHolder statisticsHolder, final ReportingConfig reportingConfig) {
+    this.statisticsHolder = statisticsHolder;
     this.reportingConfig = reportingConfig;
   }
 
@@ -41,7 +41,7 @@ public class StatisticsThread extends TimerTask {
   public void run() {
     Set<Reporter> reporters = reportingConfig.getReporters();
     for (Reporter reporter : reporters) {
-      reporter.report(observersFactory);
+      reporter.report(statisticsHolder.peek());
     }
   }
 }

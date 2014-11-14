@@ -17,10 +17,8 @@
 package io.rainfall.reporting;
 
 import io.rainfall.Reporter;
-import io.rainfall.statistics.RuntimeStatisticsObserversHolder;
-import io.rainfall.statistics.Statistics;
-import io.rainfall.statistics.StatisticsHolder;
-import io.rainfall.statistics.StatisticsObserver;
+import io.rainfall.statistics.StatisticsPeek;
+import io.rainfall.statistics.StatisticsPeekHolder;
 
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
@@ -47,8 +45,26 @@ public class TextReporter<E extends Enum<E>> implements Reporter<E> {
   private SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 
   @Override
-  public void report(final RuntimeStatisticsObserversHolder<E> observersFactory) {
+  public void report(final StatisticsPeekHolder<E> statisticsHolder) {
     StringBuilder sb = new StringBuilder();
+    sb.append("===================================================== PERIODIC ==========================================")
+        .append(CRLF);
+    sb.append(String.format(FORMAT, "Cache", "Type", "Txn_Count", "TPS", "Avg_Lat"))
+//    sb.append(String.format(FORMAT, "Cache", "Type", "Txn_Count", "TPS", "Avg_Lat", "Min_Lat", "Max_Lat", "TotalExceptionCount"))
+        .append(CRLF);
+    sb.append("==========================================================================================================")
+        .append(CRLF);
+
+    Set<String> keys = statisticsHolder.getStatisticsPeeksNames();
+    for (String key : keys) {
+      StatisticsPeek<E> statisticsPeeks = statisticsHolder.getStatisticsPeeks(key);
+      logPeriodStats(sb, key, statisticsPeeks);
+    }
+
+    StatisticsPeek<E> totalStatisticsPeeks = statisticsHolder.getTotalStatisticsPeeks();
+    if (totalStatisticsPeeks != null)
+      logPeriodStats(sb, "ALL", totalStatisticsPeeks);
+
     sb.append("==================================================== CUMULATIVE =========================================")
         .append(CRLF);
     sb.append(String.format(FORMAT, "Cache", "Type", "Txn_Count", "TPS", "Avg_Lat"))
@@ -57,44 +73,61 @@ public class TextReporter<E extends Enum<E>> implements Reporter<E> {
     sb.append("==========================================================================================================")
         .append(CRLF);
 
-    Set<String> statKeys = observersFactory.getStatisticObserverKeys();
-    for (String statKey : statKeys) {
-      StatisticsObserver observer = observersFactory.getStatisticObserver(statKey);
-
-      StatisticsHolder holder = observer.peek();
-      logStats(sb, statKey, holder);
+    for (String key : keys) {
+      StatisticsPeek<E> statisticsPeeks = statisticsHolder.getStatisticsPeeks(key);
+      logCumulativeStats(sb, key, statisticsPeeks);
     }
-    StatisticsObserver totalStatisticObserver = observersFactory.getTotalStatisticObserver();
-    if (totalStatisticObserver != null)
-      logStats(sb, "ALL", totalStatisticObserver.peek());
+
+    if (totalStatisticsPeeks != null)
+      logCumulativeStats(sb, "ALL", totalStatisticsPeeks);
 
     System.out.println(sb.toString());
   }
 
-  private void logStats(StringBuilder sb, String name, StatisticsHolder holder) {
-    sb.append(formatTimestampInNano(holder.getTimestamp())).append(CRLF);
-    Statistics statistics = holder.getStatistics();
-    Enum[] keys = statistics.getKeys();
-    for (Enum key : keys) {
+  private void logCumulativeStats(StringBuilder sb, String name, StatisticsPeek<E> peek) {
+    sb.append(formatTimestampInMs(peek.getTimestamp())).append(CRLF);
+    E[] keys = peek.getKeys();
+    for (E key : keys) {
       sb.append(String.format(FORMAT,
           name,
           key.name(),
-          nf.format(statistics.getCounter(key)),
-          nf.format(statistics.getTps(key)),
-          nf.format(statistics.getAverageLatencyInMs(key))
+          nf.format(peek.getCumulativeCounters(key)),
+          nf.format(peek.getCumulativeTps(key)),
+          nf.format(peek.getCumulativeAverageLatencyInMs(key))
       )).append(CRLF);
     }
     sb.append(String.format(FORMAT,
         name,
         "TOTAL",
-        nf.format(statistics.sumOfCounters()),
-        nf.format(statistics.averageTps()),
-        nf.format(statistics.totalAverageLatencyInMs())
+        nf.format(peek.getSumOfCumulativeCounters()),
+        nf.format(peek.getSumOfCumulativeTps()),
+        nf.format(peek.getAverageOfCumulativeAverageLatencies())
     )).append(CRLF);
   }
 
-  private String formatTimestampInNano(final long timestamp) {
-    calendar.setTime(new Date(timestamp / 1000000L));
+  private void logPeriodStats(StringBuilder sb, String name, StatisticsPeek<E> peek) {
+    sb.append(formatTimestampInMs(peek.getTimestamp())).append(CRLF);
+    E[] keys = peek.getKeys();
+    for (E key : keys) {
+      sb.append(String.format(FORMAT,
+          name,
+          key.name(),
+          nf.format(peek.getPeriodicCounters(key)),
+          nf.format(peek.getPeriodicTps(key)),
+          nf.format(peek.getPeriodicAverageLatencyInMs(key))
+      )).append(CRLF);
+    }
+    sb.append(String.format(FORMAT,
+        name,
+        "TOTAL",
+        nf.format(peek.getSumOfPeriodicCounters()),
+        nf.format(peek.getSumOfPeriodicTps()),
+        nf.format(peek.getAverageOfPeriodicAverageLatencies())
+    )).append(CRLF);
+  }
+
+  private String formatTimestampInMs(final long timestamp) {
+    calendar.setTime(new Date(timestamp ));
     return sdf.format(calendar.getTime());
   }
 }

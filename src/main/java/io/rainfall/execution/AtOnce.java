@@ -24,7 +24,7 @@ import io.rainfall.Scenario;
 import io.rainfall.TestException;
 import io.rainfall.Unit;
 import io.rainfall.configuration.ConcurrencyConfig;
-import io.rainfall.statistics.RuntimeStatisticsObserversHolder;
+import io.rainfall.statistics.StatisticsHolder;
 
 import java.util.List;
 import java.util.Map;
@@ -51,9 +51,9 @@ public class AtOnce extends Execution {
   }
 
   @Override
-  public void execute(final RuntimeStatisticsObserversHolder observersFactory, final Scenario scenario,
-                      final Map<Class<? extends Configuration>, Configuration> configurations,
-                      final List<AssertionEvaluator> assertions) throws TestException {
+  public <E extends Enum<E>> void execute(final StatisticsHolder<E> statisticsHolder, final Scenario scenario,
+                                          final Map<Class<? extends Configuration>, Configuration> configurations,
+                                          final List<AssertionEvaluator> assertions) throws TestException {
 
     ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
     int nbThreads = concurrencyConfig.getNbThreads();
@@ -68,7 +68,7 @@ public class AtOnce extends Execution {
           public Object call() throws Exception {
             List<Operation> operations = scenario.getOperations();
             for (Operation operation : operations) {
-              operation.exec(observersFactory, configurations, assertions);
+              operation.exec(statisticsHolder, configurations, assertions);
             }
             return null;
           }

@@ -17,9 +17,8 @@
 package io.rainfall.reporting;
 
 import io.rainfall.Reporter;
-import io.rainfall.statistics.RuntimeStatisticsObserversHolder;
-import io.rainfall.statistics.Statistics;
-import io.rainfall.statistics.StatisticsObserver;
+import io.rainfall.statistics.StatisticsPeek;
+import io.rainfall.statistics.StatisticsPeekHolder;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
@@ -109,17 +108,17 @@ public class HtmlReporter<E extends Enum<E>> implements Reporter<E> {
   }
 
   @Override
-  public void report(final RuntimeStatisticsObserversHolder observersFactory) {
+  public void report(final StatisticsPeekHolder<E> statisticsHolder) {
     try {
       if (!new File(reportFile).exists()) {
-        copyReportTemplate(observersFactory.getStatisticObserverKeys());
+        copyReportTemplate(statisticsHolder.getStatisticsPeeksNames());
       }
 
-      Set<String> keys = observersFactory.getStatisticObserverKeys();
-      for (String key : keys) {
-        reportToFile(key, observersFactory.getStatisticObserver(key));
+      Set<String> names = statisticsHolder.getStatisticsPeeksNames();
+      for (String name : names) {
+        reportToFile(name, statisticsHolder.getStatisticsPeeks(name));
       }
-      reportToFile("total", observersFactory.getTotalStatisticObserver());
+      reportToFile("total", statisticsHolder.getTotalStatisticsPeeks());
 
     } catch (IOException e) {
       throw new RuntimeException("Can not write report data");
@@ -128,10 +127,8 @@ public class HtmlReporter<E extends Enum<E>> implements Reporter<E> {
     }
   }
 
-  private void reportToFile(final String key, final StatisticsObserver statisticsObserver) throws IOException {
-    if (statisticsObserver != null) {
-      Statistics statistics = statisticsObserver.getStatistics();
-
+  private void reportToFile(final String key, final StatisticsPeek<E> statisticsPeek) throws IOException {
+    if (statisticsPeek != null) {
       String avgFilename = this.basedir + File.separatorChar + getAverageLatencyFilename(key);
       String tpsFilename = this.basedir + File.separatorChar + getTpsFilename(key);
 
@@ -140,22 +137,22 @@ public class HtmlReporter<E extends Enum<E>> implements Reporter<E> {
 
       averageLatencyOutput = new BufferedWriter(new FileWriter(avgFilename, true));
       if (new File(avgFilename).length() == 0)
-        addHeader(averageLatencyOutput, statistics.getKeys());
+        addHeader(averageLatencyOutput, statisticsPeek.getKeys());
       tpsOutput = new BufferedWriter(new FileWriter(tpsFilename, true));
       if (new File(tpsFilename).length() == 0)
-        addHeader(tpsOutput, statistics.getKeys());
+        addHeader(tpsOutput, statisticsPeek.getKeys());
 
-      String timestamp = formatTimestampInNano(statisticsObserver.getTimestamp());
+      String timestamp = formatTimestampInNano(statisticsPeek.getTimestamp());
 
       StringBuilder averageLatencySb = new StringBuilder();
       StringBuilder tpsSb = new StringBuilder();
       averageLatencySb.append(timestamp);
       tpsSb.append(timestamp);
 
-      Enum[] results = statistics.getKeys();
-      for (Enum result : results) {
-        averageLatencySb.append(",").append(String.format("%.2f", statistics.getAverageLatencyInMs(result)));
-        tpsSb.append(",").append(statistics.getTps(result));
+      E[] results = statisticsPeek.getKeys();
+      for (E result : results) {
+        averageLatencySb.append(",").append(String.format("%.2f", statisticsPeek.getCumulativeAverageLatencyInMs(result)));
+        tpsSb.append(",").append(statisticsPeek.getCumulativeTps(result));
       }
       averageLatencyOutput.append(averageLatencySb.toString()).append("\n");
       tpsOutput.append(tpsSb.toString()).append("\n");
@@ -246,16 +243,16 @@ public class HtmlReporter<E extends Enum<E>> implements Reporter<E> {
     return cleanName.toString();
   }
 
-  private void copyReportTemplate(final Set<String> keys) throws IOException, URISyntaxException {
+  private void copyReportTemplate(final Set<String> names) throws IOException, URISyntaxException {
     StringBuilder sb = new StringBuilder();
-    for (String key : keys) {
-      String tpsFilename = getTpsFilename(key);
+    for (String name : names) {
+      String tpsFilename = getTpsFilename(name);
       sb.append("report('").append(tpsFilename.substring(0, tpsFilename.length() - 4))
-          .append("', 'TPS - ").append(key)
+          .append("', 'TPS - ").append(name)
           .append("');").append(CRLF);
     }
     sb.append("report('total-tps', 'Total TPS');").append(CRLF);
-    for (String key : keys) {
+    for (String key : names) {
       String averageLatencyFilename = getAverageLatencyFilename(key);
       sb.append("report('")
           .append(averageLatencyFilename.substring(0, averageLatencyFilename.length() - 4))

@@ -16,19 +16,19 @@
 
 package io.rainfall.execution;
 
-import io.rainfall.Execution;
-import io.rainfall.configuration.ConcurrencyConfig;
-import io.rainfall.unit.During;
-import io.rainfall.unit.Every;
-import jsr166e.extra.AtomicDouble;
 import io.rainfall.AssertionEvaluator;
 import io.rainfall.Configuration;
+import io.rainfall.Execution;
 import io.rainfall.Operation;
 import io.rainfall.Scenario;
 import io.rainfall.TestException;
-import io.rainfall.statistics.RuntimeStatisticsObserversHolder;
+import io.rainfall.configuration.ConcurrencyConfig;
+import io.rainfall.statistics.StatisticsHolder;
+import io.rainfall.unit.During;
+import io.rainfall.unit.Every;
 import io.rainfall.unit.From;
 import io.rainfall.unit.To;
+import jsr166e.extra.AtomicDouble;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +44,6 @@ import java.util.concurrent.ScheduledFuture;
  */
 public class Ramp extends Execution {
 
-
   private final From from;
   private final To to;
   private final Every every;
@@ -58,9 +57,9 @@ public class Ramp extends Execution {
   }
 
   @Override
-  public void execute(final RuntimeStatisticsObserversHolder observersFactory, final Scenario scenario,
-                      final Map<Class<? extends Configuration>, Configuration> configurations,
-                      final List<AssertionEvaluator> assertions) throws TestException {
+  public <E extends Enum<E>> void execute(final StatisticsHolder<E> statisticsHolder, final Scenario scenario,
+                                          final Map<Class<? extends Configuration>, Configuration> configurations,
+                                          final List<AssertionEvaluator> assertions) throws TestException {
     final ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
     int nbThreads = concurrencyConfig.getNbThreads();
 
@@ -85,7 +84,7 @@ public class Ramp extends Execution {
           try {
             for (int i = 0; i < max; i++) {
               for (Operation operation : scenario.getOperations()) {
-                operation.exec(observersFactory, configurations, assertions);
+                operation.exec(statisticsHolder, configurations, assertions);
               }
             }
           } catch (TestException e) {

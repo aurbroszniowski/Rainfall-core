@@ -17,9 +17,9 @@
 package io.rainfall.configuration;
 
 import io.rainfall.Configuration;
+import io.rainfall.Reporter;
 import io.rainfall.reporting.HtmlReporter;
 import io.rainfall.reporting.TextReporter;
-import io.rainfall.Reporter;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -31,16 +31,19 @@ import java.util.Set;
  * @author Aurelien Broszniowski
  */
 
-public class ReportingConfig extends Configuration {
+public class ReportingConfig<E extends Enum<E>> extends Configuration {
 
-  private final Set<Reporter> reporters = new HashSet<Reporter>();
+  private E[] results;
 
-  public ReportingConfig(final Reporter... reporters) {
+  private final Set<Reporter<E>> reporters = new HashSet<Reporter<E>>();
+
+  public ReportingConfig(final Class<E> results, final Reporter<E>... reporters) {
+    this.results = results.getEnumConstants();
     Collections.addAll(this.reporters, reporters);
   }
 
-  public static ReportingConfig reportingConfig(Reporter... reporters) {
-    return new ReportingConfig(reporters);
+  public static <E extends Enum<E>> ReportingConfig<E> reportingConfig(Class<E> results, Reporter<E>... reporters) {
+    return new ReportingConfig<E>(results, reporters);
   }
 
   public static Reporter text() {
@@ -51,7 +54,11 @@ public class ReportingConfig extends Configuration {
     return new HtmlReporter();
   }
 
-  public Set<Reporter> getReporters() {
+  public E[] getResults() {
+    return results;
+  }
+
+  public Set<Reporter<E>> getReporters() {
     return reporters;
   }
 }

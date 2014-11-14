@@ -16,7 +16,9 @@
 
 package io.rainfall.statistics;
 
-import jsr166e.ConcurrentHashMapV8;
+import jsr166e.LongAdder;
+
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A {@link Statistics} instance holds the statistics of all results at a given point in time
@@ -26,36 +28,75 @@ import jsr166e.ConcurrentHashMapV8;
 
 public class Statistics<E extends Enum<E>> {
 
+  private final String name;
   private final E[] keys;
-  private final ConcurrentHashMapV8<Enum, Metrics> metrics = new ConcurrentHashMapV8<Enum, Metrics>();
-  private final Long startTime;
+  private final ConcurrentHashMap<Enum, LongAdder> periodicCounters = new ConcurrentHashMap<Enum, LongAdder>();
+  private final ConcurrentHashMap<Enum, LongAdder> periodicTotalLatenciesInNs = new ConcurrentHashMap<Enum, LongAdder>();
+  private final ConcurrentHashMap<Enum, LongAdder> cumulativeCounters = new ConcurrentHashMap<Enum, LongAdder>();
+  private final ConcurrentHashMap<Enum, LongAdder> cumulativeTotalLatenciesInNs = new ConcurrentHashMap<Enum, LongAdder>();
+  private Long periodicStartTime;
 
-  public Statistics(E[] keys) {
+  public Statistics(String name, E[] keys) {
+    this.name = name;
     this.keys = keys;
     for (E key : keys) {
-      this.metrics.put(key, new Metrics(0L, 0.0d));
+      this.periodicCounters.put(key, new LongAdder());
+      this.periodicTotalLatenciesInNs.put(key, new LongAdder());
+      this.cumulativeCounters.put(key, new LongAdder());
+      this.cumulativeTotalLatenciesInNs.put(key, new LongAdder());
     }
-    this.startTime = getTime();
+    this.periodicStartTime = getTimeInNs();
   }
 
-  public Statistics(final E[] keys, final long startTime) {
+  Statistics(String name, E[] keys, long startTime) {
     this.keys = keys;
+    this.name = name;
     for (E key : keys) {
-      this.metrics.put(key, new Metrics(0L, 0.0d));
+      this.periodicCounters.put(key, new LongAdder());
+      this.periodicTotalLatenciesInNs.put(key, new LongAdder());
+      this.cumulativeCounters.put(key, new LongAdder());
+      this.cumulativeTotalLatenciesInNs.put(key, new LongAdder());
     }
-    this.startTime = startTime;
+    this.periodicStartTime = startTime;
   }
 
-  public void increaseCounterAndSetLatencyInNs(final Enum result, final Double latency) {
-    metrics.get(result).increaseCounter(latency);
+  LongAdder getPeriodicCounters(Enum result) {
+    return periodicCounters.get(result);
+  }
+
+  LongAdder getPeriodicTotalLatenciesInNs(Enum result) {
+    return periodicTotalLatenciesInNs.get(result);
+  }
+
+  LongAdder getCumulativeCounters(Enum result) {
+    return cumulativeCounters.get(result);
+  }
+
+  LongAdder getCumulativeTotalLatencies(Enum result) {
+    return cumulativeTotalLatenciesInNs.get(result);
+  }
+
+  public void increaseCounterAndSetLatencyInNs(final Enum result, final long latency) {
+    periodicCounters.get(result).add(1);
+    periodicTotalLatenciesInNs.get(result).add(latency);
   }
 
   public E[] getKeys() {
     return keys;
   }
 
+  public String getName() {
+    return name;
+  }
+
+  protected long getTimeInNs() {
+    return System.nanoTime();
+  }
+
+/*
+
   public Long getCounter(Enum key) {
-    return metrics.get(key).getCounter();
+    return counters.get(key).longValue();
   }
 
   public Double getAverageLatencyInMs(Enum key) {
@@ -64,18 +105,14 @@ public class Statistics<E extends Enum<E>> {
 
   public Long getTps(Enum key) {
     long cnt, length;
-    synchronized (startTime) {
-      length = getTime() - this.startTime;
+    synchronized (periodicStartTime) {
+      length = getTimeInNs() - this.periodicStartTime;
       if (length < 1000000000L) {
         return 0L;
       }
       cnt = this.metrics.get(key).getCounter();
     }
     return cnt / (length / 1000000000L);
-  }
-
-  protected long getTime() {
-    return System.nanoTime();
   }
 
   public Long sumOfCounters() {
@@ -106,13 +143,29 @@ public class Statistics<E extends Enum<E>> {
 
   public Long averageTps() {
     long cnt, length;
-    synchronized (startTime) {
-      length = getTime() - this.startTime;
+    synchronized (periodicStartTime) {
+      length = getTimeInNs() - this.periodicStartTime;
       if (length < 1000000000L) {
         return 0L;
       }
       cnt = sumOfCounters();
     }
     return cnt / (length / 1000000000L);
+  }
+*/
+
+  public synchronized StatisticsPeek<E> peek(final long timestamp) {
+    StatisticsPeek<E> statisticsPeek = new StatisticsPeek<E>(this.name, this.keys, timestamp);
+    for (E key : keys) {
+      cumulativeCounters.get(key).add(periodicCounters.get(key).longValue());
+      cumulativeTotalLatenciesInNs.get(key).add(periodicTotalLatenciesInNs.get(key).longValue());
+    }
+    statisticsPeek.setValues(getTimeInNs() - periodicStartTime, cumulativeCounters, periodicCounters, cumulativeTotalLatenciesInNs, periodicTotalLatenciesInNs);
+    for (E key : keys) {
+      periodicCounters.get(key).reset();
+      periodicTotalLatenciesInNs.get(key).reset();
+    }
+    this.periodicStartTime = getTimeInNs();
+    return statisticsPeek;
   }
 }

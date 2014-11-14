@@ -16,7 +16,7 @@
 
 package io.rainfall;
 
-import io.rainfall.statistics.RuntimeStatisticsObserversHolder;
+import io.rainfall.statistics.StatisticsPeekHolder;
 
 /**
  * A reporter is a class that will send the metrics to some output (text, file, etc.)
@@ -24,8 +24,8 @@ import io.rainfall.statistics.RuntimeStatisticsObserversHolder;
  * @author Aurelien Broszniowski
  */
 
-public interface Reporter<E extends Enum <E>> {
+public interface Reporter<E extends Enum<E>> {
 
-  void report(final RuntimeStatisticsObserversHolder<E> observersFactory);
+  void report(final StatisticsPeekHolder<E> statisticsHolder);
 
 }

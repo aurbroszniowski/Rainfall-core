@@ -16,7 +16,7 @@
 
 package io.rainfall;
 
-import io.rainfall.statistics.StatisticsObserversHolder;
+import io.rainfall.statistics.StatisticsHolder;
 
 import java.util.List;
 import java.util.Map;
@@ -27,9 +27,9 @@ import java.util.Map;
  * @author Aurelien Broszniowski
  */
 
-public abstract class Operation<E extends Enum<E>> {
+public abstract class Operation {
 
-  public abstract void exec(final StatisticsObserversHolder<E> statisticsObserversHolder,
+  public abstract  void exec(final StatisticsHolder  statisticsHolder,
                             final Map<Class<? extends Configuration>, Configuration> configurations,
                             final List<AssertionEvaluator> assertions) throws TestException;
 

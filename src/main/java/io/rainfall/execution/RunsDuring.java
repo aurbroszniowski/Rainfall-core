@@ -20,12 +20,12 @@ import io.rainfall.AssertionEvaluator;
 import io.rainfall.Configuration;
 import io.rainfall.Execution;
 import io.rainfall.Operation;
+import io.rainfall.Scenario;
 import io.rainfall.TestException;
 import io.rainfall.configuration.ConcurrencyConfig;
-import io.rainfall.statistics.RuntimeStatisticsObserversHolder;
+import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.unit.During;
 import io.rainfall.unit.TimeDivision;
-import io.rainfall.Scenario;
 
 import java.util.List;
 import java.util.Map;
@@ -50,7 +50,8 @@ public class RunsDuring extends Execution {
   }
 
   @Override
-  public void execute(final RuntimeStatisticsObserversHolder observersFactory, final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions) throws TestException {
+  public <E extends Enum<E>> void execute(final StatisticsHolder<E> statisticsHolder, final Scenario scenario,
+                                          final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions) throws TestException {
     ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
     int nbThreads = concurrencyConfig.getNbThreads();
 
@@ -66,7 +67,7 @@ public class RunsDuring extends Execution {
           while (!Thread.currentThread().isInterrupted()) {
             //TODO : get next operation regarding weight
             for (Operation operation : operations) {
-              operation.exec(observersFactory, configurations, assertions);
+              operation.exec(statisticsHolder, configurations, assertions);
             }
           }
           return null;
