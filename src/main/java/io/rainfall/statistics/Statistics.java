@@ -35,6 +35,7 @@ public class Statistics<E extends Enum<E>> {
   private final ConcurrentHashMap<Enum, LongAdder> cumulativeCounters = new ConcurrentHashMap<Enum, LongAdder>();
   private final ConcurrentHashMap<Enum, LongAdder> cumulativeTotalLatenciesInNs = new ConcurrentHashMap<Enum, LongAdder>();
   private Long periodicStartTime;
+  private Long cumulativeStartTime;
 
   public Statistics(String name, E[] keys) {
     this.name = name;
@@ -46,6 +47,7 @@ public class Statistics<E extends Enum<E>> {
       this.cumulativeTotalLatenciesInNs.put(key, new LongAdder());
     }
     this.periodicStartTime = getTimeInNs();
+    this.cumulativeStartTime = this.periodicStartTime;
   }
 
   Statistics(String name, E[] keys, long startTime) {
@@ -58,6 +60,7 @@ public class Statistics<E extends Enum<E>> {
       this.cumulativeTotalLatenciesInNs.put(key, new LongAdder());
     }
     this.periodicStartTime = startTime;
+    this.cumulativeStartTime = this.periodicStartTime;
   }
 
   LongAdder getPeriodicCounters(Enum result) {
@@ -160,7 +163,9 @@ public class Statistics<E extends Enum<E>> {
       cumulativeCounters.get(key).add(periodicCounters.get(key).longValue());
       cumulativeTotalLatenciesInNs.get(key).add(periodicTotalLatenciesInNs.get(key).longValue());
     }
-    statisticsPeek.setValues(getTimeInNs() - periodicStartTime, cumulativeCounters, periodicCounters, cumulativeTotalLatenciesInNs, periodicTotalLatenciesInNs);
+    long now = getTimeInNs();
+    statisticsPeek.setPeriodicValues(now - periodicStartTime, periodicCounters, periodicTotalLatenciesInNs);
+    statisticsPeek.setCumulativeValues(now - cumulativeStartTime, cumulativeCounters, cumulativeTotalLatenciesInNs);
     for (E key : keys) {
       periodicCounters.get(key).reset();
       periodicTotalLatenciesInNs.get(key).reset();

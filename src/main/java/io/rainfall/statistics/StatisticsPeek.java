@@ -68,7 +68,6 @@ public class StatisticsPeek<E extends Enum<E>> {
   private Double averageOfCumulativeAverageLatencies = 0.0d;
   private Long sumOfCumulativeTps = 0L;
 
-  private Long length;
   private E[] keys;
 
   public StatisticsPeek(String name, E[] keys, long timestamp) {
@@ -89,33 +88,50 @@ public class StatisticsPeek<E extends Enum<E>> {
     return timestamp;
   }
 
-  public void setValues(long length, ConcurrentHashMap<Enum, LongAdder> cumulativeCounters, ConcurrentHashMap<Enum, LongAdder> periodicCounters,
-                        ConcurrentHashMap<Enum, LongAdder> cumulativeTotalLatencies, ConcurrentHashMap<Enum, LongAdder> periodicTotalLatencies) {
-    this.length = length;
+  public void setCumulativeValues(long length, ConcurrentHashMap<Enum, LongAdder> cumulativeCounters,
+                                  ConcurrentHashMap<Enum, LongAdder> cumulativeTotalLatencies) {
+    long lengthInSec = length / 1000000 / 1000;
     for (E key : keys) {
       LongAdder cumulativeCounter = cumulativeCounters.get(key);
       this.cumulativeCounters.put(key, cumulativeCounter.longValue());
-      LongAdder periodicCounter = periodicCounters.get(key);
-      this.periodicCounters.put(key, periodicCounter.longValue());
 
       LongAdder cumulativeTotalLatency = cumulativeTotalLatencies.get(key);
       this.cumulativeAverageLatencies.put(key, cumulativeTotalLatency.doubleValue() / cumulativeCounter.doubleValue() / 1000000L);
-      LongAdder periodicTotalLatency = periodicTotalLatencies.get(key);
-      this.periodicAverageLatencies.put(key, periodicTotalLatency.doubleValue() / periodicCounter.doubleValue() / 1000000L);
 
-      this.cumulativeTps.put(key, 1000 * 1000000L * cumulativeCounter.longValue() / this.length); // instead of dividing the ns into sec, we multiply
-      this.periodicTps.put(key, 1000 * 1000000L * periodicCounter.longValue() / this.length);
-
-      this.sumOfPeriodicCounters += periodicCounter.longValue();
-      this.averageOfPeriodicAverageLatencies += periodicTotalLatency.doubleValue();
-      this.sumOfPeriodicTps += this.periodicTps.get(key);
+      if (lengthInSec > 0) {
+        this.cumulativeTps.put(key, cumulativeCounter.longValue() / lengthInSec); // instead of dividing the ns into sec, we multiply
+      } else {
+        this.cumulativeTps.put(key, cumulativeCounter.longValue());
+      }
 
       this.sumOfCumulativeCounters += cumulativeCounter.longValue();
       this.averageOfCumulativeAverageLatencies += cumulativeTotalLatency.doubleValue();
       this.sumOfCumulativeTps += this.cumulativeTps.get(key);
     }
-    this.averageOfPeriodicAverageLatencies /= this.sumOfPeriodicCounters;
-    this.averageOfCumulativeAverageLatencies /= this.sumOfCumulativeCounters;
+    this.averageOfCumulativeAverageLatencies = this.averageOfCumulativeAverageLatencies / this.sumOfCumulativeCounters / 1000000L;
+  }
+
+  public void setPeriodicValues(long length, ConcurrentHashMap<Enum, LongAdder> periodicCounters,
+                                ConcurrentHashMap<Enum, LongAdder> periodicTotalLatencies) {
+    long lengthInSec = length / 1000000 / 1000;
+    for (E key : keys) {
+      LongAdder periodicCounter = periodicCounters.get(key);
+      this.periodicCounters.put(key, periodicCounter.longValue());
+
+      LongAdder periodicTotalLatency = periodicTotalLatencies.get(key);
+      this.periodicAverageLatencies.put(key, periodicTotalLatency.doubleValue() / periodicCounter.doubleValue() / 1000000L);
+
+      if (lengthInSec > 0) {
+        this.periodicTps.put(key, periodicCounter.longValue() / lengthInSec);
+      } else {
+        this.periodicTps.put(key, periodicCounter.longValue());
+      }
+
+      this.sumOfPeriodicCounters += periodicCounter.longValue();
+      this.averageOfPeriodicAverageLatencies += periodicTotalLatency.doubleValue();
+      this.sumOfPeriodicTps += this.periodicTps.get(key);
+    }
+    this.averageOfPeriodicAverageLatencies = this.averageOfPeriodicAverageLatencies / this.sumOfPeriodicCounters / 1000000L;
   }
 
   public void addAll(final Map<String, StatisticsPeek<E>> statisticsPeeks) {
