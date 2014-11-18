@@ -160,8 +160,8 @@ public class Statistics<E extends Enum<E>> {
   public synchronized StatisticsPeek<E> peek(final long timestamp) {
     StatisticsPeek<E> statisticsPeek = new StatisticsPeek<E>(this.name, this.keys, timestamp);
     for (E key : keys) {
-      cumulativeCounters.get(key).add(periodicCounters.get(key).longValue());
-      cumulativeTotalLatenciesInNs.get(key).add(periodicTotalLatenciesInNs.get(key).longValue());
+      this.cumulativeCounters.get(key).add(this.periodicCounters.get(key).longValue());
+      this.cumulativeTotalLatenciesInNs.get(key).add(this.periodicTotalLatenciesInNs.get(key).longValue());
     }
     long now = getTimeInNs();
     statisticsPeek.setPeriodicValues(now - periodicStartTime, periodicCounters, periodicTotalLatenciesInNs);

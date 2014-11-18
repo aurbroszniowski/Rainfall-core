@@ -59,6 +59,7 @@ public class HtmlReporter<E extends Enum<E>> implements Reporter<E> {
   private final static String CRLF = System.getProperty("line.separator");
   private Calendar calendar = GregorianCalendar.getInstance(TimeZone.getDefault());
   private SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+  private enum Type {periodic, cumulative}
 
   public HtmlReporter() {
     try {
@@ -116,9 +117,11 @@ public class HtmlReporter<E extends Enum<E>> implements Reporter<E> {
 
       Set<String> names = statisticsHolder.getStatisticsPeeksNames();
       for (String name : names) {
-        reportToFile(name, statisticsHolder.getStatisticsPeeks(name));
+        reportCumulativeToFile(name, statisticsHolder.getStatisticsPeeks(name));
+        reportPeriodicToFile(name, statisticsHolder.getStatisticsPeeks(name));
       }
-      reportToFile("total", statisticsHolder.getTotalStatisticsPeeks());
+      reportCumulativeToFile("total", statisticsHolder.getTotalStatisticsPeeks());
+      reportPeriodicToFile("total", statisticsHolder.getTotalStatisticsPeeks());
 
     } catch (IOException e) {
       throw new RuntimeException("Can not write report data");
@@ -127,10 +130,10 @@ public class HtmlReporter<E extends Enum<E>> implements Reporter<E> {
     }
   }
 
-  private void reportToFile(final String key, final StatisticsPeek<E> statisticsPeek) throws IOException {
+  private void reportCumulativeToFile(final String key, final StatisticsPeek<E> statisticsPeek) throws IOException {
     if (statisticsPeek != null) {
-      String avgFilename = this.basedir + File.separatorChar + getAverageLatencyFilename(key);
-      String tpsFilename = this.basedir + File.separatorChar + getTpsFilename(key);
+      String avgFilename = this.basedir + File.separatorChar + getAverageLatencyFilename(key, Type.cumulative);
+      String tpsFilename = this.basedir + File.separatorChar + getTpsFilename(key, Type.cumulative);
 
       Writer averageLatencyOutput;
       Writer tpsOutput;
@@ -153,6 +156,42 @@ public class HtmlReporter<E extends Enum<E>> implements Reporter<E> {
       for (E result : results) {
         averageLatencySb.append(",").append(String.format("%.2f", statisticsPeek.getCumulativeAverageLatencyInMs(result)));
         tpsSb.append(",").append(statisticsPeek.getCumulativeTps(result));
+      }
+      averageLatencyOutput.append(averageLatencySb.toString()).append("\n");
+      tpsOutput.append(tpsSb.toString()).append("\n");
+
+      averageLatencyOutput.close();
+      tpsOutput.close();
+    }
+  }
+
+  private void reportPeriodicToFile(final String key, final StatisticsPeek<E> statisticsPeek) throws IOException {
+    if (statisticsPeek != null) {
+      String avgFilename = this.basedir + File.separatorChar + getAverageLatencyFilename(key, Type.periodic);
+      String tpsFilename = this.basedir + File.separatorChar + getTpsFilename(key, Type.periodic);
+
+      Writer averageLatencyOutput;
+      Writer tpsOutput;
+
+      averageLatencyOutput = new BufferedWriter(new FileWriter(avgFilename, true));
+      if (new File(avgFilename).length() == 0)
+        addHeader(averageLatencyOutput, statisticsPeek.getKeys());
+      tpsOutput = new BufferedWriter(new FileWriter(tpsFilename, true));
+      if (new File(tpsFilename).length() == 0)
+        addHeader(tpsOutput, statisticsPeek.getKeys());
+
+      String timestamp = formatTimestampInNano(statisticsPeek.getTimestamp());
+
+      StringBuilder averageLatencySb = new StringBuilder();
+      StringBuilder tpsSb = new StringBuilder();
+      averageLatencySb.append(timestamp);
+      tpsSb.append(timestamp);
+
+      E[] results = statisticsPeek.getKeys();
+      for (E result : results) {
+        averageLatencySb.append(",")
+            .append(String.format("%.2f", statisticsPeek.getPeriodicAverageLatencyInMs(result)));
+        tpsSb.append(",").append(statisticsPeek.getPeriodicTps(result));
       }
       averageLatencyOutput.append(averageLatencySb.toString()).append("\n");
       tpsOutput.append(tpsSb.toString()).append("\n");
@@ -219,12 +258,12 @@ public class HtmlReporter<E extends Enum<E>> implements Reporter<E> {
     }
   }
 
-  private String getTpsFilename(final String key) {
-    return cleanFilename(key) + "-" + this.tpsFile;
+  private String getTpsFilename(String key, Type type) {
+    return cleanFilename(key) + "-" + type.name() + "-" + this.tpsFile;
   }
 
-  private String getAverageLatencyFilename(final String key) {
-    return cleanFilename(key) + "-" + this.averageLatencyFile;
+  private String getAverageLatencyFilename(String key, Type type) {
+    return cleanFilename(key) + "-" + type.name() + "-" + this.averageLatencyFile;
   }
 
   private final static int[] illegalChars = { 34, 60, 62, 124, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
@@ -245,21 +284,39 @@ public class HtmlReporter<E extends Enum<E>> implements Reporter<E> {
 
   private void copyReportTemplate(final Set<String> names) throws IOException, URISyntaxException {
     StringBuilder sb = new StringBuilder();
+    // Cumulative
     for (String name : names) {
-      String tpsFilename = getTpsFilename(name);
+      String tpsFilename = getTpsFilename(name, Type.cumulative);
       sb.append("report('").append(tpsFilename.substring(0, tpsFilename.length() - 4))
-          .append("', 'TPS - ").append(name)
+          .append("', 'Cumulative TPS - ").append(name)
           .append("');").append(CRLF);
     }
-    sb.append("report('total-tps', 'Total TPS');").append(CRLF);
+    sb.append("report('total-cumulative-tps', 'Cumulative Total TPS');").append(CRLF);
     for (String key : names) {
-      String averageLatencyFilename = getAverageLatencyFilename(key);
+      String averageLatencyFilename = getAverageLatencyFilename(key, Type.cumulative);
       sb.append("report('")
           .append(averageLatencyFilename.substring(0, averageLatencyFilename.length() - 4))
-          .append("', 'Average latency - ").append(key)
+          .append("', 'Cumulative Average latency - ").append(key)
           .append("');").append(CRLF);
     }
-    sb.append("report('total-averageLatency', 'Average Latency of all');").append(CRLF);
+    sb.append("report('total-cumulative-averageLatency', 'Cumulative Average Latency of all');").append(CRLF);
+
+    // Periodic
+    for (String name : names) {
+      String tpsFilename = getTpsFilename(name, Type.periodic);
+      sb.append("report('").append(tpsFilename.substring(0, tpsFilename.length() - 4))
+          .append("', 'Periodic TPS - ").append(name)
+          .append("');").append(CRLF);
+    }
+    sb.append("report('total-periodic-tps', 'Periodic Total TPS');").append(CRLF);
+    for (String key : names) {
+      String averageLatencyFilename = getAverageLatencyFilename(key, Type.periodic);
+      sb.append("report('")
+          .append(averageLatencyFilename.substring(0, averageLatencyFilename.length() - 4))
+          .append("', 'Periodic Average latency - ").append(key)
+          .append("');").append(CRLF);
+    }
+    sb.append("report('total-periodic-averageLatency', 'Periodic Average Latency of all');").append(CRLF);
 
     InputStream in = HtmlReporter.class.getClass().getResourceAsStream("/template/Tps-template.html");
     Scanner scanner = new Scanner(in);
@@ -273,6 +330,7 @@ public class HtmlReporter<E extends Enum<E>> implements Reporter<E> {
     }
     in.close();
 
+    // create template
     byte[] replace = fileContents.toString().replace("!report!", sb.toString()).getBytes();
     OutputStream out = new FileOutputStream(reportFile);
     out.write(replace, 0, replace.length);
@@ -280,7 +338,7 @@ public class HtmlReporter<E extends Enum<E>> implements Reporter<E> {
   }
 
   private String formatTimestampInNano(final long timestamp) {
-    calendar.setTime(new Date(timestamp / 1000000L));
+    calendar.setTime(new Date(timestamp));
     return sdf.format(calendar.getTime());
   }
 
