@@ -96,67 +96,6 @@ public class Statistics<E extends Enum<E>> {
     return System.nanoTime();
   }
 
-/*
-
-  public Long getCounter(Enum key) {
-    return counters.get(key).longValue();
-  }
-
-  public Double getAverageLatencyInMs(Enum key) {
-    return metrics.get(key).getAverageLatency();
-  }
-
-  public Long getTps(Enum key) {
-    long cnt, length;
-    synchronized (periodicStartTime) {
-      length = getTimeInNs() - this.periodicStartTime;
-      if (length < 1000000000L) {
-        return 0L;
-      }
-      cnt = this.metrics.get(key).getCounter();
-    }
-    return cnt / (length / 1000000000L);
-  }
-
-  public Long sumOfCounters() {
-    Long total = 0L;
-    synchronized (metrics) {
-      for (E key : keys) {
-        total += metrics.get(key).getCounter();
-      }
-    }
-    return total;
-  }
-
-  public Double totalAverageLatencyInMs() {
-    Double average = 0.0d;
-    synchronized (metrics) {
-      int counter = 0;
-      for (E key : keys) {
-        double latency = metrics.get(key).getAverageLatency();
-        if (latency > 0) {
-          average += latency;
-          counter++;
-        }
-      }
-      average /= counter;
-    }
-    return average;
-  }
-
-  public Long averageTps() {
-    long cnt, length;
-    synchronized (periodicStartTime) {
-      length = getTimeInNs() - this.periodicStartTime;
-      if (length < 1000000000L) {
-        return 0L;
-      }
-      cnt = sumOfCounters();
-    }
-    return cnt / (length / 1000000000L);
-  }
-*/
-
   public synchronized StatisticsPeek<E> peek(final long timestamp) {
     StatisticsPeek<E> statisticsPeek = new StatisticsPeek<E>(this.name, this.keys, timestamp);
     for (E key : keys) {
