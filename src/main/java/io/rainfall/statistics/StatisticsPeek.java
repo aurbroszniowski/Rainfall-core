@@ -162,7 +162,7 @@ public class StatisticsPeek<E extends Enum<E>> {
       this.periodicAverageLatencies.put(key, periodicAverageLatencyInMs / names.size());
       this.cumulativeAverageLatencies.put(key, cumulativeAverageLatencyInMs / names.size());
       this.periodicTps.put(key, periodicTps);
-      this.cumulativeTps.put(key, cumulativeTps / names.size());
+      this.cumulativeTps.put(key, cumulativeTps);
 
       this.sumOfPeriodicCounters += periodicCounter;
       this.averageOfPeriodicAverageLatencies += this.periodicAverageLatencies.get(key);

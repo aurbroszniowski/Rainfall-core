@@ -58,12 +58,12 @@ public class TextReporter<E extends Enum<E>> implements Reporter<E> {
     Set<String> keys = statisticsHolder.getStatisticsPeeksNames();
     for (String key : keys) {
       StatisticsPeek<E> statisticsPeeks = statisticsHolder.getStatisticsPeeks(key);
-      logPeriodStats(sb, key, statisticsPeeks);
+      logPeriodicStats(sb, key, statisticsPeeks);
     }
 
     StatisticsPeek<E> totalStatisticsPeeks = statisticsHolder.getTotalStatisticsPeeks();
     if (totalStatisticsPeeks != null)
-      logPeriodStats(sb, "ALL", totalStatisticsPeeks);
+      logPeriodicStats(sb, "ALL", totalStatisticsPeeks);
 
     sb.append("==================================================== CUMULATIVE =========================================")
         .append(CRLF);
@@ -105,7 +105,7 @@ public class TextReporter<E extends Enum<E>> implements Reporter<E> {
     )).append(CRLF);
   }
 
-  private void logPeriodStats(StringBuilder sb, String name, StatisticsPeek<E> peek) {
+  private void logPeriodicStats(StringBuilder sb, String name, StatisticsPeek<E> peek) {
     sb.append(formatTimestampInMs(peek.getTimestamp())).append(CRLF);
     E[] keys = peek.getKeys();
     for (E key : keys) {

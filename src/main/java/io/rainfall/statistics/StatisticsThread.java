@@ -39,9 +39,10 @@ public class StatisticsThread extends TimerTask {
   @Override
   @SuppressWarnings("unsigned")
   public void run() {
+    StatisticsPeekHolder peek = statisticsHolder.peek();
     Set<Reporter> reporters = reportingConfig.getReporters();
     for (Reporter reporter : reporters) {
-      reporter.report(statisticsHolder.peek());
+      reporter.report(peek);
     }
   }
 }

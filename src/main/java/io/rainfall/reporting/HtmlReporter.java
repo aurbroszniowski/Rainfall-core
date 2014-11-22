@@ -59,6 +59,7 @@ public class HtmlReporter<E extends Enum<E>> implements Reporter<E> {
   private final static String CRLF = System.getProperty("line.separator");
   private Calendar calendar = GregorianCalendar.getInstance(TimeZone.getDefault());
   private SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+
   private enum Type {periodic, cumulative}
 
   public HtmlReporter() {
@@ -115,13 +116,23 @@ public class HtmlReporter<E extends Enum<E>> implements Reporter<E> {
         copyReportTemplate(statisticsHolder.getStatisticsPeeksNames());
       }
 
-      Set<String> names = statisticsHolder.getStatisticsPeeksNames();
-      for (String name : names) {
-        reportCumulativeToFile(name, statisticsHolder.getStatisticsPeeks(name));
-        reportPeriodicToFile(name, statisticsHolder.getStatisticsPeeks(name));
+      Set<String> keys = statisticsHolder.getStatisticsPeeksNames();
+      for (String key : keys) {
+        StatisticsPeek<E> statisticsPeeks = statisticsHolder.getStatisticsPeeks(key);
+        logPeriodicStats(key, statisticsPeeks);
       }
-      reportCumulativeToFile("total", statisticsHolder.getTotalStatisticsPeeks());
-      reportPeriodicToFile("total", statisticsHolder.getTotalStatisticsPeeks());
+
+      StatisticsPeek<E> totalStatisticsPeeks = statisticsHolder.getTotalStatisticsPeeks();
+      if (totalStatisticsPeeks != null)
+        logPeriodicStats("total", totalStatisticsPeeks);
+
+      for (String key : keys) {
+        StatisticsPeek<E> statisticsPeeks = statisticsHolder.getStatisticsPeeks(key);
+        logCumulativeStats(key, statisticsPeeks);
+      }
+
+      if (totalStatisticsPeeks != null)
+        logCumulativeStats("total", totalStatisticsPeeks);
 
     } catch (IOException e) {
       throw new RuntimeException("Can not write report data");
@@ -130,75 +141,66 @@ public class HtmlReporter<E extends Enum<E>> implements Reporter<E> {
     }
   }
 
-  private void reportCumulativeToFile(final String key, final StatisticsPeek<E> statisticsPeek) throws IOException {
-    if (statisticsPeek != null) {
-      String avgFilename = this.basedir + File.separatorChar + getAverageLatencyFilename(key, Type.cumulative);
-      String tpsFilename = this.basedir + File.separatorChar + getTpsFilename(key, Type.cumulative);
+  private void logPeriodicStats(String name, StatisticsPeek<E> statisticsPeek) throws IOException {
+    String avgFilename = this.basedir + File.separatorChar + getAverageLatencyFilename(name, Type.periodic);
+    String tpsFilename = this.basedir + File.separatorChar + getTpsFilename(name, Type.periodic);
 
-      Writer averageLatencyOutput;
-      Writer tpsOutput;
+    Writer averageLatencyOutput;
+    Writer tpsOutput;
 
-      averageLatencyOutput = new BufferedWriter(new FileWriter(avgFilename, true));
-      if (new File(avgFilename).length() == 0)
-        addHeader(averageLatencyOutput, statisticsPeek.getKeys());
-      tpsOutput = new BufferedWriter(new FileWriter(tpsFilename, true));
-      if (new File(tpsFilename).length() == 0)
-        addHeader(tpsOutput, statisticsPeek.getKeys());
+    averageLatencyOutput = new BufferedWriter(new FileWriter(avgFilename, true));
+    if (new File(avgFilename).length() == 0)
+      addHeader(averageLatencyOutput, statisticsPeek.getKeys());
+    tpsOutput = new BufferedWriter(new FileWriter(tpsFilename, true));
+    if (new File(tpsFilename).length() == 0)
+      addHeader(tpsOutput, statisticsPeek.getKeys());
 
-      String timestamp = formatTimestampInNano(statisticsPeek.getTimestamp());
+    String timestamp = formatTimestampInNano(statisticsPeek.getTimestamp());
 
-      StringBuilder averageLatencySb = new StringBuilder();
-      StringBuilder tpsSb = new StringBuilder();
-      averageLatencySb.append(timestamp);
-      tpsSb.append(timestamp);
+    StringBuilder averageLatencySb = new StringBuilder(timestamp);
+    StringBuilder tpsSb = new StringBuilder(timestamp);
 
-      E[] results = statisticsPeek.getKeys();
-      for (E result : results) {
-        averageLatencySb.append(",").append(String.format("%.2f", statisticsPeek.getCumulativeAverageLatencyInMs(result)));
-        tpsSb.append(",").append(statisticsPeek.getCumulativeTps(result));
-      }
-      averageLatencyOutput.append(averageLatencySb.toString()).append("\n");
-      tpsOutput.append(tpsSb.toString()).append("\n");
-
-      averageLatencyOutput.close();
-      tpsOutput.close();
+    E[] keys = statisticsPeek.getKeys();
+    for (E key : keys) {
+      averageLatencySb.append(",").append(String.format("%.2f", (statisticsPeek.getPeriodicAverageLatencyInMs(key))));
+      tpsSb.append(",").append(statisticsPeek.getPeriodicTps(key));
     }
+    averageLatencyOutput.append(averageLatencySb.toString()).append("\n");
+    tpsOutput.append(tpsSb.toString()).append("\n");
+
+    averageLatencyOutput.close();
+    tpsOutput.close();
   }
 
-  private void reportPeriodicToFile(final String key, final StatisticsPeek<E> statisticsPeek) throws IOException {
-    if (statisticsPeek != null) {
-      String avgFilename = this.basedir + File.separatorChar + getAverageLatencyFilename(key, Type.periodic);
-      String tpsFilename = this.basedir + File.separatorChar + getTpsFilename(key, Type.periodic);
+  private void logCumulativeStats(String name, StatisticsPeek<E> statisticsPeek) throws IOException {
+    String avgFilename = this.basedir + File.separatorChar + getAverageLatencyFilename(name, Type.cumulative);
+    String tpsFilename = this.basedir + File.separatorChar + getTpsFilename(name, Type.cumulative);
 
-      Writer averageLatencyOutput;
-      Writer tpsOutput;
+    Writer averageLatencyOutput;
+    Writer tpsOutput;
 
-      averageLatencyOutput = new BufferedWriter(new FileWriter(avgFilename, true));
-      if (new File(avgFilename).length() == 0)
-        addHeader(averageLatencyOutput, statisticsPeek.getKeys());
-      tpsOutput = new BufferedWriter(new FileWriter(tpsFilename, true));
-      if (new File(tpsFilename).length() == 0)
-        addHeader(tpsOutput, statisticsPeek.getKeys());
+    averageLatencyOutput = new BufferedWriter(new FileWriter(avgFilename, true));
+    if (new File(avgFilename).length() == 0)
+      addHeader(averageLatencyOutput, statisticsPeek.getKeys());
+    tpsOutput = new BufferedWriter(new FileWriter(tpsFilename, true));
+    if (new File(tpsFilename).length() == 0)
+      addHeader(tpsOutput, statisticsPeek.getKeys());
 
-      String timestamp = formatTimestampInNano(statisticsPeek.getTimestamp());
+    String timestamp = formatTimestampInNano(statisticsPeek.getTimestamp());
 
-      StringBuilder averageLatencySb = new StringBuilder();
-      StringBuilder tpsSb = new StringBuilder();
-      averageLatencySb.append(timestamp);
-      tpsSb.append(timestamp);
+    StringBuilder averageLatencySb = new StringBuilder(timestamp);
+    StringBuilder tpsSb = new StringBuilder(timestamp);
 
-      E[] results = statisticsPeek.getKeys();
-      for (E result : results) {
-        averageLatencySb.append(",")
-            .append(String.format("%.2f", statisticsPeek.getPeriodicAverageLatencyInMs(result)));
-        tpsSb.append(",").append(statisticsPeek.getPeriodicTps(result));
-      }
-      averageLatencyOutput.append(averageLatencySb.toString()).append("\n");
-      tpsOutput.append(tpsSb.toString()).append("\n");
-
-      averageLatencyOutput.close();
-      tpsOutput.close();
+    E[] keys = statisticsPeek.getKeys();
+    for (E key : keys) {
+      averageLatencySb.append(",").append(String.format("%.2f", (statisticsPeek.getCumulativeAverageLatencyInMs(key))));
+      tpsSb.append(",").append(statisticsPeek.getCumulativeTps(key));
     }
+    averageLatencyOutput.append(averageLatencySb.toString()).append("\n");
+    tpsOutput.append(tpsSb.toString()).append("\n");
+
+    averageLatencyOutput.close();
+    tpsOutput.close();
   }
 
   /**
