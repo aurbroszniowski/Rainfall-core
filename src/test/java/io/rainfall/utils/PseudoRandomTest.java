@@ -30,8 +30,8 @@ public class PseudoRandomTest {
 
   @Test
   public void testSeed() {
-    Double value1 = new PseudoRandom().nextDouble(1);
-    Double value2 = new PseudoRandom().nextDouble(1);
+    Double value1 = new ConcurrentPseudoRandom().nextDouble(1);
+    Double value2 = new ConcurrentPseudoRandom().nextDouble(1);
 
     assertThat(value1, is(equalTo(value2)));
   }

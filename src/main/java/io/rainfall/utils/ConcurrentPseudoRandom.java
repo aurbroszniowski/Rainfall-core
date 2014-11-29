@@ -16,19 +16,32 @@
 
 package io.rainfall.utils;
 
-import java.util.Random;
-import java.util.concurrent.atomic.AtomicLong;
-
 /**
+ * Concurrent deterministic random bit generator
+ *
  * @author Aurelien Broszniowski
  */
 
-public class PseudoRandom extends Random {
-  private AtomicLong seed = new AtomicLong(System.nanoTime());
+public class ConcurrentPseudoRandom {
+  private static final long multiplier = 0x5DEECE66DL;
+  private static final long addend = 0xBL;
+  private static final long mask = (1L << 48) - 1;
 
-  //TODO : avoid instantiation on every operation exec
-  //TODO : use a pool of randomizer in order to avoid threads waiting
+  private final RandomFunction randomFunction = new ThreadLocal<RandomFunction>() {
+    protected RandomFunction initialValue() {
+      return new RandomFunction();
+    }
+  }.get();
+
   public Double nextDouble(final long next) {
-    return new Random(next).nextDouble();
+    return this.randomFunction.nextDouble(next);
+  }
+
+  private class RandomFunction {
+
+    public Double nextDouble(final long next) {
+      return (((long)((int)(next >>> (48 - 26))) << 27)
+              + (int)(((next * multiplier + addend) & mask) >>> (48 - 27))) / (double)(1L << 53);
+    }
   }
 }
