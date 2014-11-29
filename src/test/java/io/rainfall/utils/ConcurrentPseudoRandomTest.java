@@ -26,13 +26,32 @@ import static org.hamcrest.core.IsEqual.equalTo;
  * @author Aurelien Broszniowski
  */
 
-public class PseudoRandomTest {
+public class ConcurrentPseudoRandomTest {
 
   @Test
   public void testSeed() {
-    Double value1 = new ConcurrentPseudoRandom().nextDouble(1);
-    Double value2 = new ConcurrentPseudoRandom().nextDouble(1);
+    for (long i = 0; i < 10000; i++) {
+      float value1 = new ConcurrentPseudoRandom().nextFloat(i);
+      float value2 = new ConcurrentPseudoRandom().nextFloat(i);
 
-    assertThat(value1, is(equalTo(value2)));
+      System.out.println(value1);
+      assertThat(value1, is(equalTo(value2)));
+    }
+  }
+
+  @Test
+  public void testSeedDistribution() {
+    float min = Float.MAX_VALUE;
+    float max = Float.MIN_VALUE;
+
+    for (long i = 0; i < 10000; i++) {
+      float value1 = new ConcurrentPseudoRandom().nextFloat(i);
+
+      if (value1 < min)
+        min = value1;
+      if (value1 > max)
+        max = value1;
+    }
+    System.out.println("Distribution between [ " + String.format("%.2f", min) + ", " + String.format("%.2f", max) + " ]");
   }
 }

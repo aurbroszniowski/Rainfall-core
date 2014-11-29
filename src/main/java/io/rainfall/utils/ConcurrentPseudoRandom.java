@@ -16,8 +16,11 @@
 
 package io.rainfall.utils;
 
+import java.util.Random;
+
 /**
  * Concurrent deterministic random bit generator
+ * Based on the XORSHIFT function
  *
  * @author Aurelien Broszniowski
  */
@@ -33,15 +36,21 @@ public class ConcurrentPseudoRandom {
     }
   }.get();
 
-  public Double nextDouble(final long next) {
-    return this.randomFunction.nextDouble(next);
+  public float nextFloat(final long next) {
+    return this.randomFunction.nextFloat(next);
   }
 
   private class RandomFunction {
 
-    public Double nextDouble(final long next) {
-      return (((long)((int)(next >>> (48 - 26))) << 27)
-              + (int)(((next * multiplier + addend) & mask) >>> (48 - 27))) / (double)(1L << 53);
+    public float nextFloat(final long next) {
+      return (((nextLong(next)) % 100000) / 100000f);
+    }
+
+    public long nextLong(long seed) {
+      seed ^= (seed << 21);
+      seed ^= (seed >>> 35);
+      seed ^= (seed << 4);
+      return seed;
     }
   }
 }
