@@ -1,7 +1,5 @@
 package io.rainfall.generator.sequence;
 
-import jsr166e.ThreadLocalRandom;
-
 import java.util.Random;
 
 /**
@@ -38,9 +36,10 @@ public enum Distribution {
   public static double distribution[];
 
   static {
-    distribution = new double[1000];
+    Random rnd = new Random();
+    distribution = new double[10000];
     for (int i = 0; i < distribution.length; i++) {
-      distribution[i] = ThreadLocalRandom.current().nextGaussian();
+      distribution[i] = rnd.nextGaussian();
     }
   }
 
