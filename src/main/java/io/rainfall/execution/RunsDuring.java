@@ -65,7 +65,11 @@ public class RunsDuring extends Execution {
         public Object call() throws Exception {
           List<Operation> operations = scenario.getOperations();
           while (!Thread.currentThread().isInterrupted()) {
-            //TODO : get next operation regarding weight
+            //TODO : get next operation regarding weight?
+            // exec(put().withWeight(0.8)).exec(get().withWeight(0.2))   !=
+            //
+            // exec(put().withWeight(0.8), get().withWeight(0.2))
+            // exec(put()).exec(get())
             for (Operation operation : operations) {
               operation.exec(statisticsHolder, configurations, assertions);
             }
