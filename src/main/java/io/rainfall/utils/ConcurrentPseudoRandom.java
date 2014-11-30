@@ -16,8 +16,6 @@
 
 package io.rainfall.utils;
 
-import java.util.Random;
-
 /**
  * Concurrent deterministic random bit generator
  * Based on the XORSHIFT function
@@ -26,9 +24,6 @@ import java.util.Random;
  */
 
 public class ConcurrentPseudoRandom {
-  private static final long multiplier = 0x5DEECE66DL;
-  private static final long addend = 0xBL;
-  private static final long mask = (1L << 48) - 1;
 
   private final RandomFunction randomFunction = new ThreadLocal<RandomFunction>() {
     protected RandomFunction initialValue() {
@@ -36,14 +31,30 @@ public class ConcurrentPseudoRandom {
     }
   }.get();
 
-  public float nextFloat(final long next) {
-    return this.randomFunction.nextFloat(next);
+  public long nextLong() {
+    return this.randomFunction.nextLong();
+  }
+
+  public long nextLong(final long seed) {
+    return this.randomFunction.nextLong(seed);
+  }
+
+  public float nextFloat() {
+    return this.randomFunction.nextFloat();
+  }
+
+  public float nextFloat(final long seed) {
+    return this.randomFunction.nextFloat(seed);
   }
 
   private class RandomFunction {
 
-    public float nextFloat(final long next) {
-      return (((nextLong(next)) % 100000) / 100000f);
+    long seed = 8682522807148012L ^ System.nanoTime();
+
+    public long nextLong() {
+      long nb = nextLong(this.seed);
+      this.seed = this.seed * 181783497276652981L;
+      return nb;
     }
 
     public long nextLong(long seed) {
@@ -51,6 +62,16 @@ public class ConcurrentPseudoRandom {
       seed ^= (seed >>> 35);
       seed ^= (seed << 4);
       return seed;
+    }
+
+    public float nextFloat() {
+      float nb = nextFloat(this.seed);
+      this.seed = this.seed * 181783497276652981L;
+      return nb;
+    }
+
+    public float nextFloat(final long next) {
+      return (((nextLong(next)) % 100000) / 100000f);
     }
   }
 }

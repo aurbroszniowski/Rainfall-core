@@ -1,6 +1,6 @@
 package io.rainfall.generator.sequence;
 
-import java.util.Random;
+import io.rainfall.utils.ConcurrentPseudoRandom;
 
 /**
  * @author Aurelien Broszniowski
@@ -9,21 +9,28 @@ public enum Distribution {
 
   FLAT {
     @Override
-    public long generate(Random rndm, long minimum, long maximum, long width) {
-      return (rndm.nextLong() % (maximum - minimum)) + minimum;
+    public long generate(ConcurrentPseudoRandom rnd, long minimum, long maximum, long width) {
+      return (rnd.nextLong() % (maximum - minimum)) + minimum;
     }
   },
   GAUSSIAN {
     @Override
-    public long generate(Random rndm, long minimum, long maximum, long width) {
+    public long generate(ConcurrentPseudoRandom rnd, long minimum, long maximum, long width) {
+      // polar form of the Box-Muller transformation - fast and quite accurate
+      float x1;
+      double w;
       while (true) {
 
-        long candidate = (long)(distribution[rndm.nextInt(distribution.length)] * width
-                                + (((double)maximum + minimum) / 2));
-        if (rndm.nextBoolean())
-          candidate += rndm.nextInt((int)width);
-        else
-          candidate -= rndm.nextInt((int)width);
+        do {
+          x1 = 2.0f * rnd.nextFloat() - 1.0f;
+          w = x1 * x1;
+        } while (w >= 1.0);
+
+        w = Math.sqrt((-2.0 * Math.log(w)) / w);
+        long center = minimum + (maximum - minimum) / 2;
+        double wd = center / 5;
+        long candidate = (long)(x1 * w * wd + center);
+
         if (candidate >= minimum && candidate < maximum) {
           return candidate;
         }
@@ -31,16 +38,6 @@ public enum Distribution {
     }
   };
 
-  public abstract long generate(Random rnd, long minimum, long maximum, long width);
-
-  public static double distribution[];
-
-  static {
-    Random rnd = new Random();
-    distribution = new double[10000];
-    for (int i = 0; i < distribution.length; i++) {
-      distribution[i] = rnd.nextGaussian();
-    }
-  }
+  public abstract long generate(ConcurrentPseudoRandom rnd, long minimum, long maximum, long width);
 
 }
