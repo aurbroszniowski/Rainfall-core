@@ -20,6 +20,7 @@ import io.rainfall.configuration.ConcurrencyConfig;
 import io.rainfall.configuration.ReportingConfig;
 import io.rainfall.statistics.InitStatisticsHolder;
 import io.rainfall.statistics.RuntimeStatisticsHolder;
+import io.rainfall.statistics.StatisticsPeekHolder;
 import io.rainfall.statistics.StatisticsThread;
 
 import java.util.ArrayList;
@@ -76,7 +77,7 @@ public class ScenarioRun<E extends Enum<E>> {
   }
 
   // Start Scenario run
-  public void start() {
+  public StatisticsPeekHolder<E> start() {
     long start = System.currentTimeMillis();
 
     //TODO : add generics ? cast?
@@ -98,9 +99,11 @@ public class ScenarioRun<E extends Enum<E>> {
     }
 
     stats.cancel();
+    StatisticsPeekHolder<E> peek = this.statisticsHolder.peek();
 
     long end = System.currentTimeMillis();
     System.out.println("-> Taken:" + TimeUnit.MILLISECONDS.toSeconds(end - start));
+    return peek;
   }
 
   private void initStatistics() {
