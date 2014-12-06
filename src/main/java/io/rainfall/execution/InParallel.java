@@ -27,6 +27,7 @@ import io.rainfall.configuration.ConcurrencyConfig;
 import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.unit.Every;
 import io.rainfall.unit.TimeMeasurement;
+import io.rainfall.utils.RangeMap;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,8 +79,10 @@ public class InParallel extends Execution {
         public void run() {
           try {
             for (int i = 0; i < max; i++) {
-              for (Operation operation : scenario.getOperations()) {
-                operation.exec(statisticsHolder, configurations, assertions);
+              List<RangeMap<Operation>> operations = scenario.getOperations();
+              for (RangeMap<Operation> operation : operations) {
+                operation.get(weightRnd.nextFloat(operation.getHigherBound()))
+                    .exec(statisticsHolder, configurations, assertions);
               }
             }
           } catch (TestException e) {

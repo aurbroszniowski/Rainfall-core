@@ -25,6 +25,7 @@ import io.rainfall.TestException;
 import io.rainfall.Unit;
 import io.rainfall.configuration.ConcurrencyConfig;
 import io.rainfall.statistics.StatisticsHolder;
+import io.rainfall.utils.RangeMap;
 
 import java.util.List;
 import java.util.Map;
@@ -66,9 +67,10 @@ public class AtOnce extends Execution {
 
           @Override
           public Object call() throws Exception {
-            List<Operation> operations = scenario.getOperations();
-            for (Operation operation : operations) {
-              operation.exec(statisticsHolder, configurations, assertions);
+            List<RangeMap<Operation>> operations = scenario.getOperations();
+            for (RangeMap<Operation> operation  : operations) {
+              operation.get(weightRnd.nextFloat(operation.getHigherBound()))
+                  .exec(statisticsHolder, configurations, assertions);
             }
             return null;
           }

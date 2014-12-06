@@ -16,7 +16,9 @@
 
 package io.rainfall;
 
-import java.util.LinkedList;
+import io.rainfall.utils.RangeMap;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,14 +30,18 @@ import java.util.List;
 public class Scenario {
 
   private String name;
-  private final List<Operation> operations = new LinkedList<Operation>();
+  private final List<RangeMap<Operation>> operations = new ArrayList<RangeMap<Operation>>();
 
   public Scenario(final String name) {
     this.name = name;
   }
 
-  public Scenario exec(final Operation operation) {
-    this.operations.add(operation);
+  public Scenario exec(final Operation... operations) {
+    RangeMap<Operation> operationRangeMap = new RangeMap<Operation>();
+    for (Operation operation : operations) {
+      operationRangeMap.put(operation.getWeight(), operation);
+    }
+    this.operations.add(operationRangeMap);
     return this;
   }
 
@@ -43,7 +49,7 @@ public class Scenario {
     return new Scenario(name);
   }
 
-  public List<Operation> getOperations() {
+  public List<RangeMap<Operation>> getOperations() {
     return this.operations;
   }
 

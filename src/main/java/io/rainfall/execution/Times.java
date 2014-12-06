@@ -24,6 +24,7 @@ import io.rainfall.Scenario;
 import io.rainfall.TestException;
 import io.rainfall.configuration.ConcurrencyConfig;
 import io.rainfall.statistics.StatisticsHolder;
+import io.rainfall.utils.RangeMap;
 
 import java.util.List;
 import java.util.Map;
@@ -60,10 +61,11 @@ public class Times extends Execution {
 
         @Override
         public Object call() throws Exception {
-          List<Operation> operations = scenario.getOperations();
+          List<RangeMap<Operation>> operations = scenario.getOperations();
           for (int i = 0; i < max; i++) {
-            for (Operation operation : operations) {
-              operation.exec(statisticsHolder, configurations, assertions);
+            for (RangeMap<Operation> operation : operations) {
+              operation.get(weightRnd.nextFloat(operation.getHigherBound()))
+                  .exec(statisticsHolder, configurations, assertions);
             }
           }
           return null;

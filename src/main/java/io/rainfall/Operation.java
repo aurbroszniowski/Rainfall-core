@@ -29,8 +29,18 @@ import java.util.Map;
 
 public abstract class Operation {
 
+  private float weight = 1;
+
   public abstract  void exec(final StatisticsHolder  statisticsHolder,
                             final Map<Class<? extends Configuration>, Configuration> configurations,
                             final List<AssertionEvaluator> assertions) throws TestException;
 
+  public Operation withWeight(Double weight) {
+    this.weight = weight.floatValue();
+    return this;
+  }
+
+  public float getWeight() {
+    return weight;
+  }
 }

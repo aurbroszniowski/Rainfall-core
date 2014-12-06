@@ -16,7 +16,10 @@
 
 package io.rainfall;
 
+import io.rainfall.generator.RandomSequenceGenerator;
 import io.rainfall.statistics.StatisticsHolder;
+import io.rainfall.utils.ConcurrentPseudoRandom;
+import io.rainfall.utils.RangeMap;
 
 import java.util.List;
 import java.util.Map;
@@ -28,6 +31,8 @@ import java.util.Map;
  */
 
 public abstract class Execution {
+
+  protected ConcurrentPseudoRandom weightRnd = new ConcurrentPseudoRandom();
 
   public abstract <E extends Enum<E>> void execute(final StatisticsHolder<E> statisticsHolder, final Scenario scenario,
                                                    final Map<Class<? extends Configuration>, Configuration> configurations,

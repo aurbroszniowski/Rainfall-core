@@ -26,6 +26,7 @@ import io.rainfall.configuration.ConcurrencyConfig;
 import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.unit.During;
 import io.rainfall.unit.TimeDivision;
+import io.rainfall.utils.RangeMap;
 
 import java.util.List;
 import java.util.Map;
@@ -63,15 +64,11 @@ public class RunsDuring extends Execution {
 
         @Override
         public Object call() throws Exception {
-          List<Operation> operations = scenario.getOperations();
+          List<RangeMap<Operation>> operations = scenario.getOperations();
           while (!Thread.currentThread().isInterrupted()) {
-            //TODO : get next operation regarding weight?
-            // exec(put().withWeight(0.8)).exec(get().withWeight(0.2))   !=
-            //
-            // exec(put().withWeight(0.8), get().withWeight(0.2))
-            // exec(put()).exec(get())
-            for (Operation operation : operations) {
-              operation.exec(statisticsHolder, configurations, assertions);
+            for (RangeMap<Operation> operation : operations) {
+              operation.get(weightRnd.nextFloat(operation.getHigherBound()))
+                  .exec(statisticsHolder, configurations, assertions);
             }
           }
           return null;

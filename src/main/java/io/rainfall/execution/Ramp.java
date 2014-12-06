@@ -28,6 +28,7 @@ import io.rainfall.unit.During;
 import io.rainfall.unit.Every;
 import io.rainfall.unit.From;
 import io.rainfall.unit.To;
+import io.rainfall.utils.RangeMap;
 import jsr166e.extra.AtomicDouble;
 
 import java.util.ArrayList;
@@ -83,8 +84,10 @@ public class Ramp extends Execution {
 
           try {
             for (int i = 0; i < max; i++) {
-              for (Operation operation : scenario.getOperations()) {
-                operation.exec(statisticsHolder, configurations, assertions);
+              List<RangeMap<Operation>> operations = scenario.getOperations();
+              for (RangeMap<Operation> operation : operations) {
+                operation.get(weightRnd.nextFloat(operation.getHigherBound()))
+                    .exec(statisticsHolder, configurations, assertions);
               }
             }
           } catch (TestException e) {

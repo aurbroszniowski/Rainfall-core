@@ -19,8 +19,10 @@ package io.rainfall.utils;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.number.OrderingComparison.lessThan;
 
 /**
  * @author Aurelien Broszniowski
@@ -40,7 +42,7 @@ public class ConcurrentPseudoRandomTest {
   }
 
   @Test
-  public void testSeedDistribution() {
+  public void testNextFloatWithSeed() {
     float min = Float.MAX_VALUE;
     float max = Float.MIN_VALUE;
 
@@ -53,5 +55,25 @@ public class ConcurrentPseudoRandomTest {
         max = value1;
     }
     System.out.println("Distribution between [ " + String.format("%.2f", min) + ", " + String.format("%.2f", max) + " ]");
+    assertThat(min, is(lessThan(0f + 0.001f)));
+    assertThat(max, is(greaterThan(1f - 0.001f)));
+  }
+
+  @Test
+  public void testNextFloatWithUpperBound() {
+    float min = Float.MAX_VALUE;
+    float max = Float.MIN_VALUE;
+
+    for (long i = 0; i < 50000; i++) {
+      float value1 = new ConcurrentPseudoRandom().nextFloat(5.9543f);
+
+      if (value1 < min)
+        min = value1;
+      if (value1 > max)
+        max = value1;
+    }
+    System.out.println("Distribution between [ " + String.format("%.5f", min) + ", " + String.format("%.5f", max) + " ]");
+    assertThat(min, is(lessThan(0f + 0.001f)));
+    assertThat(max, is(greaterThan(5.9543f - 0.001f)));
   }
 }

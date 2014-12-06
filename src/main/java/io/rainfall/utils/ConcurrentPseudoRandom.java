@@ -47,6 +47,10 @@ public class ConcurrentPseudoRandom {
     return this.randomFunction.nextFloat(seed);
   }
 
+  public float nextFloat(float max) {
+    return max * this.randomFunction.nextFloat();
+  }
+
   private class RandomFunction {
 
     long seed = 8682522807148012L ^ System.nanoTime();
@@ -71,7 +75,7 @@ public class ConcurrentPseudoRandom {
     }
 
     public float nextFloat(final long next) {
-      return (((nextLong(next)) % 100000) / 100000f);
+      return Math.abs(((nextLong(next)) % 100000) / 100000f);
     }
   }
 }

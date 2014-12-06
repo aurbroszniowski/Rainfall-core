@@ -22,9 +22,11 @@ import io.rainfall.statistics.InitStatisticsHolder;
 import io.rainfall.statistics.RuntimeStatisticsHolder;
 import io.rainfall.statistics.StatisticsPeekHolder;
 import io.rainfall.statistics.StatisticsThread;
+import io.rainfall.utils.RangeMap;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
@@ -37,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 
 public class ScenarioRun<E extends Enum<E>> {
 
-  private Scenario  scenario;
+  private Scenario scenario;
   //TODO : is it possible to generify?
   private Map<Class<? extends Configuration>, Configuration> configurations = new ConcurrentHashMap<Class<? extends Configuration>, Configuration>();
   private List<AssertionEvaluator> assertions = new ArrayList<AssertionEvaluator>();
@@ -108,9 +110,12 @@ public class ScenarioRun<E extends Enum<E>> {
 
   private void initStatistics() {
     try {
-      List<Operation> operations = scenario.getOperations();
-      for (Operation  operation : operations) {
-        operation.exec(new InitStatisticsHolder<E>(this.statisticsHolder), this.configurations, this.assertions);
+      List<RangeMap<Operation>> operations = scenario.getOperations();
+      for (RangeMap<Operation> operation : operations) {
+        Collection<Operation> allOperations = operation.getAll();
+        for (Operation allOperation : allOperations) {
+          allOperation.exec(new InitStatisticsHolder<E>(this.statisticsHolder), this.configurations, this.assertions);
+        }
       }
     } catch (TestException e) {
       throw new RuntimeException(e);
