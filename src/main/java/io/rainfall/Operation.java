@@ -43,4 +43,5 @@ public abstract class Operation {
   public float getWeight() {
     return weight;
   }
+
 }
