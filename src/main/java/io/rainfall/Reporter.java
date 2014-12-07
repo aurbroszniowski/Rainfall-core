@@ -16,6 +16,7 @@
 
 package io.rainfall;
 
+import io.rainfall.configuration.ReportType;
 import io.rainfall.statistics.StatisticsPeekHolder;
 
 /**
@@ -24,8 +25,17 @@ import io.rainfall.statistics.StatisticsPeekHolder;
  * @author Aurelien Broszniowski
  */
 
-public interface Reporter<E extends Enum<E>> {
+public abstract class Reporter<E extends Enum<E>> {
 
-  void report(final StatisticsPeekHolder<E> statisticsHolder);
+  private ReportType reportType;
 
+  public abstract void report(final StatisticsPeekHolder<E> statisticsHolder);
+
+  public void setReportType(ReportType reportType) {
+    this.reportType = reportType;
+  }
+
+  public ReportType getReportType() {
+    return reportType;
+  }
 }

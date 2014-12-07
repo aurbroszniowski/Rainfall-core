@@ -25,6 +25,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import static io.rainfall.configuration.ReportType.BOTH;
+
 /**
  * Holds the configuration of reporters.
  *
@@ -37,13 +39,22 @@ public class ReportingConfig<E extends Enum<E>> extends Configuration {
 
   private final Set<Reporter<E>> reporters = new HashSet<Reporter<E>>();
 
-  public ReportingConfig(final Class<E> results, final Reporter<E>... reporters) {
+  public ReportingConfig(final Class<E> results, final ReportType reportType, final Reporter<E>... reporters) {
     this.results = results.getEnumConstants();
     Collections.addAll(this.reporters, reporters);
+    for (Reporter<E> reporter : reporters) {
+      reporter.setReportType(reportType);
+    }
   }
 
-  public static <E extends Enum<E>> ReportingConfig<E> reportingConfig(Class<E> results, Reporter<E>... reporters) {
-    return new ReportingConfig<E>(results, reporters);
+  public static <E extends Enum<E>> ReportingConfig<E> reportingConfig(Class<E> results,
+                                                                       Reporter<E>... reporters) {
+    return new ReportingConfig<E>(results, BOTH, reporters);
+  }
+
+  public static <E extends Enum<E>> ReportingConfig<E> reportingConfig(Class<E> results, ReportType reportType,
+                                                                       Reporter<E>... reporters) {
+    return new ReportingConfig<E>(results, reportType, reporters);
   }
 
   public static Reporter text() {
