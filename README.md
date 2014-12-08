@@ -97,6 +97,10 @@ Thanks to the following companies for their support to FOSS:
 ------------------------------------------------------------
 
 [ej-technologies for JProfiler](http://www.ej-technologies.com/products/jprofiler/overview.html)
+
 [Sonatype for Nexus](http://www.sonatype.org/)
+
 [Cloudbees for cloud-based continuous delivery](https://www.cloudbees.com/)
+
 and of course [Github](https://github.com/) for hosting this project.
+
