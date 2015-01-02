@@ -57,7 +57,7 @@ public class StatisticsPeek<E extends Enum<E>> {
   private final Map<Enum, Long> periodicTps = new HashMap<Enum, Long>();
 
   private Long sumOfPeriodicCounters = 0L;
-  private Double averageOfPeriodicAverageLatencies = 0.0d;
+  private double averageOfPeriodicAverageLatencies = 0.0d;
   private Long sumOfPeriodicTps = 0L;
 
   private final Map<Enum, Long> cumulativeCounters = new HashMap<Enum, Long>();
@@ -65,7 +65,7 @@ public class StatisticsPeek<E extends Enum<E>> {
   private final Map<Enum, Long> cumulativeTps = new HashMap<Enum, Long>();
 
   private Long sumOfCumulativeCounters = 0L;
-  private Double averageOfCumulativeAverageLatencies = 0.0d;
+  private double averageOfCumulativeAverageLatencies = 0.0d;
   private Long sumOfCumulativeTps = 0L;
 
   private E[] keys;
@@ -165,16 +165,21 @@ public class StatisticsPeek<E extends Enum<E>> {
       this.cumulativeTps.put(key, cumulativeTps);
 
       this.sumOfPeriodicCounters += periodicCounter;
-      this.averageOfPeriodicAverageLatencies += this.periodicAverageLatencies.get(key);
+      Double currPeriodicAvLat = this.periodicAverageLatencies.get(key);
+      if (!currPeriodicAvLat.isNaN()) {
+        this.averageOfPeriodicAverageLatencies += currPeriodicAvLat;
+      }
       this.sumOfPeriodicTps += periodicTps;
 
       this.sumOfCumulativeCounters += cumulativeCounter;
-      this.averageOfCumulativeAverageLatencies += this.cumulativeAverageLatencies.get(key);
+      Double currCumulAvLat = this.cumulativeAverageLatencies.get(key);
+      if (!currCumulAvLat.isNaN()) {
+        this.averageOfCumulativeAverageLatencies += currCumulAvLat;
+      }
       this.sumOfCumulativeTps += cumulativeTps;
     }
-    this.averageOfPeriodicAverageLatencies /= keys.length;
-    this.averageOfCumulativeAverageLatencies /= keys.length;
-
+    this.averageOfPeriodicAverageLatencies = this.averageOfPeriodicAverageLatencies / (double)keys.length;
+    this.averageOfCumulativeAverageLatencies = this.averageOfCumulativeAverageLatencies / (double)keys.length;
   }
 
   // periodic counter (periodic nb of operations for one observed domain)
