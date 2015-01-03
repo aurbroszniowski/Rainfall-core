@@ -17,12 +17,14 @@
 package io.rainfall.statistics;
 
 /**
- * A task that can be measured.
+ * An Function that defines the Operation task that can be measured.
  *
  * @author Aurelien Broszniowski
  */
 
-public interface Task<E extends Enum<E>> {
+public abstract class OperationFunction<E extends Enum<E>> {
 
-  E definition() throws Exception;
+  protected FunctionExecutor<E> functionExecutor = new FunctionExecutor<E>(this);
+
+  public abstract E apply() throws Exception;
 }

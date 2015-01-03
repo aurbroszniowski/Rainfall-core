@@ -13,6 +13,6 @@ public interface StatisticsHolder<E extends Enum<E>> {
 
   Statistics<E> getStatistics(String name);
 
-  void measure(String name, Task task) throws TestException;
+  void measure(String name, FunctionExecutor functionExecutor) throws TestException;
 
 }

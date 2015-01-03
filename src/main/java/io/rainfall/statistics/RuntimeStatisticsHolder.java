@@ -57,17 +57,17 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
   }
 
   @Override
-  public void measure(String name, Task task) throws TestException {
+  public void measure(String name, FunctionExecutor functionExecutor) throws TestException {
     try {
       final long start = getTimeInNs();
-      final Enum result = task.definition();
+      final Enum result = functionExecutor.apply();
       final long end = getTimeInNs();
       final long latency = (end - start);
 
       this.statisticsMap.get(name).increaseCounterAndSetLatencyInNs(result, latency);
 
     } catch (Exception e) {
-      throw new TestException("Exception in measured task " + task.toString(), e);
+      throw new TestException("Exception in measured task " + functionExecutor.toString(), e);
     }
   }
 
