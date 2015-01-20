@@ -72,6 +72,8 @@ public class Times extends Execution {
         }
       });
     }
+    //TODO : it is submitted enough but not everything has finished to run when threads are done -> how to solve Coordinated Omission ?
+
     executor.shutdown();
     try {
       long timeoutInSeconds = ((ConcurrencyConfig)configurations.get(ConcurrencyConfig.class)).getTimeoutInSeconds();
