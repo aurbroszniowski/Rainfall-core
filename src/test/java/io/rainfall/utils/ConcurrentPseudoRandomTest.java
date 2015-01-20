@@ -73,7 +73,7 @@ public class ConcurrentPseudoRandomTest {
         max = value1;
     }
     System.out.println("Distribution between [ " + String.format("%.5f", min) + ", " + String.format("%.5f", max) + " ]");
-    assertThat(min, is(lessThan(0f + 0.001f)));
-    assertThat(max, is(greaterThan(5.9543f - 0.001f)));
+    assertThat(min, is(lessThan(0f + 0.002f)));
+    assertThat(max, is(greaterThan(5.9543f - 0.002f)));
   }
 }
