@@ -28,8 +28,8 @@ import java.util.GregorianCalendar;
 import java.util.Set;
 import java.util.TimeZone;
 
-import static io.rainfall.configuration.ReportType.BOTH;
 import static io.rainfall.configuration.ReportType.CUMULATIVE;
+import static io.rainfall.configuration.ReportType.CUMULATIVE_AND_PERIODIC;
 import static io.rainfall.configuration.ReportType.PERIODIC;
 
 
@@ -54,7 +54,7 @@ public class TextReporter<E extends Enum<E>> extends Reporter<E> {
     StatisticsPeek<E> totalStatisticsPeeks = statisticsHolder.getTotalStatisticsPeeks();
     Set<String> keys = statisticsHolder.getStatisticsPeeksNames();
 
-    if (getReportType() == BOTH || getReportType() == PERIODIC) {
+    if (getReportType() == CUMULATIVE_AND_PERIODIC || getReportType() == PERIODIC) {
       sb.append("===================================================== PERIODIC ==========================================")
           .append(CRLF);
       sb.append(String.format(FORMAT, "Cache", "Type", "Txn_Count", "TPS", "Avg_Lat"))
@@ -72,7 +72,7 @@ public class TextReporter<E extends Enum<E>> extends Reporter<E> {
         logPeriodicStats(sb, "ALL", totalStatisticsPeeks);
     }
 
-    if (getReportType() == BOTH || getReportType() == CUMULATIVE) {
+    if (getReportType() == CUMULATIVE_AND_PERIODIC || getReportType() == CUMULATIVE) {
       sb.append("==================================================== CUMULATIVE =========================================")
           .append(CRLF);
       sb.append(String.format(FORMAT, "Cache", "Type", "Txn_Count", "TPS", "Avg_Lat"))
@@ -96,6 +96,7 @@ public class TextReporter<E extends Enum<E>> extends Reporter<E> {
   @Override
   public void summarize(final StatisticsPeekHolder<E> statisticsHolder) {
     //TODO : add summary at the end of the html ?
+    System.out.println("-----------------\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\////////////////////");
   }
 
   private void logCumulativeStats(StringBuilder sb, String name, StatisticsPeek<E> peek) {

@@ -46,8 +46,8 @@ import java.util.TimeZone;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import static io.rainfall.configuration.ReportType.BOTH;
 import static io.rainfall.configuration.ReportType.CUMULATIVE;
+import static io.rainfall.configuration.ReportType.CUMULATIVE_AND_PERIODIC;
 import static io.rainfall.configuration.ReportType.PERIODIC;
 
 /**
@@ -122,7 +122,7 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
       StatisticsPeek<E> totalStatisticsPeeks = statisticsHolder.getTotalStatisticsPeeks();
       Set<String> keys = statisticsHolder.getStatisticsPeeksNames();
 
-      if (getReportType() == BOTH || getReportType() == CUMULATIVE) {
+      if (getReportType() == CUMULATIVE_AND_PERIODIC || getReportType() == CUMULATIVE) {
         for (String key : keys) {
           StatisticsPeek<E> statisticsPeeks = statisticsHolder.getStatisticsPeeks(key);
           logCumulativeStats(key, statisticsPeeks);
@@ -132,7 +132,7 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
           logCumulativeStats("total", totalStatisticsPeeks);
       }
 
-      if (getReportType() == BOTH || getReportType() == PERIODIC) {
+      if (getReportType() == CUMULATIVE_AND_PERIODIC || getReportType() == PERIODIC) {
         for (String key : keys) {
           StatisticsPeek<E> statisticsPeeks = statisticsHolder.getStatisticsPeeks(key);
           logPeriodicStats(key, statisticsPeeks);
@@ -300,7 +300,7 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
   private void copyReportTemplate(final Set<String> names) throws IOException, URISyntaxException {
     StringBuilder sb = new StringBuilder();
     // Cumulative
-    if (getReportType() == BOTH || getReportType() == CUMULATIVE) {
+    if (getReportType() == CUMULATIVE_AND_PERIODIC || getReportType() == CUMULATIVE) {
       for (String name : names) {
         String tpsFilename = getTpsFilename(name, CUMULATIVE);
         sb.append("report('").append(tpsFilename.substring(0, tpsFilename.length() - 4))
@@ -319,7 +319,7 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
     }
 
     // Periodic
-    if (getReportType() == BOTH || getReportType() == PERIODIC) {
+    if (getReportType() == CUMULATIVE_AND_PERIODIC || getReportType() == PERIODIC) {
       for (String name : names) {
         String tpsFilename = getTpsFilename(name, PERIODIC);
         sb.append("report('").append(tpsFilename.substring(0, tpsFilename.length() - 4))

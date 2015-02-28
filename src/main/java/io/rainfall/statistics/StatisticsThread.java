@@ -40,7 +40,7 @@ public class StatisticsThread<E extends Enum<E>> extends TimerTask {
   @SuppressWarnings("unsigned")
   public void run() {
     StatisticsPeekHolder<E> peek = statisticsHolder.peek();
-    Set<Reporter<E>> reporters = reportingConfig.getReporters();
+    Set<Reporter<E>> reporters = reportingConfig.getLogReporters();
     for (Reporter<E> reporter : reporters) {
       reporter.report(peek);
     }
@@ -48,7 +48,7 @@ public class StatisticsThread<E extends Enum<E>> extends TimerTask {
 
   public StatisticsPeekHolder<E> stop() {
     StatisticsPeekHolder<E> peek = statisticsHolder.peek();
-    Set<Reporter<E>> reporters = reportingConfig.getReporters();
+    Set<Reporter<E>> reporters = reportingConfig.getSummaryReporters();
     for (Reporter<E> reporter : reporters) {
       reporter.summarize(peek);
     }
