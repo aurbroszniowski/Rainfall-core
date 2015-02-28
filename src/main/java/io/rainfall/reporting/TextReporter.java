@@ -93,10 +93,15 @@ public class TextReporter<E extends Enum<E>> extends Reporter<E> {
     System.out.println(sb.toString());
   }
 
+  @Override
+  public void summarize(final StatisticsPeekHolder<E> statisticsHolder) {
+    //TODO : add summary at the end of the html ?
+  }
+
   private void logCumulativeStats(StringBuilder sb, String name, StatisticsPeek<E> peek) {
     sb.append(formatTimestampInMs(peek.getTimestamp())).append(CRLF);
-    E[] keys = peek.getKeys();
-    for (E key : keys) {
+    Enum<E>[] keys = peek.getKeys();
+    for (Enum<E> key : keys) {
       sb.append(String.format(FORMAT,
           name,
           key.name(),
@@ -116,8 +121,8 @@ public class TextReporter<E extends Enum<E>> extends Reporter<E> {
 
   private void logPeriodicStats(StringBuilder sb, String name, StatisticsPeek<E> peek) {
     sb.append(formatTimestampInMs(peek.getTimestamp())).append(CRLF);
-    E[] keys = peek.getKeys();
-    for (E key : keys) {
+    Enum<E>[] keys = peek.getKeys();
+    for (Enum<E> key : keys) {
       sb.append(String.format(FORMAT,
           name,
           key.name(),

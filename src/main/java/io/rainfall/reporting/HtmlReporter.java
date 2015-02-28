@@ -149,6 +149,11 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
     }
   }
 
+  @Override
+  public void summarize(final StatisticsPeekHolder<E> statisticsHolder) {
+    //TODO : add summary at the end of the html ?
+  }
+
   private void logPeriodicStats(String name, StatisticsPeek<E> statisticsPeek) throws IOException {
     String avgFilename = this.basedir + File.separatorChar + getAverageLatencyFilename(name, PERIODIC);
     String tpsFilename = this.basedir + File.separatorChar + getTpsFilename(name, PERIODIC);
@@ -168,8 +173,8 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
     StringBuilder averageLatencySb = new StringBuilder(timestamp);
     StringBuilder tpsSb = new StringBuilder(timestamp);
 
-    E[] keys = statisticsPeek.getKeys();
-    for (E key : keys) {
+    Enum<E>[] keys = statisticsPeek.getKeys();
+    for (Enum<E> key : keys) {
       averageLatencySb.append(",").append(String.format("%.2f", (statisticsPeek.getPeriodicAverageLatencyInMs(key))));
       tpsSb.append(",").append(statisticsPeek.getPeriodicTps(key));
     }
@@ -199,8 +204,8 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
     StringBuilder averageLatencySb = new StringBuilder(timestamp);
     StringBuilder tpsSb = new StringBuilder(timestamp);
 
-    E[] keys = statisticsPeek.getKeys();
-    for (E key : keys) {
+    Enum<E>[] keys = statisticsPeek.getKeys();
+    for (Enum<E> key : keys) {
       averageLatencySb.append(",").append(String.format("%.2f", (statisticsPeek.getCumulativeAverageLatencyInMs(key))));
       tpsSb.append(",").append(statisticsPeek.getCumulativeTps(key));
     }

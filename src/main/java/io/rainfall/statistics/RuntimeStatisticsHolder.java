@@ -28,13 +28,13 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHolder<E> {
 
   private final ConcurrentHashMap<String, Statistics<E>> statisticsMap = new ConcurrentHashMap<String, Statistics<E>>();
-  private E[] results;
+  private Enum<E>[] results;
 
-  public RuntimeStatisticsHolder(final E[] results) {
+  public RuntimeStatisticsHolder(final Enum<E>[] results) {
     this.results = results;
   }
 
-  public E[] getResults() {
+  public Enum<E>[] getResults() {
     return results;
   }
 

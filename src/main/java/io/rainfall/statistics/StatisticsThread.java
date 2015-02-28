@@ -26,12 +26,12 @@ import java.util.TimerTask;
  * @author Aurelien Broszniowski
  */
 
-public class StatisticsThread extends TimerTask {
+public class StatisticsThread<E extends Enum<E>> extends TimerTask {
 
-  private RuntimeStatisticsHolder statisticsHolder;
-  private ReportingConfig reportingConfig;
+  private RuntimeStatisticsHolder<E> statisticsHolder;
+  private ReportingConfig<E> reportingConfig;
 
-  public StatisticsThread(final RuntimeStatisticsHolder statisticsHolder, final ReportingConfig reportingConfig) {
+  public StatisticsThread(final RuntimeStatisticsHolder<E> statisticsHolder, final ReportingConfig<E> reportingConfig) {
     this.statisticsHolder = statisticsHolder;
     this.reportingConfig = reportingConfig;
   }
@@ -39,10 +39,20 @@ public class StatisticsThread extends TimerTask {
   @Override
   @SuppressWarnings("unsigned")
   public void run() {
-    StatisticsPeekHolder peek = statisticsHolder.peek();
-    Set<Reporter> reporters = reportingConfig.getReporters();
-    for (Reporter reporter : reporters) {
+    StatisticsPeekHolder<E> peek = statisticsHolder.peek();
+    Set<Reporter<E>> reporters = reportingConfig.getReporters();
+    for (Reporter<E> reporter : reporters) {
       reporter.report(peek);
     }
+  }
+
+  public StatisticsPeekHolder<E> stop() {
+    StatisticsPeekHolder<E> peek = statisticsHolder.peek();
+    Set<Reporter<E>> reporters = reportingConfig.getReporters();
+    for (Reporter<E> reporter : reporters) {
+      reporter.summarize(peek);
+    }
+    super.cancel();
+    return peek;
   }
 }

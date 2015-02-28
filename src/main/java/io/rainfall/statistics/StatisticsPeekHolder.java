@@ -9,13 +9,13 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class StatisticsPeekHolder<E extends Enum<E>> {
   public final static String ALL = "ALL";
-  private final E[] results;
+  private final Enum<E>[] results;
 
   private Map<String, StatisticsPeek<E>> statisticsPeeks = new ConcurrentHashMap<String, StatisticsPeek<E>>();
   private StatisticsPeek<E> totalStatisticsPeeks = null;
   private long timestamp;
 
-  public StatisticsPeekHolder(final E[] results, final ConcurrentHashMap<String, Statistics<E>> statisticsMap) {
+  public StatisticsPeekHolder(final Enum<E>[] results, final ConcurrentHashMap<String, Statistics<E>> statisticsMap) {
     this.results = results;
     this.timestamp = System.currentTimeMillis();
     for (String name : statisticsMap.keySet()) {

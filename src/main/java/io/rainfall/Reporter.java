@@ -38,4 +38,6 @@ public abstract class Reporter<E extends Enum<E>> {
   public ReportType getReportType() {
     return reportType;
   }
+
+  public abstract void summarize(final StatisticsPeekHolder<E> statisticsHolder);
 }

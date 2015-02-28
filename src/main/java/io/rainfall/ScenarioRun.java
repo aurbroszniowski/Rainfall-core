@@ -85,7 +85,7 @@ public class ScenarioRun<E extends Enum<E>> {
     //TODO : add generics ? cast?
     ReportingConfig reportingConfig = (ReportingConfig)configurations.get(ReportingConfig.class);
 
-    this.statisticsHolder = new RuntimeStatisticsHolder<E>((E[])reportingConfig.getResults());
+    this.statisticsHolder = new RuntimeStatisticsHolder<E>(reportingConfig.getResults());
     initStatistics();
 
     Timer timer = new Timer();
@@ -100,8 +100,7 @@ public class ScenarioRun<E extends Enum<E>> {
       throw new RuntimeException(e);
     }
 
-    stats.cancel();
-    StatisticsPeekHolder<E> peek = this.statisticsHolder.peek();
+    StatisticsPeekHolder peek = stats.stop();
 
     long end = System.currentTimeMillis();
     System.out.println("-> Taken:" + TimeUnit.MILLISECONDS.toSeconds(end - start));
