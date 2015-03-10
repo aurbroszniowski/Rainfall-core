@@ -95,8 +95,22 @@ public class TextReporter<E extends Enum<E>> extends Reporter<E> {
 
   @Override
   public void summarize(final StatisticsPeekHolder<E> statisticsHolder) {
-    //TODO : add summary at the end of the html ?
-    System.out.println("-----------------\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\////////////////////");
+    System.out.println("* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *");
+    StringBuilder sb = new StringBuilder();
+    StatisticsPeek<E> totalStatisticsPeeks = statisticsHolder.getTotalStatisticsPeeks();
+    Set<String> keys = statisticsHolder.getStatisticsPeeksNames();
+
+    sb.append("===================================================== FINAL ==============================================")
+        .append(CRLF);
+    sb.append(String.format(FORMAT, "Cache", "Type", "Txn_Count", "TPS", "Avg_Lat"))
+//    sb.append(String.format(FORMAT, "Cache", "Type", "Txn_Count", "TPS", "Avg_Lat", "Min_Lat", "Max_Lat", "TotalExceptionCount"))
+        .append(CRLF);
+    sb.append("==========================================================================================================")
+        .append(CRLF);
+
+    if (totalStatisticsPeeks != null)
+      logCumulativeStats(sb, "ALL", totalStatisticsPeeks);
+    System.out.println(sb.toString());
   }
 
   private void logCumulativeStats(StringBuilder sb, String name, StatisticsPeek<E> peek) {
