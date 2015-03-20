@@ -91,6 +91,5 @@ public class ScenarioRunTest {
     } catch (RuntimeException e) {
       // expected
     }
-
   }
 }
