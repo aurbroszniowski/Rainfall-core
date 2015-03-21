@@ -27,6 +27,6 @@ public class InitStatisticsHolder<E extends Enum<E>> implements StatisticsHolder
 
   @Override
   public void measure(final String name, final FunctionExecutor functionExecutor) throws TestException {
-    statisticsHolder.addStatistics(name, new Statistics<E>(name, statisticsHolder.getResults()));
+    statisticsHolder.addStatistics(name, new Statistics<E>(name, statisticsHolder.getResults(), statisticsHolder.getResultsReported()));
   }
 }

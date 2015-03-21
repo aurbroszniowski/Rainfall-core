@@ -17,7 +17,7 @@ public class StatisticsPeekTest {
     Result two = Result.TWO;
     Result three = Result.THREE;
     final Result[] keys = new Result[] { one, two, three };
-    Statistics<Result> statistics = new Statistics<Result>("test", keys, 100);
+    Statistics<Result> statistics = new Statistics<Result>("test", keys, keys, 100);
 
     statistics.increaseCounterAndSetLatencyInNs(two, 105 * 1000000L);
     statistics.increaseCounterAndSetLatencyInNs(two, 34 * 1000000L);
@@ -34,7 +34,7 @@ public class StatisticsPeekTest {
     Result two = Result.TWO;
     Result three = Result.THREE;
     final Result[] keys = new Result[] { one, two, three };
-    Statistics<Result> statistics = new Statistics<Result>("test", keys, 100);
+    Statistics<Result> statistics = new Statistics<Result>("test", keys, keys, 100);
 
     statistics.increaseCounterAndSetLatencyInNs(two, 105 * 1000000L);
     statistics.increaseCounterAndSetLatencyInNs(two, 34 * 1000000L);
@@ -51,7 +51,7 @@ public class StatisticsPeekTest {
     Result two = Result.TWO;
     Result three = Result.THREE;
     final Result[] keys = new Result[] { one, two, three };
-    Statistics<Result> statistics = new Statistics<Result>("test", keys, 100);
+    Statistics<Result> statistics = new Statistics<Result>("test", keys, keys, 100);
 
     statistics.increaseCounterAndSetLatencyInNs(two, 105 * 1000000L);
     statistics.increaseCounterAndSetLatencyInNs(two, 34 * 1000000L);
@@ -74,7 +74,7 @@ public class StatisticsPeekTest {
     Result two = Result.TWO;
     Result three = Result.THREE;
     final Result[] keys = new Result[] { one, two, three };
-    Statistics<Result> statistics = new Statistics<Result>("test", keys, 100);
+    Statistics<Result> statistics = new Statistics<Result>("test", keys, keys, 100);
 
     statistics.increaseCounterAndSetLatencyInNs(two, 105 * 1000000L);
     statistics.increaseCounterAndSetLatencyInNs(two, 34 * 1000000L);

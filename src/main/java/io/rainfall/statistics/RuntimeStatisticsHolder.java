@@ -28,14 +28,20 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHolder<E> {
 
   private final ConcurrentHashMap<String, Statistics<E>> statisticsMap = new ConcurrentHashMap<String, Statistics<E>>();
-  private Enum<E>[] results;
+  private final Enum<E>[] results;
+  private Enum<E>[] resultsReported;
 
-  public RuntimeStatisticsHolder(final Enum<E>[] results) {
+  public RuntimeStatisticsHolder(final Enum<E>[] results, final Enum<E>[] resultsReported) {
     this.results = results;
+    this.resultsReported = resultsReported;
   }
 
   public Enum<E>[] getResults() {
     return results;
+  }
+
+  public Enum<E>[] getResultsReported() {
+    return resultsReported;
   }
 
   @Override
@@ -72,6 +78,6 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
   }
 
   public StatisticsPeekHolder<E> peek() {
-    return new StatisticsPeekHolder<E>(this.results, this.statisticsMap);
+    return new StatisticsPeekHolder<E>(this.resultsReported, this.statisticsMap);
   }
 }

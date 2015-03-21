@@ -6,5 +6,5 @@ package io.rainfall.configuration;
 
 public enum ReportType {
 
-  CUMULATIVE, PERIODIC, CUMULATIVE_AND_PERIODIC
+  CUMULATIVE, PERIODIC, res, CUMULATIVE_AND_PERIODIC
 }

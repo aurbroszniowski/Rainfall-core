@@ -83,13 +83,13 @@ public class ScenarioRun<E extends Enum<E>> {
     long start = System.currentTimeMillis();
 
     //TODO : add generics ? cast?
-    ReportingConfig reportingConfig = (ReportingConfig)configurations.get(ReportingConfig.class);
+    ReportingConfig<E> reportingConfig = (ReportingConfig<E>)configurations.get(ReportingConfig.class);
 
-    this.statisticsHolder = new RuntimeStatisticsHolder<E>(reportingConfig.getResults());
+    this.statisticsHolder = new RuntimeStatisticsHolder<E>(reportingConfig.getResults(), reportingConfig.getResultsReported());
     initStatistics();
 
     Timer timer = new Timer();
-    StatisticsThread stats = new StatisticsThread(statisticsHolder, reportingConfig);
+    StatisticsThread<E> stats = new StatisticsThread<E>(statisticsHolder, reportingConfig);
     timer.scheduleAtFixedRate(stats, 0L, 1000L);
 
     try {

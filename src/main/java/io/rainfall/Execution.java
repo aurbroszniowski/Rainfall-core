@@ -16,10 +16,8 @@
 
 package io.rainfall;
 
-import io.rainfall.generator.RandomSequenceGenerator;
 import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.utils.ConcurrentPseudoRandom;
-import io.rainfall.utils.RangeMap;
 
 import java.util.List;
 import java.util.Map;

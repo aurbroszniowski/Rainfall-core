@@ -15,7 +15,7 @@ public class StatisticsPeekHolder<E extends Enum<E>> {
   private StatisticsPeek<E> totalStatisticsPeeks = null;
   private long timestamp;
 
-  public StatisticsPeekHolder(final Enum<E>[] results, final ConcurrentHashMap<String, Statistics<E>> statisticsMap) {
+  public StatisticsPeekHolder(final Enum<E>[] results, final Map<String, Statistics<E>> statisticsMap) {
     this.results = results;
     this.timestamp = System.currentTimeMillis();
     for (String name : statisticsMap.keySet()) {
