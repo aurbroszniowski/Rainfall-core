@@ -19,6 +19,9 @@ package io.rainfall.statistics;
 /**
  * An Function that defines the Operation task that can be measured.
  *
+ * This type of function is not thread-safe, it is instantiated once per Operation, the logic
+ * executed inside of the apply() method should account for this when using the parameters.
+ *
  * @author Aurelien Broszniowski
  */
 
