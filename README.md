@@ -71,7 +71,7 @@ It will simulate 5 concurrent users doing nothing for 5 seconds then doing the o
 
 Build the project
 -----------------
-Rainfall is compiled with Java 6 or 7
+Rainfall is compiled with Java 6, 7 or 8
 ```
   mvn clean install
 ```
