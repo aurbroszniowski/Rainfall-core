@@ -54,7 +54,7 @@ Performance tests are written in java, we will cover a simple example using Rain
 This tests the performance of calling the Twitter search page.
 The scenario is a serie of three consecutive queries that will search for a text string.
 It will simulate 5 concurrent users doing nothing for 5 seconds then doing the operations of the scenario.
-```
+```java
    HttpConfig httpConf = httpConfig()
         .baseURL("http://search.twitter.com");
 
@@ -72,13 +72,13 @@ It will simulate 5 concurrent users doing nothing for 5 seconds then doing the o
 Build the project
 -----------------
 Rainfall is compiled with Java 6, 7 or 8
-```
+```maven
   mvn clean install
 ```
 
 Use it in your project
 ----------------------
-```
+```maven
   <dependencies>
     <dependency>
       <groupId>io.rainfall</groupId>
