@@ -103,6 +103,7 @@ public class Statistics<E extends Enum<E>> {
       this.cumulativeCounters.get(key).add(this.periodicCounters.get(key).sumThenReset());
       this.cumulativeTotalLatenciesInNs.get(key).add(this.periodicTotalLatenciesInNs.get(key).sumThenReset());
     }
+    statisticsPeek.setCumulativeValues(now - cumulativeStartTime, cumulativeCounters, cumulativeTotalLatenciesInNs);
     this.periodicStartTime = getTimeInNs();
     return statisticsPeek;
   }
