@@ -136,6 +136,8 @@ public class StatisticsPeek<E extends Enum<E>> {
 
   public void addAll(final Map<String, StatisticsPeek<E>> statisticsPeeks) {
     Set<String> names = statisticsPeeks.keySet();
+    int validPeriodicLatencies = 0;
+    int validCumulativeLatencies = 0;
     for (Enum<E> key : keys) {
       long periodicCounter = 0L;
       long cumulativeCounter = 0L;
@@ -168,6 +170,7 @@ public class StatisticsPeek<E extends Enum<E>> {
       Double currPeriodicAvLat = this.periodicAverageLatencies.get(key);
       if (!currPeriodicAvLat.isNaN()) {
         this.averageOfPeriodicAverageLatencies += currPeriodicAvLat;
+        validPeriodicLatencies += 1;
       }
       this.sumOfPeriodicTps += periodicTps;
 
@@ -175,11 +178,12 @@ public class StatisticsPeek<E extends Enum<E>> {
       Double currCumulAvLat = this.cumulativeAverageLatencies.get(key);
       if (!currCumulAvLat.isNaN()) {
         this.averageOfCumulativeAverageLatencies += currCumulAvLat;
+        validCumulativeLatencies += 1;
       }
       this.sumOfCumulativeTps += cumulativeTps;
     }
-    this.averageOfPeriodicAverageLatencies = this.averageOfPeriodicAverageLatencies / (double)keys.length;
-    this.averageOfCumulativeAverageLatencies = this.averageOfCumulativeAverageLatencies / (double)keys.length;
+    this.averageOfPeriodicAverageLatencies = this.averageOfPeriodicAverageLatencies / (double)validPeriodicLatencies;
+    this.averageOfCumulativeAverageLatencies = this.averageOfCumulativeAverageLatencies / (double)validCumulativeLatencies;
   }
 
   // periodic counter (periodic nb of operations for one observed domain)
