@@ -151,7 +151,12 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
 
   @Override
   public void summarize(final StatisticsPeekHolder<E> statisticsHolder) {
-    //TODO : add summary at the end of the html ?
+    //TODO : create summary from template as 'summary.html' (copy report)
+    // draw Periodic Total TPS
+    // draw Periodic Average Latency of all
+    // write text with        logCumulativeStats(sb, "ALL", totalStatisticsPeeks);
+
+    //TODO : while at it, put anchors at the begin of report.html, in order to list evrything, and in summary.html too
   }
 
   private void logPeriodicStats(String name, StatisticsPeek<E> statisticsPeek) throws IOException {

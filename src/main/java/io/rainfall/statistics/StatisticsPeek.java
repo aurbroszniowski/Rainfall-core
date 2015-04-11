@@ -45,6 +45,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * - total periodic TPS (periodic TPS for all observed domains)
  * - total cumulative TPS (cumulative TPS for one observed domain)
  *
+ * - HdrHistogram : percentiles of measures latencies
+
+ *
  * @author Aurelien Broszniowski
  */
 
