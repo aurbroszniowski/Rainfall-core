@@ -17,8 +17,12 @@
 package io.rainfall.reporting;
 
 import io.rainfall.Reporter;
+import io.rainfall.statistics.Statistics;
+import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.statistics.StatisticsPeek;
 import io.rainfall.statistics.StatisticsPeekHolder;
+
+import org.HdrHistogram.Histogram;
 
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
@@ -27,6 +31,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static io.rainfall.configuration.ReportType.CUMULATIVE;
 import static io.rainfall.configuration.ReportType.CUMULATIVE_AND_PERIODIC;
@@ -94,23 +99,17 @@ public class TextReporter<E extends Enum<E>> extends Reporter<E> {
   }
 
   @Override
-  public void summarize(final StatisticsPeekHolder<E> statisticsHolder) {
-    System.out.println("* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *");
-    StringBuilder sb = new StringBuilder();
-    StatisticsPeek<E> totalStatisticsPeeks = statisticsHolder.getTotalStatisticsPeeks();
-    Set<String> keys = statisticsHolder.getStatisticsPeeksNames();
-
-    sb.append("===================================================== FINAL ==============================================")
-        .append(CRLF);
-    sb.append(String.format(FORMAT, "Cache", "Type", "Txn_Count", "TPS", "Avg_Lat"))
-//    sb.append(String.format(FORMAT, "Cache", "Type", "Txn_Count", "TPS", "Avg_Lat", "Min_Lat", "Max_Lat", "TotalExceptionCount"))
-        .append(CRLF);
-    sb.append("==========================================================================================================")
-        .append(CRLF);
-
-    if (totalStatisticsPeeks != null)
-      logCumulativeStats(sb, "ALL", totalStatisticsPeeks);
-    System.out.println(sb.toString());
+  public void summarize(final StatisticsHolder<E> statisticsHolder) {
+//    sb.append(String.format(FORMAT, "Cache", "Type", "Txn_Count", "TPS", "Avg_Lat"))
+//    Set<String> observedEntities = statisticsHolder.getStatisticsKeys();
+//    for (String observedEntity : observedEntities) {
+//      Statistics<E> statistics = statisticsHolder.getStatistics(observedEntity);
+//      ConcurrentHashMap<Enum, Histogram> histograms = statistics.getHistograms();
+//      for (Enum key : histograms.keySet()) {
+//        Histogram histogram = histograms.get(key);
+//        System.out.println("Mean " + key + " = " + histogram.getMean());
+//      }
+//    }
   }
 
   private void logCumulativeStats(StringBuilder sb, String name, StatisticsPeek<E> peek) {

@@ -64,7 +64,7 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
       final long end = getTimeInNs();
       final long latency = (end - start);
 
-      this.statisticsMap.get(name).increaseCounterAndSetLatencyInNs(result, latency);
+      this.statisticsMap.get(name).increaseCounterAndSetLatencyInNs(result, latency); //TODO : we may just want to have a Map<Histogram> instead
 
     } catch (Exception e) {
       throw new TestException("Exception in measured task " + functionExecutor.toString(), e);

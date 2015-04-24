@@ -108,6 +108,12 @@ public class ScenarioRun<E extends Enum<E>> {
 
     long end = System.currentTimeMillis();
     System.out.println("-> Taken:" + TimeUnit.MILLISECONDS.toSeconds(end - start));
+
+    Set<Reporter<E>> reporters = reportingConfig.getSummaryReporters();
+    for (Reporter<E> reporter : reporters) {
+      reporter.summarize(statisticsHolder);
+    }
+
     return peek;
   }
 
