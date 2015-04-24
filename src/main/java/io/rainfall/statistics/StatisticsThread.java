@@ -37,7 +37,6 @@ public class StatisticsThread<E extends Enum<E>> extends TimerTask {
   }
 
   @Override
-  @SuppressWarnings("unsigned")
   public void run() {
     StatisticsPeekHolder<E> peek = statisticsHolder.peek();
     Set<Reporter<E>> reporters = reportingConfig.getLogReporters();

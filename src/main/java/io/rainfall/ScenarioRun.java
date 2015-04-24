@@ -20,15 +20,19 @@ import io.rainfall.configuration.ConcurrencyConfig;
 import io.rainfall.configuration.ReportingConfig;
 import io.rainfall.statistics.InitStatisticsHolder;
 import io.rainfall.statistics.RuntimeStatisticsHolder;
+import io.rainfall.statistics.Statistics;
 import io.rainfall.statistics.StatisticsPeekHolder;
 import io.rainfall.statistics.StatisticsThread;
 import io.rainfall.utils.RangeMap;
+
+import org.HdrHistogram.Histogram;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -85,7 +89,7 @@ public class ScenarioRun<E extends Enum<E>> {
     //TODO : add generics ? cast?
     ReportingConfig<E> reportingConfig = (ReportingConfig<E>)configurations.get(ReportingConfig.class);
 
-    this.statisticsHolder = new RuntimeStatisticsHolder<E>(reportingConfig.getResults(), reportingConfig.getResultsReported());
+    this.statisticsHolder = new RuntimeStatisticsHolder<E>(reportingConfig.getResults());
     initStatistics();
 
     Timer timer = new Timer();

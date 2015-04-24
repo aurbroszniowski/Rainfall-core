@@ -17,9 +17,10 @@
 package io.rainfall.statistics;
 
 import jsr166e.LongAdder;
+import org.HdrHistogram.Histogram;
 
 import java.util.concurrent.ConcurrentHashMap;
-import org.HdrHistogram.Histogram;
+
 /**
  * A {@link Statistics} instance holds the statistics of all results at a given point in time
  *
@@ -106,5 +107,9 @@ public class Statistics<E extends Enum<E>> {
     statisticsPeek.setCumulativeValues(now - cumulativeStartTime, cumulativeCounters, cumulativeTotalLatenciesInNs);
     this.periodicStartTime = getTimeInNs();
     return statisticsPeek;
+  }
+
+  public ConcurrentHashMap<Enum, Histogram> getHistograms() {
+    return histograms;
   }
 }

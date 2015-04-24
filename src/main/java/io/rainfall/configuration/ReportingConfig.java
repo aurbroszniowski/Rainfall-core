@@ -34,33 +34,31 @@ import static io.rainfall.configuration.ReportType.CUMULATIVE_AND_PERIODIC;
 
 public class ReportingConfig<E extends Enum<E>> extends Configuration {
 
-  private Enum<E>[] resultsReported;
   private Enum<E>[] results;
 
   private final Set<Reporter<E>> logReporters = new HashSet<Reporter<E>>();
   private final Set<Reporter<E>> summaryReporters = new HashSet<Reporter<E>>();
   private ReportType reportType;
 
-  public ReportingConfig(Class<E> results, ReportType reportType, Enum<E>[] resultsReported) {
+  public ReportingConfig(ReportType reportType, Enum<E>[] resultsReported) {
     this.reportType = reportType;
-    this.resultsReported = resultsReported;
-    this.results = results.getEnumConstants();
+    this.results = resultsReported;
   }
 
   public static <E extends Enum<E>> ReportingConfig<E> report(Class<E> results) {
-    return new ReportingConfig<E>(results, CUMULATIVE_AND_PERIODIC, results.getEnumConstants());
+    return new ReportingConfig<E>(CUMULATIVE_AND_PERIODIC, results.getEnumConstants());
   }
 
   public static <E extends Enum<E>> ReportingConfig<E> report(Class<E> results, Enum<E>[] resultsReported) {
-    return new ReportingConfig<E>(results, CUMULATIVE_AND_PERIODIC, resultsReported);
+    return new ReportingConfig<E>(CUMULATIVE_AND_PERIODIC, resultsReported);
   }
 
   public static <E extends Enum<E>> ReportingConfig<E> report(Class<E> results, ReportType reportType) {
-    return new ReportingConfig<E>(results, reportType, results.getEnumConstants());
+    return new ReportingConfig<E>(reportType, results.getEnumConstants());
   }
 
   public static <E extends Enum<E>> ReportingConfig<E> report(Class<E> results, ReportType reportType, Enum<E>[] resultsReported) {
-    return new ReportingConfig<E>(results, reportType, resultsReported);
+    return new ReportingConfig<E>(reportType, resultsReported);
   }
 
   @SuppressWarnings("unchecked")
@@ -88,10 +86,6 @@ public class ReportingConfig<E extends Enum<E>> extends Configuration {
 
   public static Reporter html() {
     return new HtmlReporter();
-  }
-
-  public Enum<E>[] getResultsReported() {
-    return resultsReported;
   }
 
   public Enum<E>[] getResults() {
