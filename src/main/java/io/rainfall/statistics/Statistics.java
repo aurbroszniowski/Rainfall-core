@@ -85,7 +85,7 @@ public class Statistics<E extends Enum<E>> {
   public void increaseCounterAndSetLatencyInNs(final Enum result, final long latency) {
     periodicCounters.get(result).add(1);
     periodicTotalLatenciesInNs.get(result).add(latency);
-    histograms.get(result).recordValue(latency);
+    histograms.get(result).recordValue(latency);  // TODO convert into ms ?
   }
 
   public String getName() {

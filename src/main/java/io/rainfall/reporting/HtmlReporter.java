@@ -18,6 +18,7 @@ package io.rainfall.reporting;
 
 import io.rainfall.Reporter;
 import io.rainfall.configuration.ReportType;
+import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.statistics.StatisticsPeek;
 import io.rainfall.statistics.StatisticsPeekHolder;
 
@@ -150,7 +151,7 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
   }
 
   @Override
-  public void summarize(final StatisticsPeekHolder<E> statisticsHolder) {
+  public void summarize(final StatisticsHolder<E> statisticsHolder) {
     //TODO : create summary from template as 'summary.html' (copy report)
     // draw Periodic Total TPS
     // draw Periodic Average Latency of all
