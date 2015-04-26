@@ -265,7 +265,7 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
           .append("', 'Periodic TPS - ").append(name)
           .append("');").append(CRLF);
     }
-    sb.append("report('total-periodic-tps', 'Periodic Total TPS');").append(CRLF);
+    sb.append("report('total-tps', 'Periodic Total TPS');").append(CRLF);
     for (String key : names) {
       String averageLatencyFilename = getAverageLatencyFilename(key);
       sb.append("report('")
@@ -273,7 +273,7 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
           .append("', 'Periodic Reponse Time - ").append(key)
           .append("');").append(CRLF);
     }
-    sb.append("report('total-periodic-averageLatency', 'Periodic Average Response Time of all entities');").append(CRLF);
+    sb.append("report('total-averageLatency', 'Periodic Average Response Time of all entities');").append(CRLF);
 
     InputStream in = HtmlReporter.class.getClass().getResourceAsStream("/template/Tps-template.html");
     Scanner scanner = new Scanner(in);
