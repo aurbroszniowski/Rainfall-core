@@ -24,8 +24,6 @@ import io.rainfall.reporting.TextReporter;
 import java.util.HashSet;
 import java.util.Set;
 
-import static io.rainfall.configuration.ReportType.CUMULATIVE_AND_PERIODIC;
-
 /**
  * Holds the configuration of reporters.
  *
@@ -38,33 +36,22 @@ public class ReportingConfig<E extends Enum<E>> extends Configuration {
 
   private final Set<Reporter<E>> logReporters = new HashSet<Reporter<E>>();
   private final Set<Reporter<E>> summaryReporters = new HashSet<Reporter<E>>();
-  private ReportType reportType;
 
-  public ReportingConfig(ReportType reportType, Enum<E>[] resultsReported) {
-    this.reportType = reportType;
+  public ReportingConfig(Enum<E>[] resultsReported) {
     this.results = resultsReported;
   }
 
   public static <E extends Enum<E>> ReportingConfig<E> report(Class<E> results) {
-    return new ReportingConfig<E>(CUMULATIVE_AND_PERIODIC, results.getEnumConstants());
+    return new ReportingConfig<E>(results.getEnumConstants());
   }
 
   public static <E extends Enum<E>> ReportingConfig<E> report(Class<E> results, Enum<E>[] resultsReported) {
-    return new ReportingConfig<E>(CUMULATIVE_AND_PERIODIC, resultsReported);
-  }
-
-  public static <E extends Enum<E>> ReportingConfig<E> report(Class<E> results, ReportType reportType) {
-    return new ReportingConfig<E>(reportType, results.getEnumConstants());
-  }
-
-  public static <E extends Enum<E>> ReportingConfig<E> report(Class<E> results, ReportType reportType, Enum<E>[] resultsReported) {
-    return new ReportingConfig<E>(reportType, resultsReported);
+    return new ReportingConfig<E>(resultsReported);
   }
 
   @SuppressWarnings("unchecked")
   public ReportingConfig log(final Reporter... reporters) {
     for (Reporter reporter : reporters) {
-      reporter.setReportType(reportType);
       logReporters.add(reporter);
     }
     return this;
@@ -73,7 +60,6 @@ public class ReportingConfig<E extends Enum<E>> extends Configuration {
   @SuppressWarnings("unchecked")
   public ReportingConfig summary(final Reporter... reporters) {
     for (Reporter reporter : reporters) {
-      reporter.setReportType(reportType);
       summaryReporters.add(reporter);
     }
     return this;
