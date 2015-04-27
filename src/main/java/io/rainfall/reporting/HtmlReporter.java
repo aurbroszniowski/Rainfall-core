@@ -17,19 +17,24 @@
 package io.rainfall.reporting;
 
 import io.rainfall.Reporter;
+import io.rainfall.TestException;
 import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.statistics.StatisticsPeek;
 import io.rainfall.statistics.StatisticsPeekHolder;
+
+import org.HdrHistogram.Histogram;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.Writer;
 import java.net.JarURLConnection;
 import java.net.URISyntaxException;
@@ -56,6 +61,7 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
   private String basedir;
   private String averageLatencyFile = "averageLatency.csv";
   private String tpsFile = "tps.csv";
+  private String percentilesFile = "total-percentiles.csv";
   private String reportFile;
   private final File jarFile = new File(getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
   private final static String CRLF = System.getProperty("line.separator");
@@ -110,17 +116,18 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
   }
 
   @Override
-  public void report(final StatisticsPeekHolder<E> statisticsHolder) {
+  public void report(final StatisticsPeekHolder<E> statisticsPeekHolder) {
     try {
       if (!new File(reportFile).exists()) {
-        copyReportTemplate(statisticsHolder.getStatisticsPeeksNames());
+        copyReportTemplate(statisticsPeekHolder);
       }
 
-      StatisticsPeek<E> totalStatisticsPeeks = statisticsHolder.getTotalStatisticsPeeks();
-      Set<String> keys = statisticsHolder.getStatisticsPeeksNames();
+      StatisticsPeek<E> totalStatisticsPeeks = statisticsPeekHolder.getTotalStatisticsPeeks();
+
+      Set<String> keys = statisticsPeekHolder.getStatisticsPeeksNames();
 
       for (String key : keys) {
-        StatisticsPeek<E> statisticsPeeks = statisticsHolder.getStatisticsPeeks(key);
+        StatisticsPeek<E> statisticsPeeks = statisticsPeekHolder.getStatisticsPeeks(key);
         logPeriodicStats(key, statisticsPeeks);
       }
 
@@ -136,12 +143,22 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
 
   @Override
   public void summarize(final StatisticsHolder<E> statisticsHolder) {
-    //TODO : create summary from template as 'summary.html' (copy report)
-    // draw Periodic Total TPS
-    // draw Periodic Average Latency of all
-    // write text with        logCumulativeStats(sb, "ALL", totalStatisticsPeeks);
+    Enum<E>[] results = statisticsHolder.getResultsReported();
+    for (Enum<E> result : results) {
+      Histogram histogram = statisticsHolder.getHistogram(result);
+      String percentilesFilename = this.basedir + File.separatorChar + getPercentilesFilename(result.name());
+      try {
+        PrintStream stream = new PrintStream(new File(percentilesFilename));
+        histogram.outputPercentileDistribution(stream, 5, 1000000d, true);
+        stream.close();
+      } catch (FileNotFoundException e) {
+        throw new RuntimeException("Can not report to Html", e);
+      }
+    }
 
-    //TODO : while at it, put anchors at the begin of report.html, in order to list evrything, and in summary.html too
+
+    //TODO :  put anchors at the begin of report.html, in order to list evrything, and in summary.html too
+    //TODO :  put onglets
   }
 
   private void logPeriodicStats(String name, StatisticsPeek<E> statisticsPeek) throws IOException {
@@ -240,6 +257,10 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
     return cleanFilename(key) + "-" + this.averageLatencyFile;
   }
 
+  private String getPercentilesFilename(String result) {
+    return cleanFilename(result) + "-" + this.percentilesFile;
+  }
+
   private final static int[] illegalChars = { 34, 60, 62, 124, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
       17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 58, 42, 63, 92, 47, '@', '.', '\'', '"', '!', '#', '$',
       '%', '^', '&', '*', '(', ')', '\\' };
@@ -256,8 +277,10 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
     return cleanName.toString();
   }
 
-  private void copyReportTemplate(final Set<String> names) throws IOException, URISyntaxException {
+  private void copyReportTemplate(final StatisticsPeekHolder<E> peek) throws IOException, URISyntaxException {
     StringBuilder sb = new StringBuilder();
+
+    Set<String> names = peek.getStatisticsPeeksNames();
     // Periodic
     for (String name : names) {
       String tpsFilename = getTpsFilename(name);
@@ -274,6 +297,14 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
           .append("');").append(CRLF);
     }
     sb.append("report('total-averageLatency', 'Periodic Average Response Time of all entities');").append(CRLF);
+
+    Enum<E>[] results = peek.getResults();
+    for (Enum<E> result : results) {
+      sb.append("reportPercentiles('")
+          .append(getPercentilesFilename(result.name()).substring(0, getPercentilesFilename(result.name()).length() - 4))
+          .append("', 'Reponse Time percentiles for ").append(result.name())
+          .append("');").append(CRLF);
+    }
 
     InputStream in = HtmlReporter.class.getClass().getResourceAsStream("/template/Tps-template.html");
     Scanner scanner = new Scanner(in);

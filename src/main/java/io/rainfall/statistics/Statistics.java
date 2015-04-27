@@ -32,9 +32,8 @@ public class Statistics<E extends Enum<E>> {
   private final String name;
   private Enum<E>[] keysReported;
   private final ConcurrentHashMap<Enum, LongAdder> periodicCounters = new ConcurrentHashMap<Enum, LongAdder>();
-  private final ConcurrentHashMap<Enum, Histogram> histograms = new ConcurrentHashMap<Enum, Histogram>();
   private final ConcurrentHashMap<Enum, LongAdder> periodicTotalLatenciesInNs = new ConcurrentHashMap<Enum, LongAdder>();
-  private final ConcurrentHashMap<Enum, LongAdder> cumulativeCounters = new ConcurrentHashMap<Enum, LongAdder>();
+  private final ConcurrentHashMap<Enum, LongAdder> cumulativeCounters = new ConcurrentHashMap<Enum, LongAdder>();   //TODO replace with max, average
   private final ConcurrentHashMap<Enum, LongAdder> cumulativeTotalLatenciesInNs = new ConcurrentHashMap<Enum, LongAdder>();
   private Long periodicStartTime;
   private Long cumulativeStartTime;
@@ -44,7 +43,6 @@ public class Statistics<E extends Enum<E>> {
     this.keysReported = keysReported;
     for (Enum<E> key : keysReported) {
       this.periodicCounters.put(key, new LongAdder());
-      this.histograms.put(key, new Histogram(4));
       this.periodicTotalLatenciesInNs.put(key, new LongAdder());
       this.cumulativeCounters.put(key, new LongAdder());
       this.cumulativeTotalLatenciesInNs.put(key, new LongAdder());
@@ -83,9 +81,8 @@ public class Statistics<E extends Enum<E>> {
   }
 
   public void increaseCounterAndSetLatencyInNs(final Enum result, final long latency) {
-    periodicCounters.get(result).add(1);
+    periodicCounters.get(result).increment();
     periodicTotalLatenciesInNs.get(result).add(latency);
-    histograms.get(result).recordValue(latency);  // TODO convert into ms ?
   }
 
   public String getName() {
@@ -109,7 +106,4 @@ public class Statistics<E extends Enum<E>> {
     return statisticsPeek;
   }
 
-  public ConcurrentHashMap<Enum, Histogram> getHistograms() {
-    return histograms;
-  }
 }

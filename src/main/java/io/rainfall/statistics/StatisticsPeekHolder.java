@@ -40,4 +40,8 @@ public class StatisticsPeekHolder<E extends Enum<E>> {
   public long getTimestamp() {
     return timestamp;
   }
+
+  public Enum<E>[] getResults() {
+    return results;
+  }
 }

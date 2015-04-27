@@ -21,9 +21,7 @@ import io.rainfall.statistics.Statistics;
 import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.statistics.StatisticsPeek;
 import io.rainfall.statistics.StatisticsPeekHolder;
-import org.HdrHistogram.AbstractHistogram;
 import org.HdrHistogram.Histogram;
-import org.HdrHistogram.HistogramIterationValue;
 
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
@@ -78,28 +76,11 @@ public class TextReporter<E extends Enum<E>> extends Reporter<E> {
   @Override
   public void summarize(final StatisticsHolder<E> statisticsHolder) {
 //    sb.append(String.format(FORMAT, "Cache", "Type", "Txn_Count", "TPS", "Avg_Lat"))
-    Set<String> observedEntities = statisticsHolder.getStatisticsKeys();
-    for (String observedEntity : observedEntities) {
-      System.out.println("***************** Observed entity is : " + observedEntity);
-      Statistics<E> statistics = statisticsHolder.getStatistics(observedEntity);
-      ConcurrentHashMap<Enum, Histogram> histograms = statistics.getHistograms();
-      for (Enum key : histograms.keySet()) {
-        System.out.println("*************> " + key);
-        Histogram histogram = histograms.get(key);
-        histogram.outputPercentileDistribution(System.out, 5, 1000000d, true);
-
-        System.out.println("*****--------- Mean Response time, Max Response time, Std dev "); //TODO
-        System.out.println("*****--------- Mean TPS, Max TPS"); //TODO get it from cumulative
-
-        System.out.println("*****--------- Percentile of latencies");
-        AbstractHistogram.Percentiles values = histogram.percentiles(5);
-        for (HistogramIterationValue value : values) {
-          System.out.println(value.toString());
-        }
-
-        System.out.println("*****--------- Periodic lat (done by report()"); // TODO : remove cumulative
-        System.out.println("*****--------- Periodic TPS (done by report()"); // TODO : remove cumulative
-      }
+    Enum<E>[] results = statisticsHolder.getResultsReported();
+    for (Enum<E> result : results) {
+      System.out.println("Percentiles distribution for result : " + result);
+      Histogram histogram = statisticsHolder.getHistogram(result);
+      histogram.outputPercentileDistribution(System.out, 5, 1000000d, false);
     }
   }
 

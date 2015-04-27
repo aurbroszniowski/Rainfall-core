@@ -18,6 +18,8 @@ package io.rainfall.statistics;
 
 import io.rainfall.TestException;
 
+import org.HdrHistogram.Histogram;
+
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -28,10 +30,14 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHolder<E> {
 
   private final ConcurrentHashMap<String, Statistics<E>> statisticsMap = new ConcurrentHashMap<String, Statistics<E>>();
+  private final ConcurrentHashMap<Enum, Histogram> histograms = new ConcurrentHashMap<Enum, Histogram>();
   private Enum<E>[] resultsReported;
 
   public RuntimeStatisticsHolder(final Enum<E>[] resultsReported) {
     this.resultsReported = resultsReported;
+    for (Enum<E> result : resultsReported) {
+      this.histograms.put(result, new Histogram(3));
+    }
   }
 
   public Enum<E>[] getResultsReported() {
@@ -46,6 +52,11 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
   @Override
   public Statistics<E> getStatistics(String name) {
     return this.statisticsMap.get(name);
+  }
+
+  @Override
+  public Histogram getHistogram(final Enum<E> result) {
+    return this.histograms.get(result);
   }
 
   public void addStatistics(String name, Statistics<E> statistics) {
@@ -64,7 +75,8 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
       final long end = getTimeInNs();
       final long latency = (end - start);
 
-      this.statisticsMap.get(name).increaseCounterAndSetLatencyInNs(result, latency); //TODO : we may just want to have a Map<Histogram> instead
+      this.statisticsMap.get(name).increaseCounterAndSetLatencyInNs(result, latency);
+      histograms.get(result).recordValue(latency);
 
     } catch (Exception e) {
       throw new TestException("Exception in measured task " + functionExecutor.toString(), e);
