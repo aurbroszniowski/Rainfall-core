@@ -215,7 +215,8 @@
         var line = d3.svg.line()
                 .interpolate("cardinal")
                 .x(function (d) { return x(d.label) + x.rangeBand() / 2; })
-                .y(function (d) { return y(d.value); });
+                .y(function (d) { return y(d.value); })
+                .defined(function(d) { return !isNaN(d.value); });
 
         var color = d3.scale.ordinal()
                 .range(["#99AACC", "#CCAACC", "#CCAA99", "#CC5577", "#55CC66", "#4466CC", "#AAAAAA"]);
