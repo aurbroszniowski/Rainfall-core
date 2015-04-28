@@ -8,6 +8,10 @@
             font: 10px sans-serif;
         }
 
+        .summary {
+            font: 15px sans-serif;
+        }
+
         .axis path,
         .axis line {
             fill: none;
@@ -25,6 +29,12 @@
             stroke-width: 2px;
         }
 
+        .border {
+            border-radius: 25px;
+            border: 4px solid #8A87C0;
+            padding: 20px;
+        }
+
         .grid .tick {
             stroke: lightgrey;
             opacity: 0.7;
@@ -38,13 +48,27 @@
     <title></title>
 </head>
 <body>
-<div id="tps-box"></div>
+<div class="border summary"><h1><a name="summary">Performance report summary</a></h1>
+    <div id="summary"></div><br/>
+    <a href="#tps">TPS</a><br/>
+    <a href="#response-time">Response Time</a><br/>
+    <a href="#percentile">Response time percentiles distribution</a><br/>
+</div>
 <br/>
 
-<div id="response-time-box"></div>
+<div class="border"><h1><a name="tps">TPS</a></h1>
+    <div id="tps-box"></div>
+</div>
 <br/>
 
-<div id="percentiles-box"></div>
+<div class="border"><h1><a name="response-time">Response time</a></h1>
+    <div id="response-time-box"></div>
+</div>
+<br/>
+
+<div class="border"><h1><a name="percentile">Response time percentiles distribution</a></h1>
+    <div id="percentiles-box"></div>
+</div>
 <br/>
 
 <script src="js/jquery-1.11.1.min.js"></script>
@@ -62,10 +86,9 @@
         return x1 + x2;
     }
 
-
     function addPercentileGraph(filename) {
         var margin = {top: 20, right: 40, bottom: 50, left: 50},
-                width = 1600 - margin.left - margin.right,
+                width = 1000 - margin.left - margin.right,
                 height = 550 - margin.top - margin.bottom;
 
         var x = d3.scale.pow().exponent(5)
@@ -89,7 +112,7 @@
                 .x(function (d) { return x(d['Percentile']); })
                 .y(function (d) { return y(d['Value']); });
 
-        var svg = d3.select("body").append("svg")
+        var svg = d3.select("#" + filename + " .graph").append("svg")
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
                 .append("g")
@@ -180,7 +203,7 @@
 
     function addGraph(filename) {
         var margin = {top: 20, right: 55, bottom: 80, left: 80},
-                width = 1600 - margin.left - margin.right,
+                width = 1000 - margin.left - margin.right,
                 height = 550 - margin.top - margin.bottom;
 
         var x = d3.scale.ordinal()
@@ -301,19 +324,23 @@
 
     function report(filename, name) {
         $("#tps-box").append("<div id='" + filename + "'><div class='title'/><div class='graph'/></div>");
-        $("#" + filename + " .title").before("<h1>" + name + "</h1>");
+        $("#" + filename + " .title").before("<h2>" + name + "</h2>");
         addGraph(filename);
     }
 
-    function reportPercentiles(filename, name) {
+    function reportPercentiles(filename, name, mean, max) {
         $("#percentiles-box").append("<div id='" + filename + "'><div class='title'/><div class='graph'/></div>");
-        $("#" + filename + " .title").before("<h1>" + name + "</h1>");
+        $("<h2>" + name + "</h2>").appendTo("#" + filename + " .title");
+        $("#" + filename + " .title").after("Max Response Time = " + (Math.round((max / 1000000) * 1000) / 1000) + " ms<br/>");
+        $("#" + filename + " .title").after("Mean Response Time = " + (Math.round((mean / 1000000) * 1000) / 1000) + " ms<br/>");
+
         addPercentileGraph(filename);
     }
 
 
     $(document).ready(function () {
-        !report!
+//!report!
+//!summary!
     });
 </script>
 </body>

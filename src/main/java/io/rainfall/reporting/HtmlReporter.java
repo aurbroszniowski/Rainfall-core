@@ -17,18 +17,15 @@
 package io.rainfall.reporting;
 
 import io.rainfall.Reporter;
-import io.rainfall.TestException;
 import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.statistics.StatisticsPeek;
 import io.rainfall.statistics.StatisticsPeekHolder;
-
 import org.HdrHistogram.Histogram;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -143,19 +140,28 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
 
   @Override
   public void summarize(final StatisticsHolder<E> statisticsHolder) {
+    StringBuilder sb = new StringBuilder();
     Enum<E>[] results = statisticsHolder.getResultsReported();
-    for (Enum<E> result : results) {
-      Histogram histogram = statisticsHolder.getHistogram(result);
-      String percentilesFilename = this.basedir + File.separatorChar + getPercentilesFilename(result.name());
-      try {
+    try {
+      for (Enum<E> result : results) {
+        Histogram histogram = statisticsHolder.getHistogram(result);
+        String percentilesFilename = this.basedir + File.separatorChar + getPercentilesFilename(result.name());
         PrintStream stream = new PrintStream(new File(percentilesFilename));
         histogram.outputPercentileDistribution(stream, 5, 1000000d, true);
         stream.close();
-      } catch (FileNotFoundException e) {
-        throw new RuntimeException("Can not report to Html", e);
-      }
-    }
 
+        sb.append("reportPercentiles('")
+            .append(getPercentilesFilename(result.name()).substring(0, getPercentilesFilename(result.name()).length() - 4))
+            .append("', 'Reponse Time percentiles for ").append(result.name())
+            .append("', '" + histogram.getMean() + "', '" + histogram.getMaxValue())
+            .append("');").append(CRLF);
+      }
+      substituteInFile(new FileInputStream(new File(reportFile)), reportFile, "//!report!", sb);
+
+
+    } catch (Exception e) {
+      throw new RuntimeException("Can not report to Html", e);
+    }
 
     //TODO :  put anchors at the begin of report.html, in order to list evrything, and in summary.html too
     //TODO :  put onglets
@@ -298,20 +304,25 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
     }
     sb.append("report('total-averageLatency', 'Periodic Average Response Time of all entities');").append(CRLF);
 
-    Enum<E>[] results = peek.getResults();
-    for (Enum<E> result : results) {
-      sb.append("reportPercentiles('")
-          .append(getPercentilesFilename(result.name()).substring(0, getPercentilesFilename(result.name()).length() - 4))
-          .append("', 'Reponse Time percentiles for ").append(result.name())
-          .append("');").append(CRLF);
-    }
-
     InputStream in = HtmlReporter.class.getClass().getResourceAsStream("/template/Tps-template.html");
+    substituteInFile(in, reportFile, "//!summary!", sb);
+  }
+
+  /**
+   * take a StringBuilder and replace a marker inside a file by the content of that StringBuilder.
+   *
+   * @param in         InputStream of the source file
+   * @param outputFile the destination file
+   * @param marker     marker String in file to be replace
+   * @param sb         StringBuilder that has the content to put instead of the marker
+   * @throws IOException
+   */
+  private void substituteInFile(final InputStream in, final String outputFile, final String marker, final StringBuilder sb) throws IOException {
     Scanner scanner = new Scanner(in);
     StringBuilder fileContents = new StringBuilder();
     try {
       while (scanner.hasNextLine()) {
-        fileContents.append(scanner.nextLine() + CRLF);
+        fileContents.append(scanner.nextLine()).append(CRLF);
       }
     } finally {
       scanner.close();
@@ -319,10 +330,11 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
     in.close();
 
     // create template
-    byte[] replace = fileContents.toString().replace("!report!", sb.toString()).getBytes();
-    OutputStream out = new FileOutputStream(reportFile);
+    byte[] replace = fileContents.toString().replace(marker, sb.toString()).getBytes();
+    OutputStream out = new FileOutputStream(outputFile);
     out.write(replace, 0, replace.length);
     out.close();
+
   }
 
   private String formatTimestampInNano(final long timestamp) {
