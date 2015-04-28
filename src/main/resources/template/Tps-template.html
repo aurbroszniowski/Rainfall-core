@@ -322,8 +322,14 @@
         });
     }
 
-    function report(filename, name) {
+    function reportTps(filename, name) {
         $("#tps-box").append("<div id='" + filename + "'><div class='title'/><div class='graph'/></div>");
+        $("#" + filename + " .title").before("<h2>" + name + "</h2>");
+        addGraph(filename);
+    }
+
+    function reportResponseTime(filename, name) {
+        $("#response-time-box").append("<div id='" + filename + "'><div class='title'/><div class='graph'/></div>");
         $("#" + filename + " .title").before("<h2>" + name + "</h2>");
         addGraph(filename);
     }

@@ -156,7 +156,7 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
             .append("', '" + histogram.getMean() + "', '" + histogram.getMaxValue())
             .append("');").append(CRLF);
       }
-      substituteInFile(new FileInputStream(new File(reportFile)), reportFile, "//!report!", sb);
+      substituteInFile(new FileInputStream(new File(reportFile)), reportFile, "//!summary!", sb);
 
 
     } catch (Exception e) {
@@ -290,22 +290,22 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
     // Periodic
     for (String name : names) {
       String tpsFilename = getTpsFilename(name);
-      sb.append("report('").append(tpsFilename.substring(0, tpsFilename.length() - 4))
+      sb.append("reportTps('").append(tpsFilename.substring(0, tpsFilename.length() - 4))
           .append("', 'Periodic TPS - ").append(name)
           .append("');").append(CRLF);
     }
-    sb.append("report('total-tps', 'Periodic Total TPS');").append(CRLF);
+    sb.append("reportTps('total-tps', 'Periodic Total TPS');").append(CRLF);
     for (String key : names) {
       String averageLatencyFilename = getAverageLatencyFilename(key);
-      sb.append("report('")
+      sb.append("reportResponseTime('")
           .append(averageLatencyFilename.substring(0, averageLatencyFilename.length() - 4))
           .append("', 'Periodic Reponse Time - ").append(key)
           .append("');").append(CRLF);
     }
-    sb.append("report('total-averageLatency', 'Periodic Average Response Time of all entities');").append(CRLF);
+    sb.append("reportResponseTime('total-averageLatency', 'Periodic Average Response Time of all entities');").append(CRLF);
 
     InputStream in = HtmlReporter.class.getClass().getResourceAsStream("/template/Tps-template.html");
-    substituteInFile(in, reportFile, "//!summary!", sb);
+    substituteInFile(in, reportFile, "//!report!", sb);
   }
 
   /**
