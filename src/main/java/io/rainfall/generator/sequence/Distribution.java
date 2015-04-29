@@ -17,19 +17,21 @@ public enum Distribution {
     @Override
     public long generate(ConcurrentPseudoRandom rnd, long minimum, long maximum, long width) {
       // polar form of the Box-Muller transformation - fast and quite accurate
-      float x1;
-      double w;
+      float x, y;
+      double r;
+      long center = minimum + (maximum - minimum) / 2;
+      double stdDev = width ;
+
       while (true) {
-
         do {
-          x1 = 2.0f * rnd.nextFloat() - 1.0f;
-          w = x1 * x1;
-        } while (w >= 1.0);
+          x = 2.0f * rnd.nextFloat() - 1.0f;
+          y = 2.0f * rnd.nextFloat() - 1.0f;
+          r = x * x + y * y;
+        } while (r == 0.0 || r > 1.0);
 
-        w = Math.sqrt((-2.0 * Math.log(w)) / w);
-        long center = minimum + (maximum - minimum) / 2;
-        double wd = center / 5;
-        long candidate = (long)(x1 * w * wd + center);
+        r = Math.sqrt((-2.0 * Math.log(r)) / r);
+
+        long candidate = (long)(x * r * width + center);  // width is stdDev
 
         if (candidate >= minimum && candidate < maximum) {
           return candidate;
