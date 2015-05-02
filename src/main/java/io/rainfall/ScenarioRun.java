@@ -99,23 +99,24 @@ public class ScenarioRun<E extends Enum<E>> {
     // we need to call all operations to init the 'names', measured, should the 'name' be the key of the maps or instead
     // be inside of the Statistics, and the key would be operation result
     // besides, we end up having to initialize two stats holder, one real, and one blank for warmup phase, it's ugly
-    this.statisticsHolder = new RuntimeStatisticsHolder<E>(reportingConfig.getResults(), reportingConfig.getResultsReported());
-    initStatistics(this.statisticsHolder);
-
     RuntimeStatisticsHolder<E> blankStatisticsHolder = new RuntimeStatisticsHolder<E>(reportingConfig.getResults(), reportingConfig.getResultsReported());
     initStatistics(blankStatisticsHolder);
 
     try {
       if (warmup != null) {
+        System.out.println("Executing warmup phase, please wait.");
         warmup.execute(blankStatisticsHolder, scenario, configurations, assertions);
       }
     } catch (TestException e) {
       throw new RuntimeException(e);
     }
 
+    this.statisticsHolder = new RuntimeStatisticsHolder<E>(reportingConfig.getResults(), reportingConfig.getResultsReported());
+    initStatistics(this.statisticsHolder);
+
     Timer timer = new Timer();
     StatisticsThread<E> stats = new StatisticsThread<E>(statisticsHolder, reportingConfig);
-    timer.scheduleAtFixedRate(stats, 10L, 1000L);
+    timer.scheduleAtFixedRate(stats, 1000L, 1000L);
 
     try {
       for (final Execution execution : executions) {

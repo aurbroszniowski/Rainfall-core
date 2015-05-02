@@ -17,7 +17,6 @@
 package io.rainfall.reporting;
 
 import io.rainfall.Reporter;
-import io.rainfall.statistics.Statistics;
 import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.statistics.StatisticsPeek;
 import io.rainfall.statistics.StatisticsPeekHolder;
@@ -30,7 +29,6 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -49,10 +47,10 @@ public class TextReporter<E extends Enum<E>> extends Reporter<E> {
   private SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 
   @Override
-  public void report(final StatisticsPeekHolder<E> statisticsHolder) {
+  public void report(final StatisticsPeekHolder<E> statisticsPeekHolder) {
     StringBuilder sb = new StringBuilder();
-    StatisticsPeek<E> totalStatisticsPeeks = statisticsHolder.getTotalStatisticsPeeks();
-    Set<String> keys = statisticsHolder.getStatisticsPeeksNames();
+    StatisticsPeek<E> totalStatisticsPeeks = statisticsPeekHolder.getTotalStatisticsPeeks();
+    Set<String> keys = statisticsPeekHolder.getStatisticsPeeksNames();
 
     sb.append("===================================================== PERIODIC ==========================================")
         .append(CRLF);
@@ -63,12 +61,12 @@ public class TextReporter<E extends Enum<E>> extends Reporter<E> {
         .append(CRLF);
 
     for (String key : keys) {
-      StatisticsPeek<E> statisticsPeeks = statisticsHolder.getStatisticsPeeks(key);
-      logPeriodicStats(sb, key, statisticsPeeks);
+      StatisticsPeek<E> statisticsPeeks = statisticsPeekHolder.getStatisticsPeeks(key);
+      logPeriodicStats(sb, key, statisticsPeeks, statisticsPeekHolder.getResultsReported());
     }
 
     if (totalStatisticsPeeks != null)
-      logPeriodicStats(sb, "ALL", totalStatisticsPeeks);
+      logPeriodicStats(sb, "ALL", totalStatisticsPeeks, statisticsPeekHolder.getResultsReported());
 
     System.out.println(sb.toString());
   }
@@ -84,16 +82,16 @@ public class TextReporter<E extends Enum<E>> extends Reporter<E> {
     }
   }
 
-  private void logPeriodicStats(StringBuilder sb, String name, StatisticsPeek<E> peek) {
+  private void logPeriodicStats(StringBuilder sb, String name, StatisticsPeek<E> peek, final Enum<E>[] resultsReported) {
     sb.append(formatTimestampInMs(peek.getTimestamp())).append(CRLF);
-    Enum<E>[] keys = peek.getKeys();
-    for (Enum<E> key : keys) {
+
+    for (Enum<E> result : resultsReported) {
       sb.append(String.format(FORMAT,
           name,
-          key.name(),
-          nf.format(peek.getPeriodicCounters(key)),
-          nf.format(peek.getPeriodicTps(key)),
-          nf.format(peek.getPeriodicAverageLatencyInMs(key))
+          result.name(),
+          nf.format(peek.getPeriodicCounters(result)),
+          nf.format(peek.getPeriodicTps(result)),
+          nf.format(peek.getPeriodicAverageLatencyInMs(result))
       )).append(CRLF);
     }
     sb.append(String.format(FORMAT,

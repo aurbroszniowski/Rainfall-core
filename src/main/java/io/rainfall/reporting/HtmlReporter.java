@@ -125,11 +125,11 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
 
       for (String key : keys) {
         StatisticsPeek<E> statisticsPeeks = statisticsPeekHolder.getStatisticsPeeks(key);
-        logPeriodicStats(key, statisticsPeeks);
+        logPeriodicStats(key, statisticsPeeks, statisticsPeekHolder.getResultsReported());
       }
 
       if (totalStatisticsPeeks != null)
-        logPeriodicStats("total", totalStatisticsPeeks);
+        logPeriodicStats("total", totalStatisticsPeeks, statisticsPeekHolder.getResultsReported());
 
     } catch (IOException e) {
       throw new RuntimeException("Can not write report data");
@@ -162,12 +162,10 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
     } catch (Exception e) {
       throw new RuntimeException("Can not report to Html", e);
     }
-
-    //TODO :  put anchors at the begin of report.html, in order to list evrything, and in summary.html too
     //TODO :  put onglets
   }
 
-  private void logPeriodicStats(String name, StatisticsPeek<E> statisticsPeek) throws IOException {
+  private void logPeriodicStats(String name, StatisticsPeek<E> statisticsPeek, final Enum<E>[] resultsReported) throws IOException {
     String avgFilename = this.basedir + File.separatorChar + getAverageLatencyFilename(name);
     String tpsFilename = this.basedir + File.separatorChar + getTpsFilename(name);
 
@@ -176,20 +174,20 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
 
     averageLatencyOutput = new BufferedWriter(new FileWriter(avgFilename, true));
     if (new File(avgFilename).length() == 0)
-      addHeader(averageLatencyOutput, statisticsPeek.getKeys());
+      addHeader(averageLatencyOutput, resultsReported);
     tpsOutput = new BufferedWriter(new FileWriter(tpsFilename, true));
     if (new File(tpsFilename).length() == 0)
-      addHeader(tpsOutput, statisticsPeek.getKeys());
+      addHeader(tpsOutput, resultsReported);
 
     String timestamp = formatTimestampInNano(statisticsPeek.getTimestamp());
 
     StringBuilder averageLatencySb = new StringBuilder(timestamp);
     StringBuilder tpsSb = new StringBuilder(timestamp);
 
-    Enum<E>[] keys = statisticsPeek.getKeys();
-    for (Enum<E> key : keys) {
-      averageLatencySb.append(",").append(String.format("%.2f", (statisticsPeek.getPeriodicAverageLatencyInMs(key))));
-      tpsSb.append(",").append(statisticsPeek.getPeriodicTps(key));
+    for (Enum<E> result : resultsReported) {
+      averageLatencySb.append(",")
+          .append(String.format("%.2f", (statisticsPeek.getPeriodicAverageLatencyInMs(result))));
+      tpsSb.append(",").append(statisticsPeek.getPeriodicTps(result));
     }
     averageLatencyOutput.append(averageLatencySb.toString()).append("\n");
     tpsOutput.append(tpsSb.toString()).append("\n");
@@ -302,7 +300,8 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
           .append("', 'Periodic Reponse Time - ").append(key)
           .append("');").append(CRLF);
     }
-    sb.append("reportResponseTime('total-averageLatency', 'Periodic Average Response Time of all entities');").append(CRLF);
+    sb.append("reportResponseTime('total-averageLatency', 'Periodic Average Response Time of all entities');")
+        .append(CRLF);
 
     InputStream in = HtmlReporter.class.getClass().getResourceAsStream("/template/Tps-template.html");
     substituteInFile(in, reportFile, "//!report!", sb);
