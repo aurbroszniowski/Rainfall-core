@@ -33,20 +33,22 @@ import java.util.Set;
 public class ReportingConfig<E extends Enum<E>> extends Configuration {
 
   private Enum<E>[] results;
+  private Enum<E>[] resultsReported;
 
   private final Set<Reporter<E>> logReporters = new HashSet<Reporter<E>>();
   private final Set<Reporter<E>> summaryReporters = new HashSet<Reporter<E>>();
 
-  public ReportingConfig(Enum<E>[] resultsReported) {
-    this.results = resultsReported;
+  public ReportingConfig(Enum<E>[] results, Enum<E>[] resultsReported) {
+    this.results = results;
+    this.resultsReported = resultsReported;
   }
 
   public static <E extends Enum<E>> ReportingConfig<E> report(Class<E> results) {
-    return new ReportingConfig<E>(results.getEnumConstants());
+    return new ReportingConfig<E>(results.getEnumConstants(), results.getEnumConstants());
   }
 
   public static <E extends Enum<E>> ReportingConfig<E> report(Class<E> results, Enum<E>[] resultsReported) {
-    return new ReportingConfig<E>(resultsReported);
+    return new ReportingConfig<E>(results.getEnumConstants(), resultsReported);
   }
 
   @SuppressWarnings("unchecked")
@@ -65,7 +67,6 @@ public class ReportingConfig<E extends Enum<E>> extends Configuration {
     return this;
   }
 
-
   public static Reporter text() {
     return new TextReporter();
   }
@@ -76,6 +77,10 @@ public class ReportingConfig<E extends Enum<E>> extends Configuration {
 
   public Enum<E>[] getResults() {
     return results;
+  }
+
+  public Enum<E>[] getResultsReported() {
+    return resultsReported;
   }
 
   public Set<Reporter<E>> getLogReporters() {

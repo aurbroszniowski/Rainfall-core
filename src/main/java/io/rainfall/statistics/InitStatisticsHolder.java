@@ -39,6 +39,11 @@ public class InitStatisticsHolder<E extends Enum<E>> implements StatisticsHolder
 
   @Override
   public void measure(final String name, final FunctionExecutor functionExecutor) throws TestException {
-    statisticsHolder.addStatistics(name, new Statistics<E>(name, statisticsHolder.getResultsReported()));
+    statisticsHolder.addStatistics(name, new Statistics<E>(name, statisticsHolder.getResults()));
+  }
+
+  @Override
+  public void reset() {
+    statisticsHolder.reset();
   }
 }
