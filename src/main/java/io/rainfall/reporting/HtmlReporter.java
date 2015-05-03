@@ -17,9 +17,10 @@
 package io.rainfall.reporting;
 
 import io.rainfall.Reporter;
-import io.rainfall.configuration.ReportType;
+import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.statistics.StatisticsPeek;
 import io.rainfall.statistics.StatisticsPeekHolder;
+import org.HdrHistogram.Histogram;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
@@ -30,6 +31,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.Writer;
 import java.net.JarURLConnection;
 import java.net.URISyntaxException;
@@ -46,9 +48,6 @@ import java.util.TimeZone;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import static io.rainfall.configuration.ReportType.CUMULATIVE;
-import static io.rainfall.configuration.ReportType.CUMULATIVE_AND_PERIODIC;
-import static io.rainfall.configuration.ReportType.PERIODIC;
 
 /**
  * @author Aurelien Broszniowski
@@ -59,6 +58,7 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
   private String basedir;
   private String averageLatencyFile = "averageLatency.csv";
   private String tpsFile = "tps.csv";
+  private String percentilesFile = "total-percentiles.csv";
   private String reportFile;
   private final File jarFile = new File(getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
   private final static String CRLF = System.getProperty("line.separator");
@@ -113,34 +113,23 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
   }
 
   @Override
-  public void report(final StatisticsPeekHolder<E> statisticsHolder) {
+  public void report(final StatisticsPeekHolder<E> statisticsPeekHolder) {
     try {
       if (!new File(reportFile).exists()) {
-        copyReportTemplate(statisticsHolder.getStatisticsPeeksNames());
+        copyReportTemplate(statisticsPeekHolder);
       }
 
-      StatisticsPeek<E> totalStatisticsPeeks = statisticsHolder.getTotalStatisticsPeeks();
-      Set<String> keys = statisticsHolder.getStatisticsPeeksNames();
+      StatisticsPeek<E> totalStatisticsPeeks = statisticsPeekHolder.getTotalStatisticsPeeks();
 
-      if (getReportType() == CUMULATIVE_AND_PERIODIC || getReportType() == CUMULATIVE) {
-        for (String key : keys) {
-          StatisticsPeek<E> statisticsPeeks = statisticsHolder.getStatisticsPeeks(key);
-          logCumulativeStats(key, statisticsPeeks);
-        }
+      Set<String> keys = statisticsPeekHolder.getStatisticsPeeksNames();
 
-        if (totalStatisticsPeeks != null)
-          logCumulativeStats("total", totalStatisticsPeeks);
+      for (String key : keys) {
+        StatisticsPeek<E> statisticsPeeks = statisticsPeekHolder.getStatisticsPeeks(key);
+        logPeriodicStats(key, statisticsPeeks, statisticsPeekHolder.getResultsReported());
       }
 
-      if (getReportType() == CUMULATIVE_AND_PERIODIC || getReportType() == PERIODIC) {
-        for (String key : keys) {
-          StatisticsPeek<E> statisticsPeeks = statisticsHolder.getStatisticsPeeks(key);
-          logPeriodicStats(key, statisticsPeeks);
-        }
-
-        if (totalStatisticsPeeks != null)
-          logPeriodicStats("total", totalStatisticsPeeks);
-      }
+      if (totalStatisticsPeeks != null)
+        logPeriodicStats("total", totalStatisticsPeeks, statisticsPeekHolder.getResultsReported());
 
     } catch (IOException e) {
       throw new RuntimeException("Can not write report data");
@@ -150,69 +139,55 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
   }
 
   @Override
-  public void summarize(final StatisticsPeekHolder<E> statisticsHolder) {
-    //TODO : create summary from template as 'summary.html' (copy report)
-    // draw Periodic Total TPS
-    // draw Periodic Average Latency of all
-    // write text with        logCumulativeStats(sb, "ALL", totalStatisticsPeeks);
+  public void summarize(final StatisticsHolder<E> statisticsHolder) {
+    StringBuilder sb = new StringBuilder();
+    Enum<E>[] results = statisticsHolder.getResultsReported();
+    try {
+      for (Enum<E> result : results) {
+        Histogram histogram = statisticsHolder.getHistogram(result);
+        String percentilesFilename = this.basedir + File.separatorChar + getPercentilesFilename(result.name());
+        PrintStream stream = new PrintStream(new File(percentilesFilename));
+        histogram.outputPercentileDistribution(stream, 5, 1000000d, true);
+        stream.close();
 
-    //TODO : while at it, put anchors at the begin of report.html, in order to list evrything, and in summary.html too
-  }
+        sb.append("reportPercentiles('")
+            .append(getPercentilesFilename(result.name()).substring(0, getPercentilesFilename(result.name()).length() - 4))
+            .append("', 'Reponse Time percentiles for ").append(result.name())
+            .append("', '" + histogram.getMean() + "', '" + histogram.getMaxValue())
+            .append("');").append(CRLF);
+      }
+      substituteInFile(new FileInputStream(new File(reportFile)), reportFile, "//!summary!", sb);
 
-  private void logPeriodicStats(String name, StatisticsPeek<E> statisticsPeek) throws IOException {
-    String avgFilename = this.basedir + File.separatorChar + getAverageLatencyFilename(name, PERIODIC);
-    String tpsFilename = this.basedir + File.separatorChar + getTpsFilename(name, PERIODIC);
 
-    Writer averageLatencyOutput;
-    Writer tpsOutput;
-
-    averageLatencyOutput = new BufferedWriter(new FileWriter(avgFilename, true));
-    if (new File(avgFilename).length() == 0)
-      addHeader(averageLatencyOutput, statisticsPeek.getKeys());
-    tpsOutput = new BufferedWriter(new FileWriter(tpsFilename, true));
-    if (new File(tpsFilename).length() == 0)
-      addHeader(tpsOutput, statisticsPeek.getKeys());
-
-    String timestamp = formatTimestampInNano(statisticsPeek.getTimestamp());
-
-    StringBuilder averageLatencySb = new StringBuilder(timestamp);
-    StringBuilder tpsSb = new StringBuilder(timestamp);
-
-    Enum<E>[] keys = statisticsPeek.getKeys();
-    for (Enum<E> key : keys) {
-      averageLatencySb.append(",").append(String.format("%.2f", (statisticsPeek.getPeriodicAverageLatencyInMs(key))));
-      tpsSb.append(",").append(statisticsPeek.getPeriodicTps(key));
+    } catch (Exception e) {
+      throw new RuntimeException("Can not report to Html", e);
     }
-    averageLatencyOutput.append(averageLatencySb.toString()).append("\n");
-    tpsOutput.append(tpsSb.toString()).append("\n");
-
-    averageLatencyOutput.close();
-    tpsOutput.close();
+    //TODO :  put onglets
   }
 
-  private void logCumulativeStats(String name, StatisticsPeek<E> statisticsPeek) throws IOException {
-    String avgFilename = this.basedir + File.separatorChar + getAverageLatencyFilename(name, CUMULATIVE);
-    String tpsFilename = this.basedir + File.separatorChar + getTpsFilename(name, CUMULATIVE);
+  private void logPeriodicStats(String name, StatisticsPeek<E> statisticsPeek, final Enum<E>[] resultsReported) throws IOException {
+    String avgFilename = this.basedir + File.separatorChar + getAverageLatencyFilename(name);
+    String tpsFilename = this.basedir + File.separatorChar + getTpsFilename(name);
 
     Writer averageLatencyOutput;
     Writer tpsOutput;
 
     averageLatencyOutput = new BufferedWriter(new FileWriter(avgFilename, true));
     if (new File(avgFilename).length() == 0)
-      addHeader(averageLatencyOutput, statisticsPeek.getKeys());
+      addHeader(averageLatencyOutput, resultsReported);
     tpsOutput = new BufferedWriter(new FileWriter(tpsFilename, true));
     if (new File(tpsFilename).length() == 0)
-      addHeader(tpsOutput, statisticsPeek.getKeys());
+      addHeader(tpsOutput, resultsReported);
 
     String timestamp = formatTimestampInNano(statisticsPeek.getTimestamp());
 
     StringBuilder averageLatencySb = new StringBuilder(timestamp);
     StringBuilder tpsSb = new StringBuilder(timestamp);
 
-    Enum<E>[] keys = statisticsPeek.getKeys();
-    for (Enum<E> key : keys) {
-      averageLatencySb.append(",").append(String.format("%.2f", (statisticsPeek.getCumulativeAverageLatencyInMs(key))));
-      tpsSb.append(",").append(statisticsPeek.getCumulativeTps(key));
+    for (Enum<E> result : resultsReported) {
+      averageLatencySb.append(",")
+          .append(String.format("%.2f", (statisticsPeek.getPeriodicAverageLatencyInMs(result))));
+      tpsSb.append(",").append(statisticsPeek.getPeriodicTps(result));
     }
     averageLatencyOutput.append(averageLatencySb.toString()).append("\n");
     tpsOutput.append(tpsSb.toString()).append("\n");
@@ -278,12 +253,16 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
     }
   }
 
-  private String getTpsFilename(String key, ReportType reportType) {
-    return cleanFilename(key) + "-" + reportType.name() + "-" + this.tpsFile;
+  private String getTpsFilename(String key) {
+    return cleanFilename(key) + "-" + this.tpsFile;
   }
 
-  private String getAverageLatencyFilename(String key, ReportType reportType) {
-    return cleanFilename(key) + "-" + reportType.name() + "-" + this.averageLatencyFile;
+  private String getAverageLatencyFilename(String key) {
+    return cleanFilename(key) + "-" + this.averageLatencyFile;
+  }
+
+  private String getPercentilesFilename(String result) {
+    return cleanFilename(result) + "-" + this.percentilesFile;
   }
 
   private final static int[] illegalChars = { 34, 60, 62, 124, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
@@ -302,52 +281,47 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
     return cleanName.toString();
   }
 
-  private void copyReportTemplate(final Set<String> names) throws IOException, URISyntaxException {
+  private void copyReportTemplate(final StatisticsPeekHolder<E> peek) throws IOException, URISyntaxException {
     StringBuilder sb = new StringBuilder();
-    // Cumulative
-    if (getReportType() == CUMULATIVE_AND_PERIODIC || getReportType() == CUMULATIVE) {
-      for (String name : names) {
-        String tpsFilename = getTpsFilename(name, CUMULATIVE);
-        sb.append("report('").append(tpsFilename.substring(0, tpsFilename.length() - 4))
-            .append("', 'Cumulative TPS - ").append(name)
-            .append("');").append(CRLF);
-      }
-      sb.append("report('total-cumulative-tps', 'Cumulative Total TPS');").append(CRLF);
-      for (String key : names) {
-        String averageLatencyFilename = getAverageLatencyFilename(key, CUMULATIVE);
-        sb.append("report('")
-            .append(averageLatencyFilename.substring(0, averageLatencyFilename.length() - 4))
-            .append("', 'Cumulative Average latency - ").append(key)
-            .append("');").append(CRLF);
-      }
-      sb.append("report('total-cumulative-averageLatency', 'Cumulative Average Latency of all');").append(CRLF);
-    }
 
+    Set<String> names = peek.getStatisticsPeeksNames();
     // Periodic
-    if (getReportType() == CUMULATIVE_AND_PERIODIC || getReportType() == PERIODIC) {
-      for (String name : names) {
-        String tpsFilename = getTpsFilename(name, PERIODIC);
-        sb.append("report('").append(tpsFilename.substring(0, tpsFilename.length() - 4))
-            .append("', 'Periodic TPS - ").append(name)
-            .append("');").append(CRLF);
-      }
-      sb.append("report('total-periodic-tps', 'Periodic Total TPS');").append(CRLF);
-      for (String key : names) {
-        String averageLatencyFilename = getAverageLatencyFilename(key, PERIODIC);
-        sb.append("report('")
-            .append(averageLatencyFilename.substring(0, averageLatencyFilename.length() - 4))
-            .append("', 'Periodic Average latency - ").append(key)
-            .append("');").append(CRLF);
-      }
-      sb.append("report('total-periodic-averageLatency', 'Periodic Average Latency of all');").append(CRLF);
+    for (String name : names) {
+      String tpsFilename = getTpsFilename(name);
+      sb.append("reportTps('").append(tpsFilename.substring(0, tpsFilename.length() - 4))
+          .append("', 'Periodic TPS - ").append(name)
+          .append("');").append(CRLF);
     }
+    sb.append("reportTps('total-tps', 'Periodic Total TPS');").append(CRLF);
+    for (String key : names) {
+      String averageLatencyFilename = getAverageLatencyFilename(key);
+      sb.append("reportResponseTime('")
+          .append(averageLatencyFilename.substring(0, averageLatencyFilename.length() - 4))
+          .append("', 'Periodic Reponse Time - ").append(key)
+          .append("');").append(CRLF);
+    }
+    sb.append("reportResponseTime('total-averageLatency', 'Periodic Average Response Time of all entities');")
+        .append(CRLF);
 
     InputStream in = HtmlReporter.class.getClass().getResourceAsStream("/template/Tps-template.html");
+    substituteInFile(in, reportFile, "//!report!", sb);
+  }
+
+  /**
+   * take a StringBuilder and replace a marker inside a file by the content of that StringBuilder.
+   *
+   * @param in         InputStream of the source file
+   * @param outputFile the destination file
+   * @param marker     marker String in file to be replace
+   * @param sb         StringBuilder that has the content to put instead of the marker
+   * @throws IOException
+   */
+  private void substituteInFile(final InputStream in, final String outputFile, final String marker, final StringBuilder sb) throws IOException {
     Scanner scanner = new Scanner(in);
     StringBuilder fileContents = new StringBuilder();
     try {
       while (scanner.hasNextLine()) {
-        fileContents.append(scanner.nextLine() + CRLF);
+        fileContents.append(scanner.nextLine()).append(CRLF);
       }
     } finally {
       scanner.close();
@@ -355,10 +329,11 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
     in.close();
 
     // create template
-    byte[] replace = fileContents.toString().replace("!report!", sb.toString()).getBytes();
-    OutputStream out = new FileOutputStream(reportFile);
+    byte[] replace = fileContents.toString().replace(marker, sb.toString()).getBytes();
+    OutputStream out = new FileOutputStream(outputFile);
     out.write(replace, 0, replace.length);
     out.close();
+
   }
 
   private String formatTimestampInNano(final long timestamp) {

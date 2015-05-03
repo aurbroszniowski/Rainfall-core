@@ -49,7 +49,7 @@ public class StatisticsThread<E extends Enum<E>> extends TimerTask {
     StatisticsPeekHolder<E> peek = statisticsHolder.peek();
     Set<Reporter<E>> reporters = reportingConfig.getSummaryReporters();
     for (Reporter<E> reporter : reporters) {
-      reporter.summarize(peek);
+      reporter.summarize(statisticsHolder);
     }
     super.cancel();
     return peek;

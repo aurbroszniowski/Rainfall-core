@@ -1,6 +1,7 @@
 package io.rainfall.reporting;
 
 import io.rainfall.Reporter;
+import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.statistics.StatisticsPeek;
 import io.rainfall.statistics.StatisticsPeekHolder;
 
@@ -72,8 +73,9 @@ public class JdbcReporter<E extends Enum<E>> extends Reporter<E> {
   }
 
   @Override
-  public void summarize(final StatisticsPeekHolder<E> statisticsHolder) {
-    StatisticsPeek<E> peek = statisticsHolder.getTotalStatisticsPeeks();
+  public void summarize(final StatisticsHolder<E> statisticsHolder) {
+
+//    StatisticsPeek<E> peek = statisticsHolder.getTotalStatisticsPeeks();
 
     try {
       Connection connection = DriverManager.getConnection(this.url, this.user, this.password);

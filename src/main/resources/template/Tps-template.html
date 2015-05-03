@@ -8,6 +8,10 @@
             font: 10px sans-serif;
         }
 
+        .summary {
+            font: 15px sans-serif;
+        }
+
         .axis path,
         .axis line {
             fill: none;
@@ -19,14 +23,56 @@
             fill: steelblue;
         }
 
+        .line {
+            fill: none;
+            stroke: steelblue;
+            stroke-width: 2px;
+        }
 
+        .border {
+            border-radius: 25px;
+            border: 4px solid #8A87C0;
+            padding: 20px;
+        }
+
+        .grid .tick {
+            stroke: lightgrey;
+            opacity: 0.7;
+        }
+
+        .grid path {
+            stroke-width: 0;
+        }
     </style>
 
     <title></title>
 </head>
 <body>
+<div class="border summary"><h1><a name="summary">Performance report summary</a></h1>
+    <div id="summary"></div><br/>
+    <a href="#tps">TPS</a><br/>
+    <a href="#response-time">Response Time</a><br/>
+    <a href="#percentile">Response time percentiles distribution</a><br/>
+</div>
+<br/>
+
+<div class="border"><h1><a name="tps">TPS</a></h1>
+    <div id="tps-box"></div>
+</div>
+<br/>
+
+<div class="border"><h1><a name="response-time">Response time</a></h1>
+    <div id="response-time-box"></div>
+</div>
+<br/>
+
+<div class="border"><h1><a name="percentile">Response time percentiles distribution</a></h1>
+    <div id="percentiles-box"></div>
+</div>
+<br/>
+
 <script src="js/jquery-1.11.1.min.js"></script>
-<script src="js/d3.v3.min.js"></script>
+<script src="js/d3.min.js"></script>
 <script>
     function addCommas(nStr) {
         nStr += '';
@@ -38,6 +84,121 @@
             x1 = x1.replace(rgx, '$1' + ',' + '$2');
         }
         return x1 + x2;
+    }
+
+    function addPercentileGraph(filename) {
+        var margin = {top: 20, right: 40, bottom: 50, left: 50},
+                width = 1000 - margin.left - margin.right,
+                height = 550 - margin.top - margin.bottom;
+
+        var x = d3.scale.pow().exponent(5)
+                .range([0, width]);
+
+        var y = d3.scale.linear()
+                .range([height, 0]);
+
+        var xAxis = d3.svg.axis()
+                .scale(x)
+                .orient("bottom")
+                .tickFormat(d3.format(".3%"))
+                .tickValues([0.10, 0.50, 0.90, 0.95, 0.99, 0.999, 1.0]);
+
+        var yAxis = d3.svg.axis()
+                .scale(y)
+                .orient("left")
+                .ticks(15);
+
+        var line = d3.svg.line()
+                .x(function (d) { return x(d['Percentile']); })
+                .y(function (d) { return y(d['Value']); });
+
+        var svg = d3.select("#" + filename + " .graph").append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        function make_x_axis(xTickValues) {
+            return d3.svg.axis()
+                    .scale(x)
+                    .orient("bottom")
+                    .tickValues(xTickValues);
+        }
+
+        function make_y_axis(yTickValues) {
+            return d3.svg.axis()
+                    .scale(y)
+                    .orient("left")
+                    .tickValues(yTickValues);
+        }
+
+        function getYTicks(data, xTickValues) {
+            var allYTicks = [];
+            var xTicksRecorded = [];
+            data.reverse().forEach(function (d) {
+                var percent = Math.round(d['Percentile'] * 1000) / 1000;
+                xTickValues.forEach(function (x) {
+                    if (percent == x) {
+                        if (xTicksRecorded.indexOf(x) == -1) {
+                            allYTicks.push(d['Value']);
+                            xTicksRecorded.push(x);
+                        }
+                    }
+                })
+            });
+            return allYTicks;
+        }
+
+        d3.csv(filename + ".csv", function (error, data) {
+
+            var xTickValues = [0.10, 0.50, 0.90, 0.95, 0.99, 0.999, 1.0];
+            var yTickValues = getYTicks(data, xTickValues);
+
+            x.domain(d3.extent(data, function (d) { return d['Percentile']; }));
+            y.domain(d3.extent(data, function (d) { return d['Value']; }));
+
+            svg.append("g")
+                    .attr("class", "x axis")
+                    .attr("transform", "translate(0," + height + ")")
+                    .call(xAxis)
+                    .selectAll("text")
+                    .style("text-anchor", "end")
+                    .attr("dx", "-.8em")
+                    .attr("dy", ".15em")
+                    .attr("transform", function (d) {
+                        return "rotate(-65)"
+                    });
+
+            svg.append("g")
+                    .attr("class", "y axis")
+                    .call(yAxis)
+                    .append("text")
+                    .attr("transform", "rotate(-90)")
+                    .attr("y", 6)
+                    .attr("dy", ".71em")
+                    .style("text-anchor", "end")
+                    .text("Response time (ms)");
+
+            svg.append("path")
+                    .datum(data)
+                    .attr("class", "line")
+                    .attr("d", line);
+
+            svg.append("g")
+                    .attr("class", "grid")
+                    .attr("transform", "translate(0," + height + ")")
+                    .call(make_x_axis(xTickValues)
+                            .tickSize(-height, 0, 0)
+                            .tickFormat("")
+            );
+
+            svg.append("g")
+                    .attr("class", "grid")
+                    .call(make_y_axis(yTickValues)
+                            .tickSize(-width, 0, 0)
+                            .tickFormat("")
+            );
+        });
     }
 
     function addGraph(filename) {
@@ -54,7 +215,8 @@
         var line = d3.svg.line()
                 .interpolate("cardinal")
                 .x(function (d) { return x(d.label) + x.rangeBand() / 2; })
-                .y(function (d) { return y(d.value); });
+                .y(function (d) { return y(d.value); })
+                .defined(function(d) { return !isNaN(d.value); });
 
         var color = d3.scale.ordinal()
                 .range(["#99AACC", "#CCAACC", "#CCAA99", "#CC5577", "#55CC66", "#4466CC", "#AAAAAA"]);
@@ -65,7 +227,7 @@
                 .tickSize(0, 6)
                 .tickFormat(function (d) {
                     var seconds = d.substring(d.length - 2);
-                    if (seconds === '00' || seconds === '30') return (''+d);
+                    if (seconds === '00' || seconds === '30') return ('' + d);
                 });
 
         var yAxis = d3.svg.axis()
@@ -161,14 +323,31 @@
         });
     }
 
-    function report(filename, name) {
-        $("body").append("<div id='" + filename + "'><div class='title'/><div class='graph'/></div>");
-        $("#" + filename + " .title").before("<h1>" + name + "</h1>");
+    function reportTps(filename, name) {
+        $("#tps-box").append("<div id='" + filename + "'><div class='title'/><div class='graph'/></div>");
+        $("#" + filename + " .title").before("<h2>" + name + "</h2>");
         addGraph(filename);
     }
 
+    function reportResponseTime(filename, name) {
+        $("#response-time-box").append("<div id='" + filename + "'><div class='title'/><div class='graph'/></div>");
+        $("#" + filename + " .title").before("<h2>" + name + "</h2>");
+        addGraph(filename);
+    }
+
+    function reportPercentiles(filename, name, mean, max) {
+        $("#percentiles-box").append("<div id='" + filename + "'><div class='title'/><div class='graph'/></div>");
+        $("<h2>" + name + "</h2>").appendTo("#" + filename + " .title");
+        $("#" + filename + " .title").after("Max Response Time = " + (Math.round((max / 1000000) * 1000) / 1000) + " ms<br/>");
+        $("#" + filename + " .title").after("Mean Response Time = " + (Math.round((mean / 1000000) * 1000) / 1000) + " ms<br/>");
+
+        addPercentileGraph(filename);
+    }
+
+
     $(document).ready(function () {
-        !report!
+//!report!
+//!summary!
     });
 </script>
 </body>
