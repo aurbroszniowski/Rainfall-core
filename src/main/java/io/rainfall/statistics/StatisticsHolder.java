@@ -22,4 +22,6 @@ public interface StatisticsHolder<E extends Enum<E>> {
   void measure(String name, FunctionExecutor functionExecutor) throws TestException;
 
   void reset();
+
+  long getCurrentTps(Enum result);
 }

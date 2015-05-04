@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHolder<E> {
 
-  private final ConcurrentHashMap<String, Statistics<E>> statisticsMap = new ConcurrentHashMap<String, Statistics<E>>();
+  private final ConcurrentHashMap<String, Statistics<E>> statistics = new ConcurrentHashMap<String, Statistics<E>>();
   private final ConcurrentHashMap<Enum, Histogram> histograms = new ConcurrentHashMap<Enum, Histogram>();
   private Enum<E>[] results;
   private Enum<E>[] resultsReported;
@@ -52,12 +52,12 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
 
   @Override
   public Set<String> getStatisticsKeys() {
-    return this.statisticsMap.keySet();
+    return this.statistics.keySet();
   }
 
   @Override
   public Statistics<E> getStatistics(String name) {
-    return this.statisticsMap.get(name);
+    return this.statistics.get(name);
   }
 
   @Override
@@ -66,7 +66,7 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
   }
 
   public void addStatistics(String name, Statistics<E> statistics) {
-    this.statisticsMap.put(name, statistics);
+    this.statistics.put(name, statistics);
   }
 
   protected long getTimeInNs() {
@@ -81,7 +81,7 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
       final long end = getTimeInNs();
       final long latency = (end - start);
 
-      this.statisticsMap.get(name).increaseCounterAndSetLatencyInNs(result, latency);
+      this.statistics.get(name).increaseCounterAndSetLatencyInNs(result, latency);
       histograms.get(result).recordValue(latency);
 
     } catch (Exception e) {
@@ -91,7 +91,7 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
 
   @Override
   public synchronized void reset() {
-    for (Statistics<E> statistics : statisticsMap.values()) {
+    for (Statistics<E> statistics : this.statistics.values()) {
       statistics.reset();
     }
     for (Histogram histogram : histograms.values()) {
@@ -100,7 +100,16 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
     System.out.println("reset");
   }
 
+  @Override
+  public synchronized long getCurrentTps(Enum result) {
+    long totalCounter = 0;
+    for (Statistics<E> statistics : this.statistics.values()) {
+      totalCounter += statistics.getCurrentTps(result);
+    }
+    return (totalCounter / statistics.size());
+  }
+
   public StatisticsPeekHolder<E> peek() {
-    return new StatisticsPeekHolder<E>(this.resultsReported, this.statisticsMap);
+    return new StatisticsPeekHolder<E>(this.resultsReported, this.statistics);
   }
 }

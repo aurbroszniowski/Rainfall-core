@@ -1,7 +1,6 @@
 package io.rainfall.statistics;
 
 import io.rainfall.TestException;
-
 import org.HdrHistogram.Histogram;
 
 import java.util.Set;
@@ -45,5 +44,10 @@ public class InitStatisticsHolder<E extends Enum<E>> implements StatisticsHolder
   @Override
   public void reset() {
     statisticsHolder.reset();
+  }
+
+  @Override
+  public long getCurrentTps(Enum result) {
+    return 1L;
   }
 }

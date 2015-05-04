@@ -92,6 +92,12 @@ public class Statistics<E extends Enum<E>> {
     return System.nanoTime();
   }
 
+  public synchronized long getCurrentTps(Enum result) {
+    long time = getTimeInNs() - periodicStartTime;
+    return time < 1000000L ? periodicCounters.get(result).longValue() :
+        periodicCounters.get(result).longValue() * 1000L * 1000000L / time;
+  }
+
   public synchronized StatisticsPeek<E> peek(final long timestamp) {
     StatisticsPeek<E> statisticsPeek = new StatisticsPeek<E>(this.name, this.results, timestamp);
     long now = getTimeInNs();
