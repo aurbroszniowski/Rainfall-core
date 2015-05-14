@@ -36,7 +36,6 @@ public class ReportingConfig<E extends Enum<E>> extends Configuration {
   private Enum<E>[] resultsReported;
 
   private final Set<Reporter<E>> logReporters = new HashSet<Reporter<E>>();
-  private final Set<Reporter<E>> summaryReporters = new HashSet<Reporter<E>>();
 
   public ReportingConfig(Enum<E>[] results, Enum<E>[] resultsReported) {
     this.results = results;
@@ -59,16 +58,12 @@ public class ReportingConfig<E extends Enum<E>> extends Configuration {
     return this;
   }
 
-  @SuppressWarnings("unchecked")
-  public ReportingConfig summary(final Reporter... reporters) {
-    for (Reporter reporter : reporters) {
-      summaryReporters.add(reporter);
-    }
-    return this;
-  }
-
   public static Reporter text() {
     return new TextReporter();
+  }
+
+  public static Reporter html(String outputPath) {
+    return new HtmlReporter(outputPath);
   }
 
   public static Reporter html() {
@@ -85,10 +80,6 @@ public class ReportingConfig<E extends Enum<E>> extends Configuration {
 
   public Set<Reporter<E>> getLogReporters() {
     return logReporters;
-  }
-
-  public Set<Reporter<E>> getSummaryReporters() {
-    return summaryReporters;
   }
 
 }

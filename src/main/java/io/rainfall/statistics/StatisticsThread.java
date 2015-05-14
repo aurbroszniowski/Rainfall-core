@@ -47,7 +47,7 @@ public class StatisticsThread<E extends Enum<E>> extends TimerTask {
 
   public StatisticsPeekHolder<E> stop() {
     StatisticsPeekHolder<E> peek = statisticsHolder.peek();
-    Set<Reporter<E>> reporters = reportingConfig.getSummaryReporters();
+    Set<Reporter<E>> reporters = reportingConfig.getLogReporters();
     for (Reporter<E> reporter : reporters) {
       reporter.summarize(statisticsHolder);
     }

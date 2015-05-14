@@ -20,7 +20,7 @@ public enum Distribution {
       float x, y;
       double r;
       long center = minimum + (maximum - minimum) / 2;
-      double stdDev = width ;
+      double stdDev = width;
 
       while (true) {
         do {

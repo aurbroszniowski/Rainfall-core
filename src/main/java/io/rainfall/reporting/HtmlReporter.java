@@ -66,8 +66,12 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
   private SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 
   public HtmlReporter() {
+    this("target/rainfall-report");
+  }
+
+  public HtmlReporter(String outputPath) {
     try {
-      this.basedir = new File("target/rainfall-report").getAbsoluteFile().getAbsolutePath();
+      this.basedir = new File(outputPath).getAbsoluteFile().getAbsolutePath();
       this.reportFile = this.basedir + File.separatorChar + "report.html";
 
       deleteDirectory(new File(this.basedir));
