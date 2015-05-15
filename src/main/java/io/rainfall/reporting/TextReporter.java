@@ -77,8 +77,12 @@ public class TextReporter<E extends Enum<E>> extends Reporter<E> {
     Enum<E>[] results = statisticsHolder.getResultsReported();
     for (Enum<E> result : results) {
       System.out.println("Percentiles distribution for result : " + result);
-      Histogram histogram = statisticsHolder.getHistogram(result);
-      histogram.outputPercentileDistribution(System.out, 5, 1000000d, false);
+      try {
+        Histogram histogram = statisticsHolder.getHistogram(result);
+        histogram.outputPercentileDistribution(System.out, 5, 1000000d, false);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
   }
 

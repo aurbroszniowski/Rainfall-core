@@ -74,10 +74,10 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
   }
 
   @Override
-  public void measure(String name, FunctionExecutor functionExecutor) throws TestException {
+  public void measure(String name, final OperationFunction<E> function) throws TestException {
     try {
       final long start = getTimeInNs();
-      final Enum result = functionExecutor.apply();
+      final Enum result = function.apply();
       final long end = getTimeInNs();
       final long latency = (end - start);
 
@@ -89,7 +89,7 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
       }
 
     } catch (Exception e) {
-      throw new TestException("Exception in measured task " + functionExecutor.toString(), e);
+      throw new TestException("Exception in measured task " + function.toString(), e);
     }
   }
 
