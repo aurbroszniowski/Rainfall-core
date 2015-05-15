@@ -82,7 +82,11 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
       final long latency = (end - start);
 
       this.statistics.get(name).increaseCounterAndSetLatencyInNs(result, latency);
-      histograms.get(result).recordValue(latency);
+      try {
+        histograms.get(result).recordValue(latency);
+      } catch (ArrayIndexOutOfBoundsException e) {
+        e.printStackTrace();
+      }
 
     } catch (Exception e) {
       throw new TestException("Exception in measured task " + functionExecutor.toString(), e);
