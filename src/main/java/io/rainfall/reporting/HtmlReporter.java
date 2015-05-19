@@ -151,7 +151,11 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
         Histogram histogram = statisticsHolder.getHistogram(result);
         String percentilesFilename = this.basedir + File.separatorChar + getPercentilesFilename(result.name());
         PrintStream stream = new PrintStream(new File(percentilesFilename));
-        histogram.outputPercentileDistribution(stream, 5, 1000000d, true);
+        try {
+          histogram.outputPercentileDistribution(stream, 5, 1000000d, true);
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
         stream.close();
 
         sb.append("reportPercentiles('")
