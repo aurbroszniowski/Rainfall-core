@@ -20,6 +20,7 @@ import io.rainfall.Reporter;
 import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.statistics.StatisticsPeek;
 import io.rainfall.statistics.StatisticsPeekHolder;
+import jsr166e.DoubleAdder;
 import org.HdrHistogram.Histogram;
 
 import java.io.BufferedOutputStream;
@@ -158,10 +159,24 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
         }
         stream.close();
 
+        String mean = "NaN";
+        try {
+          mean = "" + histogram.getMean();
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+
+        String maxValue = "NaN";
+        try {
+          maxValue = "" + histogram.getMaxValue();
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+
         sb.append("reportPercentiles('")
             .append(getPercentilesFilename(result.name()).substring(0, getPercentilesFilename(result.name()).length() - 4))
             .append("', 'Reponse Time percentiles for ").append(result.name())
-            .append("', '" + histogram.getMean() + "', '" + histogram.getMaxValue())
+            .append("', '" + mean + "', '" + maxValue)
             .append("');").append(CRLF);
       }
       substituteInFile(new FileInputStream(new File(reportFile)), reportFile, "//!summary!", sb);
