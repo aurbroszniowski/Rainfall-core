@@ -206,17 +206,13 @@
                 width = 1000 - margin.left - margin.right,
                 height = 550 - margin.top - margin.bottom;
 
-        var x = d3.scale.ordinal()
-                .rangeRoundBands([0, width], .1);
+        var parseDate = d3.time.format("%y-%m-%d %H:%M:%S").parse;
+
+        var x = d3.time.scale()
+                .range([0, width]);
 
         var y = d3.scale.linear()
-                .rangeRound([height, 0]);
-
-        var line = d3.svg.line()
-                .interpolate("cardinal")
-                .x(function (d) { return x(d.label) + x.rangeBand() / 2; })
-                .y(function (d) { return y(d.value); })
-                .defined(function(d) { return !isNaN(d.value); });
+                .range([height, 0]);
 
         var color = d3.scale.ordinal()
                 .range(["#99AACC", "#CCAACC", "#CCAA99", "#CC5577", "#55CC66", "#4466CC", "#AAAAAA"]);
@@ -225,14 +221,18 @@
                 .scale(x)
                 .orient("bottom")
                 .tickSize(0, 6)
-                .tickFormat(function (d) {
-                    var seconds = d.substring(d.length - 2);
-                    if (seconds === '00' || seconds === '30') return ('' + d);
-                });
+                .tickFormat(d3.time.format("%H:%M:%S"));
 
         var yAxis = d3.svg.axis()
                 .scale(y)
-                .orient("left").ticks(15);
+                .orient("left");
+
+        var line = d3.svg.line()
+                .interpolate("basis")
+                .x(function (d) { return x(d.timestamp); })
+                .y(function (d) { return y(d.value); })
+                .defined(function (d) { return !isNaN(d.value); });
+
 
         var svg = d3.select("#" + filename + " .graph").append("svg")
                 .attr("width", width + margin.left + margin.right)
@@ -241,31 +241,26 @@
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
         d3.csv(filename + ".csv", function (error, data) {
-            var labelVar = 'timestamp';
-            var varNames = d3.keys(data[0])
-                    .filter(function (key) { return key !== labelVar;});
+            color.domain(d3.keys(data[0]).filter(function (key) { return key !== "timestamp"; }));
 
-            color.domain(varNames);
+            data.forEach(function (d) {
+                d.timestamp = parseDate(d.timestamp);
+            });
 
-            var seriesData = varNames.map(function (name) {
+            var series = color.domain().map(function (name) {
                 return {
                     name: name,
                     values: data.map(function (d) {
-                        return {name: name, label: d[labelVar], value: +d[name]};
+                        return {timestamp: d.timestamp, value: +d[name]};
                     })
                 };
             });
 
-            x.domain(data.map(function (d) {
-                return d.timestamp;
-            }));
+            x.domain(d3.extent(data, function (d) { return d.timestamp; }));
+
             y.domain([
-                d3.min(seriesData, function (c) {
-                    return d3.min(c.values, function (d) { return d.value; });
-                }),
-                d3.max(seriesData, function (c) {
-                    return d3.max(c.values, function (d) { return d.value; });
-                })
+                d3.min(series, function (c) { return d3.min(c.values, function (v) { return v.value; }); }),
+                d3.max(series, function (c) { return d3.max(c.values, function (v) { return v.value; }); })
             ]);
 
             svg.append("g")
@@ -290,17 +285,15 @@
                     .style("text-anchor", "end")
                     .text("TPS");
 
-            var series = svg.selectAll(".series")
-                    .data(seriesData)
+            var serie = svg.selectAll(".serie")
+                    .data(series)
                     .enter().append("g")
-                    .attr("class", "series");
+                    .attr("class", "serie");
 
-            series.append("path")
+            serie.append("path")
                     .attr("class", "line")
                     .attr("d", function (d) { return line(d.values); })
-                    .style("stroke", function (d) { return color(d.name); })
-                    .style("stroke-width", "3px")
-                    .style("fill", "none");
+                    .style("stroke", function (d) { return color(d.name); });
 
             var legend = svg.selectAll(".legend")
                     .data(color.domain().slice().reverse())
@@ -319,7 +312,7 @@
                     .attr("y", 9)
                     .attr("dy", ".35em")
                     .style("text-anchor", "begin")
-                    .text(function (d) { return d + ' : ' + addCommas(data[data.length - 1][d]); });
+                    .text(function (d) { return d; });
         });
     }
 

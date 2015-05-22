@@ -64,7 +64,7 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
   private final File jarFile = new File(getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
   private final static String CRLF = System.getProperty("line.separator");
   private Calendar calendar = GregorianCalendar.getInstance(TimeZone.getDefault());
-  private SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+  private SimpleDateFormat sdf = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
 
   public HtmlReporter() {
     this("target/rainfall-report");
@@ -209,7 +209,7 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
 
     for (Enum<E> result : resultsReported) {
       averageLatencySb.append(",")
-          .append(String.format("%.3f", (statisticsPeek.getPeriodicAverageLatencyInMs(result))));
+          .append(String.format("%.4f", (statisticsPeek.getPeriodicAverageLatencyInMs(result))));
       tpsSb.append(",").append(statisticsPeek.getPeriodicTps(result));
     }
     averageLatencyOutput.append(averageLatencySb.toString()).append("\n");
