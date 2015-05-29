@@ -50,7 +50,7 @@ How does it look like?
 
 Performance tests are written in java, we will cover a simple example using Rainfall web:
 
-This tests the performance of calling the Twitter search page.
+This tests the performance of calling the Google search page.
 The scenario is a serie of three consecutive queries that will search for a text string.
 It will simulate 5 concurrent users doing nothing for 5 seconds then doing the operations of the scenario.
 ```java
