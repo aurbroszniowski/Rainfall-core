@@ -29,8 +29,8 @@ import io.rainfall.unit.To;
 
 public class Executions {
 
-  public static AtOnce atOnce(int nb, Unit users) {
-    return new AtOnce(nb, users);
+  public static Once once(int nb, Unit unit) {
+    return new Once(nb, unit);
   }
 
   public static Times times(long occurrences) {
@@ -39,10 +39,6 @@ public class Executions {
 
   public static InParallel inParallel(int nb, Unit unit, Every every, During during) {
     return new InParallel(nb, unit, every, during);
-  }
-
-  public static ConstantUsersPerSec constantUsersPerSec(int nbUsers, During during) {
-    return new ConstantUsersPerSec(nbUsers, during);
   }
 
   public static NothingFor nothingFor(int nb, TimeDivision timeDivision) {

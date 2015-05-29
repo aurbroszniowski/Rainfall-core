@@ -16,11 +16,12 @@
 
 package io.rainfall;
 
+import io.rainfall.execution.Once;
 import io.rainfall.unit.User;
 
 /**
  * This is a Unit for the parameter given to a {@link Execution} instance.
- * E.g. an execution like {@link io.rainfall.execution.AtOnce} will have as parameters a number of
+ * E.g. an execution like {@link Once} will have as parameters a number of
  * {@link Unit}
  *
  * @author Aurelien Broszniowski
