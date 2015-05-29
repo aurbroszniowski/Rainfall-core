@@ -54,15 +54,15 @@ This tests the performance of calling the Twitter search page.
 The scenario is a serie of three consecutive queries that will search for a text string.
 It will simulate 5 concurrent users doing nothing for 5 seconds then doing the operations of the scenario.
 ```java
-   HttpConfig httpConf = httpConfig()
-        .baseURL("http://search.twitter.com");
+    HttpConfig httpConf = HttpConfig.httpConfig()
+        .baseURL("https://www.google.com");
 
-    Scenario scenario = scenario("Twitter search")
-        .exec(http("Recherche Crocro").get("/search.json?q=crocro"))
-        .exec(http("Recherche Java").get("/search.json?q=java"));
+    Scenario scenario = Scenario.scenario("Google search")
+        .exec(WebOperations.http("Search Crocro").get("/?").queryParam("q", "Crocro"))
+        .exec(WebOperations.http("Search Java").get("/?#q=Java").queryParam("q", "Java"));
 
-    setUp(scenario)
-        .executed(atOnce(5, users), nothingFor(5, seconds), atOnce(5, users))
+    Runner.setUp(scenario)
+        .executed(once(5, users), nothingFor(5, seconds), once(5, users))
         .config(httpConf)
         .start();
 ```
