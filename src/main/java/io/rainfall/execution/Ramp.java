@@ -24,7 +24,7 @@ import io.rainfall.Scenario;
 import io.rainfall.TestException;
 import io.rainfall.configuration.ConcurrencyConfig;
 import io.rainfall.statistics.StatisticsHolder;
-import io.rainfall.unit.During;
+import io.rainfall.unit.Over;
 import io.rainfall.unit.Every;
 import io.rainfall.unit.From;
 import io.rainfall.unit.To;
@@ -48,13 +48,13 @@ public class Ramp extends Execution {
   private final From from;
   private final To to;
   private final Every every;
-  private final During during;
+  private final Over over;
 
-  public Ramp(final From from, final To to, final Every every, final During during) {
+  public Ramp(final From from, final To to, final Every every, final Over over) {
     this.from = from;
     this.to = to;
     this.every = every;
-    this.during = during;
+    this.over = over;
   }
 
   @Override
@@ -71,7 +71,7 @@ public class Ramp extends Execution {
     final List<TestException> exceptions = new ArrayList<TestException>();
 
     final AtomicDouble nb = new AtomicDouble(from.getNb());
-    final Double increment = (to.getNb() - from.getNb()) / (during.getNbInMs() / every.getNbInMs());
+    final Double increment = (to.getNb() - from.getNb()) / (over.getNbInMs() / every.getNbInMs());
 
     for (int threadNb = 0; threadNb < nbThreads; threadNb++) {
       final int finalThreadNb = threadNb;
@@ -103,7 +103,7 @@ public class Ramp extends Execution {
         public void run() {
           future.cancel(true);
         }
-      }, during.getNb(), during.getTimeDivision().getTimeUnit());
+      }, over.getNb(), over.getTimeDivision().getTimeUnit());
 
       try {
         future.get();
