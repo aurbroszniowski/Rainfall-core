@@ -48,7 +48,7 @@ How does it look like?
 **Beware, Rainfall-core is only the core library, in order to write tests, you need to use an existing implementation 
 (e.g. Rainfall-jcache) or write an implementation yourself**
 
-Performance tests are written in java, we will cover a simple example using Rainfall web:
+Performance tests are written in java, we will cover a simple example using [Rainfall-web](https://github.com/aurbroszniowski/Rainfall-web):
 
 This tests the performance of calling the Google search page.
 The scenario is a serie of three consecutive queries that will search for a text string.
