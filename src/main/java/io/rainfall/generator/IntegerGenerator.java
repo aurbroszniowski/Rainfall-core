@@ -21,10 +21,10 @@ import io.rainfall.ObjectGenerator;
 /**
  * @author Aurelien Broszniowski
  */
-public class LongGenerator implements ObjectGenerator<Long> {
+public class IntegerGenerator implements ObjectGenerator<Integer> {
 
   @Override
-  public Long generate(final long seed) {
-    return seed;
+  public Integer generate(final long l) {
+    return new Long(l).intValue();
   }
 }

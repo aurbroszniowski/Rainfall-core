@@ -21,10 +21,12 @@ import io.rainfall.ObjectGenerator;
 /**
  * @author Aurelien Broszniowski
  */
-public class LongGenerator implements ObjectGenerator<Long> {
+public class FloatGenerator implements ObjectGenerator<Float> {
+
+  public FloatGenerator() {}
 
   @Override
-  public Long generate(final long seed) {
-    return seed;
+  public Float generate(final long l) {
+    return (float)l;
   }
 }
