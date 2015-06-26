@@ -24,7 +24,7 @@ import io.rainfall.Scenario;
 import io.rainfall.TestException;
 import io.rainfall.configuration.ConcurrencyConfig;
 import io.rainfall.statistics.StatisticsHolder;
-import io.rainfall.unit.During;
+import io.rainfall.unit.Over;
 import io.rainfall.unit.TimeDivision;
 import io.rainfall.utils.RangeMap;
 
@@ -47,10 +47,10 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  */
 public class RunsDuring extends Execution {
 
-  private final During during;
+  private final Over during;
 
   public RunsDuring(final int nb, final TimeDivision timeDivision) {
-    this.during = new During(nb, timeDivision);
+    this.during = new Over(nb, timeDivision);
   }
 
   @Override

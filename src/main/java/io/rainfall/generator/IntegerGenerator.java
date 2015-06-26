@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package io.rainfall.statistics;
+package io.rainfall.generator;
+
+import io.rainfall.ObjectGenerator;
 
 /**
- * An Function that defines the Operation task that can be measured.
- * <p/>
- *
  * @author Aurelien Broszniowski
  */
+public class IntegerGenerator implements ObjectGenerator<Integer> {
 
-public interface OperationFunction<E extends Enum<E>> {
-
-  public E apply() throws Exception;
+  @Override
+  public Integer generate(final long l) {
+    return new Long(l).intValue();
+  }
 }

@@ -17,8 +17,10 @@
 package io.rainfall.reporting;
 
 import io.rainfall.Reporter;
+import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.statistics.StatisticsPeek;
 import io.rainfall.statistics.StatisticsPeekHolder;
+import org.HdrHistogram.Histogram;
 
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
@@ -27,10 +29,6 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Set;
 import java.util.TimeZone;
-
-import static io.rainfall.configuration.ReportType.CUMULATIVE;
-import static io.rainfall.configuration.ReportType.CUMULATIVE_AND_PERIODIC;
-import static io.rainfall.configuration.ReportType.PERIODIC;
 
 
 /**
@@ -49,58 +47,12 @@ public class TextReporter<E extends Enum<E>> extends Reporter<E> {
   private SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 
   @Override
-  public void report(final StatisticsPeekHolder<E> statisticsHolder) {
+  public void report(final StatisticsPeekHolder<E> statisticsPeekHolder) {
     StringBuilder sb = new StringBuilder();
-    StatisticsPeek<E> totalStatisticsPeeks = statisticsHolder.getTotalStatisticsPeeks();
-    Set<String> keys = statisticsHolder.getStatisticsPeeksNames();
+    StatisticsPeek<E> totalStatisticsPeeks = statisticsPeekHolder.getTotalStatisticsPeeks();
+    Set<String> keys = statisticsPeekHolder.getStatisticsPeeksNames();
 
-    if (getReportType() == CUMULATIVE_AND_PERIODIC || getReportType() == PERIODIC) {
-      sb.append("===================================================== PERIODIC ==========================================")
-          .append(CRLF);
-      sb.append(String.format(FORMAT, "Cache", "Type", "Txn_Count", "TPS", "Avg_Lat"))
-//    sb.append(String.format(FORMAT, "Cache", "Type", "Txn_Count", "TPS", "Avg_Lat", "Min_Lat", "Max_Lat", "TotalExceptionCount"))
-          .append(CRLF);
-      sb.append("==========================================================================================================")
-          .append(CRLF);
-
-      for (String key : keys) {
-        StatisticsPeek<E> statisticsPeeks = statisticsHolder.getStatisticsPeeks(key);
-        logPeriodicStats(sb, key, statisticsPeeks);
-      }
-
-      if (totalStatisticsPeeks != null)
-        logPeriodicStats(sb, "ALL", totalStatisticsPeeks);
-    }
-
-    if (getReportType() == CUMULATIVE_AND_PERIODIC || getReportType() == CUMULATIVE) {
-      sb.append("==================================================== CUMULATIVE =========================================")
-          .append(CRLF);
-      sb.append(String.format(FORMAT, "Cache", "Type", "Txn_Count", "TPS", "Avg_Lat"))
-//    sb.append(String.format(FORMAT, "Cache", "Type", "Txn_Count", "TPS", "Avg_Lat", "Min_Lat", "Max_Lat", "TotalExceptionCount"))
-          .append(CRLF);
-      sb.append("==========================================================================================================")
-          .append(CRLF);
-
-      for (String key : keys) {
-        StatisticsPeek<E> statisticsPeeks = statisticsHolder.getStatisticsPeeks(key);
-        logCumulativeStats(sb, key, statisticsPeeks);
-      }
-
-      if (totalStatisticsPeeks != null)
-        logCumulativeStats(sb, "ALL", totalStatisticsPeeks);
-    }
-
-    System.out.println(sb.toString());
-  }
-
-  @Override
-  public void summarize(final StatisticsPeekHolder<E> statisticsHolder) {
-    System.out.println("* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *");
-    StringBuilder sb = new StringBuilder();
-    StatisticsPeek<E> totalStatisticsPeeks = statisticsHolder.getTotalStatisticsPeeks();
-    Set<String> keys = statisticsHolder.getStatisticsPeeksNames();
-
-    sb.append("===================================================== FINAL ==============================================")
+    sb.append("===================================================== PERIODIC ==========================================")
         .append(CRLF);
     sb.append(String.format(FORMAT, "Cache", "Type", "Txn_Count", "TPS", "Avg_Lat"))
 //    sb.append(String.format(FORMAT, "Cache", "Type", "Txn_Count", "TPS", "Avg_Lat", "Min_Lat", "Max_Lat", "TotalExceptionCount"))
@@ -108,42 +60,42 @@ public class TextReporter<E extends Enum<E>> extends Reporter<E> {
     sb.append("==========================================================================================================")
         .append(CRLF);
 
+    for (String key : keys) {
+      StatisticsPeek<E> statisticsPeeks = statisticsPeekHolder.getStatisticsPeeks(key);
+      logPeriodicStats(sb, key, statisticsPeeks, statisticsPeekHolder.getResultsReported());
+    }
+
     if (totalStatisticsPeeks != null)
-      logCumulativeStats(sb, "ALL", totalStatisticsPeeks);
+      logPeriodicStats(sb, "ALL", totalStatisticsPeeks, statisticsPeekHolder.getResultsReported());
+
     System.out.println(sb.toString());
   }
 
-  private void logCumulativeStats(StringBuilder sb, String name, StatisticsPeek<E> peek) {
-    sb.append(formatTimestampInMs(peek.getTimestamp())).append(CRLF);
-    Enum<E>[] keys = peek.getKeys();
-    for (Enum<E> key : keys) {
-      sb.append(String.format(FORMAT,
-          name,
-          key.name(),
-          nf.format(peek.getCumulativeCounters(key)),
-          nf.format(peek.getCumulativeTps(key)),
-          nf.format(peek.getCumulativeAverageLatencyInMs(key))
-      )).append(CRLF);
+  @Override
+  public void summarize(final StatisticsHolder<E> statisticsHolder) {
+//    sb.append(String.format(FORMAT, "Cache", "Type", "Txn_Count", "TPS", "Avg_Lat"))
+    Enum<E>[] results = statisticsHolder.getResultsReported();
+    for (Enum<E> result : results) {
+      System.out.println("Percentiles distribution for result : " + result);
+      try {
+        Histogram histogram = statisticsHolder.getHistogram(result);
+        histogram.outputPercentileDistribution(System.out, 5, 1000000d, false);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
-    sb.append(String.format(FORMAT,
-        name,
-        "TOTAL",
-        nf.format(peek.getSumOfCumulativeCounters()),
-        nf.format(peek.getSumOfCumulativeTps()),
-        nf.format(peek.getAverageOfCumulativeAverageLatencies())
-    )).append(CRLF);
   }
 
-  private void logPeriodicStats(StringBuilder sb, String name, StatisticsPeek<E> peek) {
+  private void logPeriodicStats(StringBuilder sb, String name, StatisticsPeek<E> peek, final Enum<E>[] resultsReported) {
     sb.append(formatTimestampInMs(peek.getTimestamp())).append(CRLF);
-    Enum<E>[] keys = peek.getKeys();
-    for (Enum<E> key : keys) {
+
+    for (Enum<E> result : resultsReported) {
       sb.append(String.format(FORMAT,
           name,
-          key.name(),
-          nf.format(peek.getPeriodicCounters(key)),
-          nf.format(peek.getPeriodicTps(key)),
-          nf.format(peek.getPeriodicAverageLatencyInMs(key))
+          result.name(),
+          nf.format(peek.getPeriodicCounters(result)),
+          nf.format(peek.getPeriodicTps(result)),
+          nf.format(peek.getPeriodicAverageLatencyInMs(result))
       )).append(CRLF);
     }
     sb.append(String.format(FORMAT,

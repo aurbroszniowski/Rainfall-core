@@ -24,8 +24,6 @@ import io.rainfall.reporting.TextReporter;
 import java.util.HashSet;
 import java.util.Set;
 
-import static io.rainfall.configuration.ReportType.CUMULATIVE_AND_PERIODIC;
-
 /**
  * Holds the configuration of reporters.
  *
@@ -34,76 +32,54 @@ import static io.rainfall.configuration.ReportType.CUMULATIVE_AND_PERIODIC;
 
 public class ReportingConfig<E extends Enum<E>> extends Configuration {
 
-  private Enum<E>[] resultsReported;
   private Enum<E>[] results;
+  private Enum<E>[] resultsReported;
 
   private final Set<Reporter<E>> logReporters = new HashSet<Reporter<E>>();
-  private final Set<Reporter<E>> summaryReporters = new HashSet<Reporter<E>>();
-  private ReportType reportType;
 
-  public ReportingConfig(Class<E> results, ReportType reportType, Enum<E>[] resultsReported) {
-    this.reportType = reportType;
+  public ReportingConfig(Enum<E>[] results, Enum<E>[] resultsReported) {
+    this.results = results;
     this.resultsReported = resultsReported;
-    this.results = results.getEnumConstants();
   }
 
   public static <E extends Enum<E>> ReportingConfig<E> report(Class<E> results) {
-    return new ReportingConfig<E>(results, CUMULATIVE_AND_PERIODIC, results.getEnumConstants());
+    return new ReportingConfig<E>(results.getEnumConstants(), results.getEnumConstants());
   }
 
   public static <E extends Enum<E>> ReportingConfig<E> report(Class<E> results, Enum<E>[] resultsReported) {
-    return new ReportingConfig<E>(results, CUMULATIVE_AND_PERIODIC, resultsReported);
-  }
-
-  public static <E extends Enum<E>> ReportingConfig<E> report(Class<E> results, ReportType reportType) {
-    return new ReportingConfig<E>(results, reportType, results.getEnumConstants());
-  }
-
-  public static <E extends Enum<E>> ReportingConfig<E> report(Class<E> results, ReportType reportType, Enum<E>[] resultsReported) {
-    return new ReportingConfig<E>(results, reportType, resultsReported);
+    return new ReportingConfig<E>(results.getEnumConstants(), resultsReported);
   }
 
   @SuppressWarnings("unchecked")
   public ReportingConfig log(final Reporter... reporters) {
     for (Reporter reporter : reporters) {
-      reporter.setReportType(reportType);
       logReporters.add(reporter);
     }
     return this;
   }
 
-  @SuppressWarnings("unchecked")
-  public ReportingConfig summary(final Reporter... reporters) {
-    for (Reporter reporter : reporters) {
-      reporter.setReportType(reportType);
-      summaryReporters.add(reporter);
-    }
-    return this;
-  }
-
-
   public static Reporter text() {
     return new TextReporter();
+  }
+
+  public static Reporter html(String outputPath) {
+    return new HtmlReporter(outputPath);
   }
 
   public static Reporter html() {
     return new HtmlReporter();
   }
 
-  public Enum<E>[] getResultsReported() {
-    return resultsReported;
-  }
-
   public Enum<E>[] getResults() {
     return results;
   }
 
-  public Set<Reporter<E>> getLogReporters() {
-    return logReporters;
+  public Enum<E>[] getResultsReported() {
+    return resultsReported;
   }
 
-  public Set<Reporter<E>> getSummaryReporters() {
-    return summaryReporters;
+  public Set<Reporter<E>> getLogReporters() {
+    return logReporters;
   }
 
 }

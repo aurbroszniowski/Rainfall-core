@@ -18,6 +18,8 @@ package io.rainfall.statistics;
 
 import io.rainfall.TestException;
 
+import org.HdrHistogram.Histogram;
+
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -27,13 +29,17 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHolder<E> {
 
-  private final ConcurrentHashMap<String, Statistics<E>> statisticsMap = new ConcurrentHashMap<String, Statistics<E>>();
-  private final Enum<E>[] results;
+  private final ConcurrentHashMap<String, Statistics<E>> statistics = new ConcurrentHashMap<String, Statistics<E>>();
+  private final ConcurrentHashMap<Enum, Histogram> histograms = new ConcurrentHashMap<Enum, Histogram>();
+  private Enum<E>[] results;
   private Enum<E>[] resultsReported;
 
   public RuntimeStatisticsHolder(final Enum<E>[] results, final Enum<E>[] resultsReported) {
     this.results = results;
     this.resultsReported = resultsReported;
+    for (Enum<E> result : results) {
+      this.histograms.put(result, new Histogram(3));
+    }
   }
 
   public Enum<E>[] getResults() {
@@ -46,16 +52,21 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
 
   @Override
   public Set<String> getStatisticsKeys() {
-    return this.statisticsMap.keySet();
+    return this.statistics.keySet();
   }
 
   @Override
   public Statistics<E> getStatistics(String name) {
-    return this.statisticsMap.get(name);
+    return this.statistics.get(name);
+  }
+
+  @Override
+  public Histogram getHistogram(final Enum<E> result) {
+    return this.histograms.get(result);
   }
 
   public void addStatistics(String name, Statistics<E> statistics) {
-    this.statisticsMap.put(name, statistics);
+    this.statistics.put(name, statistics);
   }
 
   protected long getTimeInNs() {
@@ -63,21 +74,46 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
   }
 
   @Override
-  public void measure(String name, FunctionExecutor functionExecutor) throws TestException {
+  public void measure(String name, final OperationFunction<E> function) throws TestException {
     try {
       final long start = getTimeInNs();
-      final Enum result = functionExecutor.apply();
+      final Enum result = function.apply();
       final long end = getTimeInNs();
       final long latency = (end - start);
 
-      this.statisticsMap.get(name).increaseCounterAndSetLatencyInNs(result, latency);
+      this.statistics.get(name).increaseCounterAndSetLatencyInNs(result, latency);
+      try {
+        histograms.get(result).recordValue(latency);
+      } catch (ArrayIndexOutOfBoundsException e) {
+        e.printStackTrace();
+      }
 
     } catch (Exception e) {
-      throw new TestException("Exception in measured task " + functionExecutor.toString(), e);
+      throw new TestException("Exception in measured task " + function.toString(), e);
     }
   }
 
+  @Override
+  public synchronized void reset() {
+    for (Statistics<E> statistics : this.statistics.values()) {
+      statistics.reset();
+    }
+    for (Histogram histogram : histograms.values()) {
+      histogram.reset();
+    }
+    System.out.println("reset");
+  }
+
+  @Override
+  public synchronized long getCurrentTps(Enum result) {
+    long totalCounter = 0;
+    for (Statistics<E> statistics : this.statistics.values()) {
+      totalCounter += statistics.getCurrentTps(result);
+    }
+    return (totalCounter / statistics.size());
+  }
+
   public StatisticsPeekHolder<E> peek() {
-    return new StatisticsPeekHolder<E>(this.resultsReported, this.statisticsMap);
+    return new StatisticsPeekHolder<E>(this.resultsReported, this.statistics);
   }
 }

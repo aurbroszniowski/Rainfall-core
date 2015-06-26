@@ -19,13 +19,13 @@ package io.rainfall.unit;
 /**
  * @author Aurelien Broszniowski
  */
-public class During extends TimeMeasurement {
+public class Over extends TimeMeasurement {
 
-  public static During during(int nb, TimeDivision timeDivision) {
-    return new During(nb, timeDivision);
+  public static Over over(int nb, TimeDivision timeDivision) {
+    return new Over(nb, timeDivision);
   }
 
-  public During(final int nb, final TimeDivision timeDivision) {
+  public Over(final int nb, final TimeDivision timeDivision) {
     super(nb, timeDivision);
   }
 }

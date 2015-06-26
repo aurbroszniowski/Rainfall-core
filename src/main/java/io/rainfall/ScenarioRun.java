@@ -43,6 +43,7 @@ public class ScenarioRun<E extends Enum<E>> {
   //TODO : is it possible to generify?
   private Map<Class<? extends Configuration>, Configuration> configurations = new ConcurrentHashMap<Class<? extends Configuration>, Configuration>();
   private List<AssertionEvaluator> assertions = new ArrayList<AssertionEvaluator>();
+  private Execution warmup = null;
   private List<Execution> executions = null;
   private RuntimeStatisticsHolder<E> statisticsHolder;
 
@@ -53,6 +54,15 @@ public class ScenarioRun<E extends Enum<E>> {
 
   private void initDefaultConfigurations() {
     this.configurations.put(ConcurrencyConfig.class, new ConcurrencyConfig());
+  }
+
+  // Define warmup time
+  public ScenarioRun warmup(Execution execution) throws SyntaxException {
+    if (this.warmup != null) {
+      throw new SyntaxException("Warmup is already defined.");
+    }
+    this.warmup = execution;
+    return this;
   }
 
   // Add executions
@@ -85,12 +95,28 @@ public class ScenarioRun<E extends Enum<E>> {
     //TODO : add generics ? cast?
     ReportingConfig<E> reportingConfig = (ReportingConfig<E>)configurations.get(ReportingConfig.class);
 
+    //TODO change this, this is ugly
+    // we need to call all operations to init the 'names', measured, should the 'name' be the key of the maps or instead
+    // be inside of the Statistics, and the key would be operation result
+    // besides, we end up having to initialize two stats holder, one real, and one blank for warmup phase, it's ugly
+    RuntimeStatisticsHolder<E> blankStatisticsHolder = new RuntimeStatisticsHolder<E>(reportingConfig.getResults(), reportingConfig.getResultsReported());
+    initStatistics(blankStatisticsHolder);
+
+    try {
+      if (warmup != null) {
+        System.out.println("Executing warmup phase, please wait.");
+        warmup.execute(blankStatisticsHolder, scenario, configurations, assertions);
+      }
+    } catch (TestException e) {
+      throw new RuntimeException(e);
+    }
+
     this.statisticsHolder = new RuntimeStatisticsHolder<E>(reportingConfig.getResults(), reportingConfig.getResultsReported());
-    initStatistics();
+    initStatistics(this.statisticsHolder);
 
     Timer timer = new Timer();
     StatisticsThread<E> stats = new StatisticsThread<E>(statisticsHolder, reportingConfig);
-    timer.scheduleAtFixedRate(stats, 0L, 1000L);
+    timer.scheduleAtFixedRate(stats, 1000L, 1000L);
 
     try {
       for (final Execution execution : executions) {
@@ -104,16 +130,17 @@ public class ScenarioRun<E extends Enum<E>> {
 
     long end = System.currentTimeMillis();
     System.out.println("-> Taken:" + TimeUnit.MILLISECONDS.toSeconds(end - start));
+
     return peek;
   }
 
-  private void initStatistics() {
+  private void initStatistics(RuntimeStatisticsHolder<E> statisticsHolder) {
     try {
       List<RangeMap<Operation>> operations = scenario.getOperations();
       for (RangeMap<Operation> operation : operations) {
         Collection<Operation> allOperations = operation.getAll();
         for (Operation allOperation : allOperations) {
-          allOperation.exec(new InitStatisticsHolder<E>(this.statisticsHolder), this.configurations, this.assertions);
+          allOperation.exec(new InitStatisticsHolder<E>(statisticsHolder), this.configurations, this.assertions);
         }
       }
     } catch (TestException e) {

@@ -17,7 +17,7 @@
 package io.rainfall.execution;
 
 import io.rainfall.Unit;
-import io.rainfall.unit.During;
+import io.rainfall.unit.Over;
 import io.rainfall.unit.Every;
 import io.rainfall.unit.From;
 import io.rainfall.unit.TimeDivision;
@@ -29,28 +29,24 @@ import io.rainfall.unit.To;
 
 public class Executions {
 
-  public static AtOnce atOnce(int nb, Unit users) {
-    return new AtOnce(nb, users);
+  public static Once once(int nb, Unit unit) {
+    return new Once(nb, unit);
   }
 
   public static Times times(long occurrences) {
     return new Times(occurrences);
   }
 
-  public static InParallel inParallel(int nb, Unit unit, Every every, During during) {
-    return new InParallel(nb, unit, every, during);
-  }
-
-  public static ConstantUsersPerSec constantUsersPerSec(int nbUsers, During during) {
-    return new ConstantUsersPerSec(nbUsers, during);
+  public static InParallel inParallel(int nb, Unit unit, Every every, Over over) {
+    return new InParallel(nb, unit, every, over);
   }
 
   public static NothingFor nothingFor(int nb, TimeDivision timeDivision) {
     return new NothingFor(nb, timeDivision);
   }
 
-  public static Ramp ramp(From from, To to, Every every, During during) {
-    return new Ramp(from, to, every, during);
+  public static Ramp ramp(From from, To to, Every every, Over over) {
+    return new Ramp(from, to, every, over);
   }
 
   public static RunsDuring during(int nb, TimeDivision timeDivision) {

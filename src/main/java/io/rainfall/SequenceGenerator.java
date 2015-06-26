@@ -22,6 +22,5 @@ package io.rainfall;
 
 public interface SequenceGenerator {
 
-  public long next();
-
+  long next();
 }

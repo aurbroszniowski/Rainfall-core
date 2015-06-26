@@ -45,6 +45,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * - total periodic TPS (periodic TPS for all observed domains)
  * - total cumulative TPS (cumulative TPS for one observed domain)
  *
+ * - HdrHistogram : percentiles of measures latencies
+
+ *
  * @author Aurelien Broszniowski
  */
 
@@ -133,6 +136,17 @@ public class StatisticsPeek<E extends Enum<E>> {
     }
     this.averageOfPeriodicAverageLatencies = this.averageOfPeriodicAverageLatencies / this.sumOfPeriodicCounters / 1000000L;
   }
+
+  /**
+   * Add all statisticPeeks values:
+   *   periodic TPS
+   *   periodic Response time
+   *   Histograms
+   *
+   *   TODO : remove cumulative counter, since it is useless now
+   *
+   * @param statisticsPeeks
+   */
 
   public void addAll(final Map<String, StatisticsPeek<E>> statisticsPeeks) {
     Set<String> names = statisticsPeeks.keySet();

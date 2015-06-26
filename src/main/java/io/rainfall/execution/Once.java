@@ -36,17 +36,17 @@ import java.util.concurrent.Executors;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
- * This will execute the {@link io.rainfall.Scenario} with {@link AtOnce#nb} occurrences of a specified {@link io.rainfall.Unit}
+ * This will execute the {@link io.rainfall.Scenario} with {@link Once#nb} occurrences of a specified {@link io.rainfall.Unit}
  * <p/>
  *
  * @author Aurelien Broszniowski
  */
 
-public class AtOnce extends Execution {
+public class Once extends Execution {
   private final int nb;
   private final Unit unit;
 
-  public AtOnce(final int nb, final Unit unit) {
+  public Once(final int nb, final Unit unit) {
     this.nb = nb;
     this.unit = unit;
   }

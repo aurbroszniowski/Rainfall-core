@@ -14,24 +14,17 @@
  * limitations under the License.
  */
 
-package io.rainfall.execution;
+package io.rainfall.generator;
 
-import io.rainfall.unit.TimeMeasurement;
-
-import static io.rainfall.Unit.users;
-import static io.rainfall.unit.TimeDivision.seconds;
-import static io.rainfall.unit.Every.every;
+import io.rainfall.ObjectGenerator;
 
 /**
- * Schedule a Scenario execution for nbUsers every timeMeasurement
- *
  * @author Aurelien Broszniowski
  */
+public class CharSequenceGenerator implements ObjectGenerator<CharSequence> {
 
-public class ConstantUsersPerSec extends InParallel {
-
-  public ConstantUsersPerSec(final int nbUsers, final TimeMeasurement during) {
-    super(nbUsers, users, every(1, seconds), during);
+  @Override
+  public CharSequence generate(final long l) {
+    return "" + l;
   }
-
 }
