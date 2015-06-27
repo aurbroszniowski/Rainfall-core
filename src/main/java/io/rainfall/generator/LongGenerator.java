@@ -24,7 +24,7 @@ import io.rainfall.ObjectGenerator;
 public class LongGenerator implements ObjectGenerator<Long> {
 
   @Override
-  public Long generate(final long seed) {
+  public Long generate(final Long seed) {
     return seed;
   }
 }

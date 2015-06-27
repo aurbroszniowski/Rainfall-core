@@ -22,5 +22,5 @@ package io.rainfall;
 
 public interface ObjectGenerator<T> {
 
-  T generate(long seed);
+  T generate(Long seed);
 }

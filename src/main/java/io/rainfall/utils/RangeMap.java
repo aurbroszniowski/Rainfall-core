@@ -59,7 +59,7 @@ public class RangeMap<E> {
   }
 
   public E get(final float key) {
-    for (Range range : keys) {
+    for (Range range : keys) {   // the Iterator is way better for the LinkedList that doesn't implement RandomAccess
       if (range.contains(key))
         return values.get(range.getKey());
     }

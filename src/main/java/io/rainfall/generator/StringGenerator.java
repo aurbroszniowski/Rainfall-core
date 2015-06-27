@@ -42,8 +42,8 @@ public class StringGenerator implements ObjectGenerator<String> {
   }
 
   @Override
-  public String generate(final long seed) {
-    return ("" + seed + this.randomString).substring(0, length);   // return a new instance
+  public String generate(final Long seed) {
+    return (seed.toString() + this.randomString).substring(0, length);   // return a new instance
   }
 
   public static ObjectGenerator<String> fixedLength(final int length) {

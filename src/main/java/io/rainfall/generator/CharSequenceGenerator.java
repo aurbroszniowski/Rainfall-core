@@ -24,7 +24,7 @@ import io.rainfall.ObjectGenerator;
 public class CharSequenceGenerator implements ObjectGenerator<CharSequence> {
 
   @Override
-  public CharSequence generate(final long l) {
-    return "" + l;
+  public CharSequence generate(final Long l) {
+    return l.toString();
   }
 }

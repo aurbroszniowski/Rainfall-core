@@ -24,7 +24,7 @@ import io.rainfall.ObjectGenerator;
 public class IntegerGenerator implements ObjectGenerator<Integer> {
 
   @Override
-  public Integer generate(final long l) {
-    return new Long(l).intValue();
+  public Integer generate(final Long l) {
+    return l.intValue();
   }
 }
