@@ -35,9 +35,9 @@ public interface StatisticsHolder<E extends Enum<E>> {
 
   Histogram getHistogram(Enum<E> result);
 
-  void measure(String name, OperationFunction<E> function) throws TestException;
-
   void reset();
 
   long getCurrentTps(Enum result);
+
+  void record(String name, long responseTime, Enum result);
 }

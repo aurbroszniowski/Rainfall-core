@@ -44,4 +44,7 @@ public abstract class Operation {
     return weight;
   }
 
+  protected long getTimeInNs() {
+    return System.nanoTime();
+  }
 }

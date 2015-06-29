@@ -53,11 +53,6 @@ public class InitStatisticsHolder<E extends Enum<E>> implements StatisticsHolder
   }
 
   @Override
-  public void measure(final String name, final OperationFunction<E> function) throws TestException {
-    statisticsHolder.addStatistics(name, new Statistics<E>(name, statisticsHolder.getResults()));
-  }
-
-  @Override
   public void reset() {
     statisticsHolder.reset();
   }
@@ -65,5 +60,10 @@ public class InitStatisticsHolder<E extends Enum<E>> implements StatisticsHolder
   @Override
   public long getCurrentTps(Enum result) {
     return 1L;
+  }
+
+  @Override
+  public void record(final String name, final long responseTime, final Enum result) {
+    statisticsHolder.addStatistics(name, new Statistics<E>(name, statisticsHolder.getResults()));
   }
 }

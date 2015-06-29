@@ -74,26 +74,6 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
   }
 
   @Override
-  public void measure(String name, final OperationFunction<E> function) throws TestException {
-    try {
-      final long start = getTimeInNs();
-      final Enum result = function.apply();
-      final long end = getTimeInNs();
-      final long latency = (end - start);
-
-      this.statistics.get(name).increaseCounterAndSetLatencyInNs(result, latency);
-      try {
-        histograms.get(result).recordValue(latency);
-      } catch (ArrayIndexOutOfBoundsException e) {
-        e.printStackTrace();
-      }
-
-    } catch (Exception e) {
-      throw new TestException("Exception in measured task " + function.toString(), e);
-    }
-  }
-
-  @Override
   public synchronized void reset() {
     for (Statistics<E> statistics : this.statistics.values()) {
       statistics.reset();
@@ -111,6 +91,17 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
       totalCounter += statistics.getCurrentTps(result);
     }
     return (totalCounter / statistics.size());
+  }
+
+  @Override
+  public void record(final String name, final long responseTime, final Enum result) {
+    this.statistics.get(name).increaseCounterAndSetLatencyInNs(result, responseTime);
+    try {
+      histograms.get(result).recordValue(responseTime);
+    } catch (ArrayIndexOutOfBoundsException e) {
+      e.printStackTrace();
+    }
+
   }
 
   public StatisticsPeekHolder<E> peek() {
