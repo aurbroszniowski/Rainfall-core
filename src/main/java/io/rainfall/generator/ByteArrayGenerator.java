@@ -25,7 +25,7 @@ import java.util.Arrays;
  * @author Aurelien Broszniowski
  */
 
-public class ByteArrayGenerator implements ObjectGenerator<Byte[]> {
+public class ByteArrayGenerator implements ObjectGenerator<byte[]> {
 
   private final int length;
 
@@ -34,13 +34,13 @@ public class ByteArrayGenerator implements ObjectGenerator<Byte[]> {
   }
 
   @Override
-  public Byte[] generate(final Long seed) {
-    Byte[] object = new Byte[length];
+  public byte[] generate(final Long seed) {
+    byte[] object = new byte[length];
     Arrays.fill(object, (byte)ThreadLocalRandom.current().nextInt());
     return object;
   }
 
-  public static ObjectGenerator<Byte[]> fixedLength(final int length) {
+  public static ObjectGenerator<byte[]> fixedLength(final int length) {
     return new ByteArrayGenerator(length);
   }
 }
