@@ -78,6 +78,7 @@ public class Ramp extends Execution {
       final ScheduledFuture<?> future = scheduler.scheduleAtFixedRate(new Runnable() {
         @Override
         public void run() {
+          Thread.currentThread().setName("Rainfall-core Operations Thread");
           System.out.println(" ramping users = " + nb.longValue() + " /" + nb.get());
           int max = concurrencyConfig.getNbIterationsForThread(finalThreadNb, nb.longValue());
           nb.addAndGet(increment);

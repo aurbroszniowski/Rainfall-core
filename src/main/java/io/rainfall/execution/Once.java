@@ -67,6 +67,7 @@ public class Once extends Execution {
 
           @Override
           public Object call() throws Exception {
+            Thread.currentThread().setName("Rainfall-core Operations Thread");
             List<RangeMap<Operation>> operations = scenario.getOperations();
             for (RangeMap<Operation> operation  : operations) {
               operation.get(weightRnd.nextFloat(operation.getHigherBound()))

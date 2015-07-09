@@ -77,6 +77,7 @@ public class InParallel extends Execution {
       final ScheduledFuture<?> future = scheduler.scheduleAtFixedRate(new Runnable() {
         @Override
         public void run() {
+          Thread.currentThread().setName("Rainfall-core Operations Thread");
           try {
             for (int i = 0; i < max; i++) {
               List<RangeMap<Operation>> operations = scenario.getOperations();

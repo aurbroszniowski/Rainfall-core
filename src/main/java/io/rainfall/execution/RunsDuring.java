@@ -69,6 +69,7 @@ public class RunsDuring extends Execution {
 
         @Override
         public Void call() throws Exception {
+          Thread.currentThread().setName("Rainfall-core Operations Thread");
           List<RangeMap<Operation>> operations = scenario.getOperations();
           while (!Thread.currentThread().isInterrupted()) {
             for (RangeMap<Operation> operation : operations) {

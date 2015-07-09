@@ -32,6 +32,7 @@ public class StatisticsThread<E extends Enum<E>> extends TimerTask {
   private ReportingConfig<E> reportingConfig;
 
   public StatisticsThread(final RuntimeStatisticsHolder<E> statisticsHolder, final ReportingConfig<E> reportingConfig) {
+    Thread.currentThread().setName("Rainfall-core Statistics Thread");
     this.statisticsHolder = statisticsHolder;
     this.reportingConfig = reportingConfig;
   }

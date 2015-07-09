@@ -61,6 +61,7 @@ public class Times extends Execution {
 
         @Override
         public Object call() throws Exception {
+          Thread.currentThread().setName("Rainfall-core Operations Thread");
           List<RangeMap<Operation>> operations = scenario.getOperations();
           for (int i = 0; i < max; i++) {
             for (RangeMap<Operation> operation : operations) {
