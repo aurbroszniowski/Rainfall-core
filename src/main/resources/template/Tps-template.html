@@ -86,7 +86,7 @@
         return x1 + x2;
     }
 
-    function addPercentileGraph(filename) {
+    function addPercentileGraph(filename, yAxisTitle) {
         var margin = {top: 20, right: 40, bottom: 50, left: 50},
                 width = 1000 - margin.left - margin.right,
                 height = 550 - margin.top - margin.bottom;
@@ -177,7 +177,7 @@
                     .attr("y", 6)
                     .attr("dy", ".71em")
                     .style("text-anchor", "end")
-                    .text("Response time (ms)");
+                    .text(yAxisTitle);
 
             svg.append("path")
                     .datum(data)
@@ -201,7 +201,7 @@
         });
     }
 
-    function addGraph(filename) {
+    function addGraph(filename, yAxisTitle) {
         var margin = {top: 20, right: 55, bottom: 80, left: 80},
                 width = 1000 - margin.left - margin.right,
                 height = 550 - margin.top - margin.bottom;
@@ -283,7 +283,7 @@
                     .attr("y", 6)
                     .attr("dy", ".71em")
                     .style("text-anchor", "end")
-                    .text("TPS");
+                    .text(yAxisTitle);
 
             var serie = svg.selectAll(".serie")
                     .data(series)
@@ -319,13 +319,13 @@
     function reportTps(filename, name) {
         $("#tps-box").append("<div id='" + filename + "'><div class='title'/><div class='graph'/></div>");
         $("#" + filename + " .title").before("<h2>" + name + "</h2>");
-        addGraph(filename);
+        addGraph(filename, 'Tps');
     }
 
     function reportResponseTime(filename, name) {
         $("#response-time-box").append("<div id='" + filename + "'><div class='title'/><div class='graph'/></div>");
         $("#" + filename + " .title").before("<h2>" + name + "</h2>");
-        addGraph(filename);
+        addGraph(filename, 'Response time (ms)');
     }
 
     function reportPercentiles(filename, name, mean, max) {
@@ -334,7 +334,7 @@
         $("#" + filename + " .title").after("Max Response Time = " + (Math.round((max / 1000000) * 1000) / 1000) + " ms<br/>");
         $("#" + filename + " .title").after("Mean Response Time = " + (Math.round((mean / 1000000) * 1000) / 1000) + " ms<br/>");
 
-        addPercentileGraph(filename);
+        addPercentileGraph(filename, 'Response Time (ms)');
     }
 
 
