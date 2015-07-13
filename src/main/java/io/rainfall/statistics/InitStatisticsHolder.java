@@ -63,7 +63,7 @@ public class InitStatisticsHolder<E extends Enum<E>> implements StatisticsHolder
   }
 
   @Override
-  public void record(final String name, final long responseTime, final Enum result) {
+  public void record(final String name, final long responseTimeInNs, final Enum result) {
     statisticsHolder.addStatistics(name, new Statistics<E>(name, statisticsHolder.getResults()));
   }
 }

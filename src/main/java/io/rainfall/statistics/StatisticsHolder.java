@@ -39,5 +39,5 @@ public interface StatisticsHolder<E extends Enum<E>> {
 
   long getCurrentTps(Enum result);
 
-  void record(String name, long responseTime, Enum result);
+  void record(String name, long responseTimeInNs, Enum result);
 }

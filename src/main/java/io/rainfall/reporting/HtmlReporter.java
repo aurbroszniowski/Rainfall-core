@@ -149,7 +149,7 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
     Enum<E>[] results = statisticsHolder.getResultsReported();
     try {
       for (Enum<E> result : results) {
-        Histogram histogram = statisticsHolder.getHistogram(result);
+        Histogram histogram = statisticsHolder.getHistogram(result).copyCorrectedForCoordinatedOmission(1000000L);
         String percentilesFilename = this.basedir + File.separatorChar + getPercentilesFilename(result.name());
         PrintStream stream = new PrintStream(new File(percentilesFilename));
         try {

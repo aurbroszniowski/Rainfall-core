@@ -16,8 +16,6 @@
 
 package io.rainfall.statistics;
 
-import io.rainfall.TestException;
-
 import org.HdrHistogram.Histogram;
 
 import java.util.Set;
@@ -94,10 +92,10 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
   }
 
   @Override
-  public void record(final String name, final long responseTime, final Enum result) {
-    this.statistics.get(name).increaseCounterAndSetLatencyInNs(result, responseTime);
+  public void record(final String name, final long responseTimeInNs, final Enum result) {
+    this.statistics.get(name).increaseCounterAndSetLatencyInNs(result, responseTimeInNs);
     try {
-      histograms.get(result).recordValue(responseTime);
+      histograms.get(result).recordValue(responseTimeInNs);
     } catch (ArrayIndexOutOfBoundsException e) {
       e.printStackTrace();
     }
