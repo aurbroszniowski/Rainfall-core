@@ -250,11 +250,11 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
 
         final File f = new File(writeDirectory + File.separator + entryTail);
         if (entry.isDirectory()) {
-          // if its a directory, create it
-          final boolean bMade = f.mkdir();
-          System.out.println((bMade ? "  creating " : "  unable to create ") + name);
+          // if its a directory, create it -- REVIEW @yzhang and also any intermediate dirs
+          final boolean bMade = f.mkdirs();
+          System.out.println((bMade ? "  creating " : "  unable to create ") + f.getCanonicalPath());
         } else {
-          System.out.println("  writing  " + name);
+          System.out.println("  writing  " + f.getCanonicalPath());
           final InputStream is = jar.getInputStream(entry);
           final OutputStream os = new BufferedOutputStream(new FileOutputStream(f));
           final byte buffer[] = new byte[4096];
