@@ -23,6 +23,7 @@ import io.rainfall.reporting.TextReporter;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Holds the configuration of reporters.
@@ -34,6 +35,8 @@ public class ReportingConfig<E extends Enum<E>> extends Configuration {
 
   private Enum<E>[] results;
   private Enum<E>[] resultsReported;
+  private long reportInterval = 1000;
+  private TimeUnit reportIntervalUnit = TimeUnit.MILLISECONDS;
 
   private final Set<Reporter<E>> logReporters = new HashSet<Reporter<E>>();
 
@@ -48,6 +51,12 @@ public class ReportingConfig<E extends Enum<E>> extends Configuration {
 
   public static <E extends Enum<E>> ReportingConfig<E> report(Class<E> results, Enum<E>[] resultsReported) {
     return new ReportingConfig<E>(results.getEnumConstants(), resultsReported);
+  }
+  
+  public ReportingConfig every(final long amount, final TimeUnit unit) {
+    this.reportInterval = amount;
+    this.reportIntervalUnit = unit;
+    return this;
   }
 
   @SuppressWarnings("unchecked")
@@ -80,6 +89,14 @@ public class ReportingConfig<E extends Enum<E>> extends Configuration {
 
   public Set<Reporter<E>> getLogReporters() {
     return logReporters;
+  }
+  
+  public long getReportInterval() {
+    return reportInterval;
+  }
+
+  public TimeUnit getReportTimeUnit() {
+    return reportIntervalUnit;
   }
 
 }
