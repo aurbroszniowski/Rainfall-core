@@ -116,7 +116,9 @@ public class ScenarioRun<E extends Enum<E>> {
 
     Timer timer = new Timer();
     StatisticsThread<E> stats = new StatisticsThread<E>(statisticsHolder, reportingConfig);
-    timer.scheduleAtFixedRate(stats, 1000L, 1000L);
+    TimeUnit reportIntervalUnit = reportingConfig.getReportTimeUnit();
+    long reportIntervalMillis = reportIntervalUnit.toMillis(reportingConfig.getReportInterval());
+    timer.scheduleAtFixedRate(stats, reportIntervalMillis, reportIntervalMillis);
 
     try {
       for (final Execution execution : executions) {
