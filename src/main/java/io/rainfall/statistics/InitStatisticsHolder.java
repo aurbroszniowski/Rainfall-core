@@ -66,4 +66,8 @@ public class InitStatisticsHolder<E extends Enum<E>> implements StatisticsHolder
   public void record(final String name, final long responseTimeInNs, final Enum result) {
     statisticsHolder.addStatistics(name, new Statistics<E>(name, statisticsHolder.getResults()));
   }
+
+  @Override
+  public void increaseAssertionsErrorsCount(final String name) {
+  }
 }

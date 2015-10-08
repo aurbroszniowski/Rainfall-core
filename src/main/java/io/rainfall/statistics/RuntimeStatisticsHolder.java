@@ -20,6 +20,7 @@ import org.HdrHistogram.Histogram;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.LongAdder;
 
 /**
  * @author Aurelien Broszniowski
@@ -27,6 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHolder<E> {
 
+  private final ConcurrentHashMap<String, LongAdder> assertionsErrors = new ConcurrentHashMap<String, LongAdder>();
   private final ConcurrentHashMap<String, Statistics<E>> statistics = new ConcurrentHashMap<String, Statistics<E>>();
   private final ConcurrentHashMap<Enum, Histogram> histograms = new ConcurrentHashMap<Enum, Histogram>();
   private Enum<E>[] results;
@@ -65,6 +67,7 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
 
   public void addStatistics(String name, Statistics<E> statistics) {
     this.statistics.put(name, statistics);
+    this.assertionsErrors.put(name, new LongAdder());
   }
 
   protected long getTimeInNs() {
@@ -102,7 +105,12 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
 
   }
 
+  @Override
+  public void increaseAssertionsErrorsCount(String name) {
+    assertionsErrors.get(name).increment();
+  }
+
   public StatisticsPeekHolder<E> peek() {
-    return new StatisticsPeekHolder<E>(this.resultsReported, this.statistics);
+    return new StatisticsPeekHolder<E>(this.resultsReported, this.statistics, this.assertionsErrors);
   }
 }
