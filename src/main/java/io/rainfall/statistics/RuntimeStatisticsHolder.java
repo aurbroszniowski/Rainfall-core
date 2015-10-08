@@ -16,11 +16,11 @@
 
 package io.rainfall.statistics;
 
+import jsr166e.LongAdder;
 import org.HdrHistogram.Histogram;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.LongAdder;
 
 /**
  * @author Aurelien Broszniowski
