@@ -54,6 +54,7 @@ public class Times extends Execution {
     ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
     int nbThreads = concurrencyConfig.getNbThreads();
     ExecutorService executor = Executors.newFixedThreadPool(nbThreads);
+    markExecutionState(scenario, ExecutionState.BEGINNING);
 
     for (int threadNb = 0; threadNb < nbThreads; threadNb++) {
       final int max = concurrencyConfig.getNbIterationsForThread(threadNb, occurrences);
@@ -74,7 +75,7 @@ public class Times extends Execution {
       });
     }
     //TODO : it is submitted enough but not everything has finished to run when threads are done -> how to solve Coordinated Omission ?
-
+    markExecutionState(scenario, ExecutionState.ENDING);
     executor.shutdown();
     try {
       long timeoutInSeconds = ((ConcurrencyConfig)configurations.get(ConcurrencyConfig.class)).getTimeoutInSeconds();

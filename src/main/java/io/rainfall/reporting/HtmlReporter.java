@@ -20,7 +20,6 @@ import io.rainfall.Reporter;
 import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.statistics.StatisticsPeek;
 import io.rainfall.statistics.StatisticsPeekHolder;
-import jsr166e.DoubleAdder;
 import org.HdrHistogram.Histogram;
 
 import java.io.BufferedOutputStream;
@@ -149,7 +148,12 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
     Enum<E>[] results = statisticsHolder.getResultsReported();
     try {
       for (Enum<E> result : results) {
-        Histogram histogram = statisticsHolder.getHistogram(result).copyCorrectedForCoordinatedOmission(1000000L);
+        Histogram histogram = statisticsHolder.getHistogram(result);
+        try {
+          histogram = histogram.copyCorrectedForCoordinatedOmission(1000000L);
+        } catch (Throwable t) {
+          // eat it. Sometimes, some places, it throws an exception here.
+        }
         String percentilesFilename = this.basedir + File.separatorChar + getPercentilesFilename(result.name());
         PrintStream stream = new PrintStream(new File(percentilesFilename));
         try {

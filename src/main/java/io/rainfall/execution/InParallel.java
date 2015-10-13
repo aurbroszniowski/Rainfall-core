@@ -61,7 +61,7 @@ public class InParallel extends Execution {
   public <E extends Enum<E>> void execute(final StatisticsHolder<E> statisticsHolder, final Scenario scenario,
                                           final Map<Class<? extends Configuration>, Configuration> configurations,
                                           final List<AssertionEvaluator> assertions) throws TestException {
-    final ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
+    final ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig) configurations.get(ConcurrencyConfig.class);
     int nbThreads = concurrencyConfig.getNbThreads();
 
     // Use a scheduled thread pool in order to execute concurrent Scenarios
@@ -69,6 +69,7 @@ public class InParallel extends Execution {
 
     // This is done to collect exceptions because the Runnable doesn't throw
     final List<TestException> exceptions = new ArrayList<TestException>();
+    markExecutionState(scenario, ExecutionState.BEGINNING);
 
     // Schedule the scenario every second, until
     for (int threadNb = 0; threadNb < nbThreads; threadNb++) {
@@ -82,8 +83,8 @@ public class InParallel extends Execution {
             for (int i = 0; i < max; i++) {
               List<RangeMap<Operation>> operations = scenario.getOperations();
               for (RangeMap<Operation> operation : operations) {
-                operation.get(weightRnd.nextFloat(operation.getHigherBound()))
-                    .exec(statisticsHolder, configurations, assertions);
+                operation.get(weightRnd.nextFloat(operation.getHigherBound())).exec(statisticsHolder, configurations,
+                  assertions);
               }
             }
           } catch (TestException e) {
@@ -96,6 +97,7 @@ public class InParallel extends Execution {
       scheduler.schedule(new Runnable() {
         @Override
         public void run() {
+          markExecutionState(scenario, ExecutionState.ENDING);
           future.cancel(true);
         }
       }, during.getNb(), during.getTimeDivision().getTimeUnit());
@@ -110,7 +112,7 @@ public class InParallel extends Execution {
         throw new TestException(e);
       }
     }
-
+    markExecutionState(scenario, ExecutionState.ENDING);
     scheduler.shutdown();
 
     if (exceptions.size() > 0) {

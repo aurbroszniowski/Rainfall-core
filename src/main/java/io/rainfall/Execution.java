@@ -18,6 +18,7 @@ package io.rainfall;
 
 import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.utils.ConcurrentPseudoRandom;
+import io.rainfall.utils.RangeMap;
 
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,24 @@ import java.util.Map;
  */
 
 public abstract class Execution {
+
+  public enum ExecutionState {
+    UNKNOWN,
+    BEGINNING,
+    ENDING
+  }
+
+  /**
+   * Provide an easy way to mark all operations as underway.
+   *
+   */
+  public void markExecutionState(Scenario scenario, ExecutionState state) {
+    for (RangeMap<Operation> opMap : scenario.getOperations()) {
+      for (Operation op : opMap.getAll()) {
+        op.markExecutionState(state);
+      }
+    }
+  }
 
   protected ConcurrentPseudoRandom weightRnd = new ConcurrentPseudoRandom();
 
