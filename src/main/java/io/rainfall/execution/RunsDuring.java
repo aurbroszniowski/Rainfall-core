@@ -62,6 +62,7 @@ public class RunsDuring extends Execution {
 
     ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(concurrencyConfig.getNbThreads());
     final ExecutorService executor = Executors.newFixedThreadPool(nbThreads);
+    markExecutionState(scenario, ExecutionState.BEGINNING);
 
     List<Future<Void>> futures = new ArrayList<Future<Void>>();
     for (int threadNb = 0; threadNb < nbThreads; threadNb++) {
@@ -87,6 +88,7 @@ public class RunsDuring extends Execution {
     scheduler.schedule(new Runnable() {
       @Override
       public void run() {
+        markExecutionState(scenario, ExecutionState.ENDING);
         executor.shutdownNow();
       }
     }, during.getNb(), during.getTimeDivision().getTimeUnit());
@@ -96,9 +98,11 @@ public class RunsDuring extends Execution {
         future.get();
       }
     } catch (InterruptedException e) {
+      markExecutionState(scenario, ExecutionState.ENDING);
       executor.shutdownNow();
       throw new TestException("Thread execution Interruption", e);
     } catch (ExecutionException e) {
+      markExecutionState(scenario, ExecutionState.ENDING);
       executor.shutdownNow();
       throw new TestException("Thread execution error", e);
     }

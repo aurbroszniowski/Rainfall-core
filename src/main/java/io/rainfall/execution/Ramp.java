@@ -69,6 +69,7 @@ public class Ramp extends Execution {
 
     // This is done to collect exceptions because the Runnable doesn't throw
     final List<TestException> exceptions = new ArrayList<TestException>();
+    markExecutionState(scenario, ExecutionState.BEGINNING);
 
     final AtomicDouble nb = new AtomicDouble(from.getNb());
     final Double increment = (to.getNb() - from.getNb()) / (over.getNbInMs() / every.getNbInMs());
@@ -102,6 +103,7 @@ public class Ramp extends Execution {
       scheduler.schedule(new Runnable() {
         @Override
         public void run() {
+          markExecutionState(scenario, ExecutionState.ENDING);
           future.cancel(true);
         }
       }, over.getNb(), over.getTimeDivision().getTimeUnit());
@@ -116,7 +118,7 @@ public class Ramp extends Execution {
         throw new TestException(e);
       }
     }
-
+    markExecutionState(scenario, ExecutionState.ENDING);
     scheduler.shutdown();
 
     if (exceptions.size() > 0) {

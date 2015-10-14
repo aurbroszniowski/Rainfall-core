@@ -29,6 +29,8 @@ import java.util.Map;
 
 public abstract class Operation {
 
+  private volatile Execution.ExecutionState state= Execution.ExecutionState.UNKNOWN;
+
   private float weight = 1;
 
   public abstract  void exec(final StatisticsHolder  statisticsHolder,
@@ -46,5 +48,13 @@ public abstract class Operation {
 
   protected long getTimeInNs() {
     return System.nanoTime();
+  }
+
+  public Execution.ExecutionState getExecutionState() {
+    return state;
+  }
+
+  public void markExecutionState(Execution.ExecutionState state) {
+    this.state = state;
   }
 }

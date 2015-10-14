@@ -56,9 +56,10 @@ public class Once extends Execution {
                                           final Map<Class<? extends Configuration>, Configuration> configurations,
                                           final List<AssertionEvaluator> assertions) throws TestException {
 
-    ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
+    ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig) configurations.get(ConcurrencyConfig.class);
     int nbThreads = concurrencyConfig.getNbThreads();
     ExecutorService executor = Executors.newFixedThreadPool(nbThreads);
+    markExecutionState(scenario, ExecutionState.BEGINNING);
 
     for (int threadNb = 0; threadNb < nbThreads; threadNb++) {
       final int max = concurrencyConfig.getNbIterationsForThread(threadNb, nb);
@@ -69,18 +70,19 @@ public class Once extends Execution {
           public Object call() throws Exception {
             Thread.currentThread().setName("Rainfall-core Operations Thread");
             List<RangeMap<Operation>> operations = scenario.getOperations();
-            for (RangeMap<Operation> operation  : operations) {
-              operation.get(weightRnd.nextFloat(operation.getHigherBound()))
-                  .exec(statisticsHolder, configurations, assertions);
+            for (RangeMap<Operation> operation : operations) {
+              operation.get(weightRnd.nextFloat(operation.getHigherBound())).exec(statisticsHolder, configurations,
+                assertions);
             }
             return null;
           }
         });
       }
     }
+    markExecutionState(scenario, ExecutionState.ENDING);
     executor.shutdown();
     try {
-      long timeoutInSeconds = ((ConcurrencyConfig)configurations.get(ConcurrencyConfig.class)).getTimeoutInSeconds();
+      long timeoutInSeconds = ((ConcurrencyConfig) configurations.get(ConcurrencyConfig.class)).getTimeoutInSeconds();
       boolean success = executor.awaitTermination(timeoutInSeconds, SECONDS);
       if (!success) {
         throw new TestException("Execution of Scenario timed out after " + timeoutInSeconds + " seconds.");
