@@ -37,6 +37,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Execute scenario a number of times concurrently, repeat it every time measurement, during a time period
@@ -45,6 +46,7 @@ import java.util.concurrent.ScheduledFuture;
  */
 
 public class InParallel extends Execution {
+  protected static AtomicLong THREAD_NUMBER_GENERATOR = new AtomicLong(0);
   protected final int nb;
   protected final Unit unit;
   protected final Every every;
@@ -78,7 +80,8 @@ public class InParallel extends Execution {
       final ScheduledFuture<?> future = scheduler.scheduleAtFixedRate(new Runnable() {
         @Override
         public void run() {
-          Thread.currentThread().setName("Rainfall-core Operations Thread");
+          Thread.currentThread().setName(
+            "Rainfall-core Operations Thread - " + THREAD_NUMBER_GENERATOR.getAndIncrement());
           try {
             for (int i = 0; i < max; i++) {
               List<RangeMap<Operation>> operations = scenario.getOperations();
