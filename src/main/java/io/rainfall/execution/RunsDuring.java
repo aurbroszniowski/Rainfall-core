@@ -37,6 +37,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -63,6 +64,7 @@ public class RunsDuring extends Execution {
     ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(concurrencyConfig.getNbThreads());
     final ExecutorService executor = Executors.newFixedThreadPool(nbThreads);
     markExecutionState(scenario, ExecutionState.BEGINNING);
+    final AtomicBoolean doneFlag=new AtomicBoolean(false);
 
     List<Future<Void>> futures = new ArrayList<Future<Void>>();
     for (int threadNb = 0; threadNb < nbThreads; threadNb++) {
@@ -72,7 +74,7 @@ public class RunsDuring extends Execution {
         public Void call() throws Exception {
           Thread.currentThread().setName("Rainfall-core Operations Thread");
           List<RangeMap<Operation>> operations = scenario.getOperations();
-          while (!Thread.currentThread().isInterrupted()) {
+          while (!Thread.currentThread().isInterrupted() && !doneFlag.get()) {
             for (RangeMap<Operation> operation : operations) {
               operation.get(weightRnd.nextFloat(operation.getHigherBound()))
                   .exec(statisticsHolder, configurations, assertions);
@@ -89,7 +91,7 @@ public class RunsDuring extends Execution {
       @Override
       public void run() {
         markExecutionState(scenario, ExecutionState.ENDING);
-        executor.shutdownNow();
+        shutdownNicely(doneFlag, executor);
       }
     }, during.getNb(), during.getTimeDivision().getTimeUnit());
 
@@ -99,11 +101,11 @@ public class RunsDuring extends Execution {
       }
     } catch (InterruptedException e) {
       markExecutionState(scenario, ExecutionState.ENDING);
-      executor.shutdownNow();
+      shutdownNicely(doneFlag, executor);
       throw new TestException("Thread execution Interruption", e);
     } catch (ExecutionException e) {
       markExecutionState(scenario, ExecutionState.ENDING);
-      executor.shutdownNow();
+      shutdownNicely(doneFlag, executor);
       throw new TestException("Thread execution error", e);
     }
     try {
@@ -115,5 +117,10 @@ public class RunsDuring extends Execution {
     } catch (InterruptedException e) {
       throw new TestException("Execution of Scenario didn't stop correctly.", e);
     }
+  }
+
+  private void shutdownNicely(AtomicBoolean doneFlag, ExecutorService executor) {
+    doneFlag.set(true);
+    executor.shutdown();
   }
 }
