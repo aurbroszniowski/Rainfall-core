@@ -95,7 +95,7 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
   }
 
   @Override
-  public void record(final String name, final long responseTimeInNs, final Enum result) {
+  public synchronized void record(final String name, final long responseTimeInNs, final Enum result) {
     this.statistics.get(name).increaseCounterAndSetLatencyInNs(result, responseTimeInNs);
     try {
       histograms.get(result).recordValue(responseTimeInNs);
