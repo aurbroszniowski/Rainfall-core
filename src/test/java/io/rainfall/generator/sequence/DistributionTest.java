@@ -8,10 +8,40 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.junit.Assert.assertThat;
+
 /**
  * @author Aurelien Broszniowski
  */
 public class DistributionTest {
+
+  @Test
+  public void testFlatInBoundsPositive() {
+    Distribution distribution = Distribution.FLAT;
+    final ConcurrentPseudoRandom rnd = new ConcurrentPseudoRandom();
+    long min = 0;
+    long max = 100000;
+    for(int i=0;i<500;i++) {
+      long next = distribution.generate(rnd, min, max, max);
+      assertThat(next, greaterThanOrEqualTo(min));
+      assertThat(next, lessThanOrEqualTo(max));
+    }
+  }
+
+  @Test
+  public void testFlatInBoundsNegative() {
+    Distribution distribution = Distribution.FLAT;
+    final ConcurrentPseudoRandom rnd = new ConcurrentPseudoRandom();
+    long min = -10000;
+    long max = -200;
+    for(int i=0;i<500;i++) {
+      long next = distribution.generate(rnd, min, max, max);
+      assertThat(next, greaterThanOrEqualTo(min));
+      assertThat(next, lessThanOrEqualTo(max));
+    }
+  }
 
   @Test
   public void testGaussian() {
