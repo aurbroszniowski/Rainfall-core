@@ -10,7 +10,7 @@ public enum Distribution {
   FLAT {
     @Override
     public long generate(ConcurrentPseudoRandom rnd, long minimum, long maximum, long width) {
-      return (rnd.nextLong() % (maximum - minimum)) + minimum;
+      return (Math.abs(rnd.nextLong()) % (maximum - minimum)) + minimum;
     }
   },
   GAUSSIAN {
