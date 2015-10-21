@@ -66,6 +66,11 @@
 </div>
 <br/>
 
+<div class="border"><h1><a name="gc">Garbage Collection</a></h1>
+    <div id="gc-box"></div>
+</div>
+<br/>
+
 <div class="border"><h1><a name="percentile">Response time percentiles distribution</a></h1>
     <div id="percentiles-box"></div>
 </div>
@@ -326,6 +331,12 @@
         $("#response-time-box").append("<div id='" + filename + "'><div class='title'/><div class='graph'/></div>");
         $("#" + filename + " .title").before("<h2>" + name + "</h2>");
         addGraph(filename, 'Response time (ms)');
+    }
+
+    function reportGc(filename, name) {
+        $("#gc-box").append("<div id='" + filename + "'><div class='title'/><div class='graph'/></div>");
+        $("#" + filename + " .title").before("<h2>" + name + "</h2>");
+        addGraph(filename, 'Pause Time (ms)');
     }
 
     function reportPercentiles(filename, name, mean, max) {
