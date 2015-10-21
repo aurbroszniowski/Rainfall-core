@@ -131,7 +131,6 @@ public class ScenarioRun<E extends Enum<E>> {
     StatisticsPeekHolder peek = stats.stop();
 
     long end = System.currentTimeMillis();
-    System.out.println("-> Taken:" + TimeUnit.MILLISECONDS.toSeconds(end - start));
 
     return peek;
   }
