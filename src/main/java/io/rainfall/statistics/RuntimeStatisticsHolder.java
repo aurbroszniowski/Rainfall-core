@@ -30,7 +30,8 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
 
   private final ConcurrentHashMap<String, LongAdder> assertionsErrors = new ConcurrentHashMap<String, LongAdder>();
   private final ConcurrentHashMap<String, Statistics<E>> statistics = new ConcurrentHashMap<String, Statistics<E>>();
-  private final ConcurrentHashMap<Enum, Histogram> histograms = new ConcurrentHashMap<Enum, Histogram>();
+  private final ConcurrentHashMap<Enum, RainfallHistogramSink> histograms = new ConcurrentHashMap<Enum,
+    RainfallHistogramSink>();
   private Enum<E>[] results;
   private Enum<E>[] resultsReported;
 
@@ -38,7 +39,12 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
     this.results = results;
     this.resultsReported = resultsReported;
     for (Enum<E> result : results) {
-      this.histograms.put(result, new Histogram(3));
+      this.histograms.put(result, new RainfallHistogramSink(new RainfallHistogramSink.Factory() {
+        @Override
+        public Histogram createHistogram() {
+          return new Histogram(3);
+        }
+      }));
     }
   }
 
@@ -61,7 +67,7 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
   }
 
   @Override
-  public Histogram getHistogram(final Enum<E> result) {
+  public RainfallHistogramSink getHistogramSink(final Enum<E> result) {
     return this.histograms.get(result);
   }
 
@@ -79,8 +85,8 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
     for (Statistics<E> statistics : this.statistics.values()) {
       statistics.reset();
     }
-    for (Histogram histogram : histograms.values()) {
-      histogram.reset();
+    for (RainfallHistogramSink sink : histograms.values()) {
+      sink.reset();
     }
     System.out.println("reset");
   }
@@ -95,7 +101,7 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
   }
 
   @Override
-  public synchronized void record(final String name, final long responseTimeInNs, final Enum result) {
+  public void record(final String name, final long responseTimeInNs, final Enum result) {
     this.statistics.get(name).increaseCounterAndSetLatencyInNs(result, responseTimeInNs);
     try {
       histograms.get(result).recordValue(responseTimeInNs);

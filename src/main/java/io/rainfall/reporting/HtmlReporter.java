@@ -148,7 +148,7 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
     Enum<E>[] results = statisticsHolder.getResultsReported();
     try {
       for (Enum<E> result : results) {
-        Histogram histogram = statisticsHolder.getHistogram(result);
+        Histogram histogram = statisticsHolder.getHistogramSink(result).fetchHistogram();
         try {
           histogram = histogram.copyCorrectedForCoordinatedOmission(1000000L);
         } catch (Throwable t) {
