@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class RainfallHistogramSink {
 
   private final Factory factory;
-  private ConcurrentLinkedQueue<HistogramHolder> actives = new ConcurrentLinkedQueue<HistogramHolder>();
+  private final ConcurrentLinkedQueue<HistogramHolder> actives = new ConcurrentLinkedQueue<HistogramHolder>();
   private static final ThreadLocal<HistogramHolder> context = new ThreadLocal<HistogramHolder>();
 
   private static class HistogramHolder {
