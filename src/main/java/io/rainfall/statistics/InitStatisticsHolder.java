@@ -16,9 +16,6 @@
 
 package io.rainfall.statistics;
 
-import io.rainfall.TestException;
-import org.HdrHistogram.Histogram;
-
 import java.util.Set;
 
 /**
@@ -48,7 +45,7 @@ public class InitStatisticsHolder<E extends Enum<E>> implements StatisticsHolder
   }
 
   @Override
-  public Histogram getHistogram(final Enum<E> result) {
+  public RainfallHistogramSink getHistogramSink(final Enum<E> result) {
     throw new UnsupportedOperationException("Should not be implemented");
   }
 
