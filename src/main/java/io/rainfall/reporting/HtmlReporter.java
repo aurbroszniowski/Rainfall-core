@@ -150,10 +150,14 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
 
   @Override
   public void summarize(final StatisticsHolder<E> statisticsHolder) {
-    gcStatsCollector.unregisterGcEventListeners();
-    StringBuilder sb = new StringBuilder();
-    Enum<E>[] results = statisticsHolder.getResultsReported();
     try {
+      if (!new File(reportFile).exists()) {
+        copyReportTemplate(statisticsHolder);
+      }
+      gcStatsCollector.unregisterGcEventListeners();
+      StringBuilder sb = new StringBuilder();
+      Enum<E>[] results = statisticsHolder.getResultsReported();
+
       for (Enum<E> result : results) {
         Histogram histogram = statisticsHolder.getHistogramSink(result).fetchHistogram();
         try {
@@ -244,10 +248,10 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
   private String toCsv(GcStatsCollector.GcStats gcStats) {
     long jvmStartTime = ManagementFactory.getRuntimeMXBean().getStartTime();
     return String.valueOf(formatTimestampInNano(jvmStartTime + gcStats.getStartTimestamp())) + "," +
-        gcStats.getDuration() + "," +
-        gcStats.getAction() + "," +
-        gcStats.getCause() + "," +
-        gcStats.getName();
+           gcStats.getDuration() + "," +
+           gcStats.getAction() + "," +
+           gcStats.getCause() + "," +
+           gcStats.getName();
   }
 
   /**
@@ -339,10 +343,18 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
     return cleanName.toString();
   }
 
-  private void copyReportTemplate(final StatisticsPeekHolder<E> peek) throws IOException, URISyntaxException {
-    StringBuilder sb = new StringBuilder();
+  private void copyReportTemplate(final StatisticsHolder<E> peek) throws IOException, URISyntaxException {
+    Set<String> names = peek.getStatisticsKeys();
+    copyReport(names);
+  }
 
+  private void copyReportTemplate(final StatisticsPeekHolder<E> peek) throws IOException, URISyntaxException {
     Set<String> names = peek.getStatisticsPeeksNames();
+    copyReport(names);
+  }
+
+  private void copyReport(Set<String> names) throws IOException {
+    StringBuilder sb = new StringBuilder();
     // Periodic
     for (String name : names) {
       String tpsFilename = getTpsFilename(name);
