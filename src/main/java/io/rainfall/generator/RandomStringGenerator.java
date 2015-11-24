@@ -24,30 +24,29 @@ import java.util.UUID;
  * @author Aurelien Broszniowski
  */
 
-public class StringGenerator implements ObjectGenerator<String> {
+public class RandomStringGenerator implements ObjectGenerator<String> {
 
-  private final String padding;
+  private final String randomString;
   private int length;
 
-  public StringGenerator(final int length) {
+  public RandomStringGenerator(final int length) {
     this.length = length;
     if (length <= 0) {
       throw new IllegalStateException("Can not generate a String with a length less or equal to 0");
     }
-    StringBuffer outputBuffer = new StringBuffer(length);
-    for (int i = 0; i < length - 1; i++) {
-      outputBuffer.append("0");
-    }
-    this.padding = outputBuffer.toString();
+    String baseRandom = UUID.randomUUID().toString();
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < 1 + (length / baseRandom.length()); i++)
+      sb.append(baseRandom);
+    this.randomString = sb.subSequence(0, length).toString();
   }
 
   @Override
   public String generate(final Long seed) {
-    String s = padding + seed;
-    return s.substring(s.length() - length);
+    return (seed.toString() + this.randomString).substring(0, length);   // return a new instance
   }
 
   public static ObjectGenerator<String> fixedLength(final int length) {
-    return new StringGenerator(length);
+    return new RandomStringGenerator(length);
   }
 }
