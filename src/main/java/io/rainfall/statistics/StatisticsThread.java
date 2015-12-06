@@ -19,6 +19,7 @@ package io.rainfall.statistics;
 import io.rainfall.Reporter;
 import io.rainfall.configuration.ReportingConfig;
 
+import java.util.List;
 import java.util.Set;
 import java.util.TimerTask;
 
@@ -30,11 +31,19 @@ public class StatisticsThread<E extends Enum<E>> extends TimerTask {
 
   private RuntimeStatisticsHolder<E> statisticsHolder;
   private ReportingConfig<E> reportingConfig;
+  private List<String> description;
 
-  public StatisticsThread(final RuntimeStatisticsHolder<E> statisticsHolder, final ReportingConfig<E> reportingConfig) {
+  public StatisticsThread(final RuntimeStatisticsHolder<E> statisticsHolder, final ReportingConfig<E> reportingConfig,
+                          final List<String> description) {
+    this.description = description;
     Thread.currentThread().setName("Rainfall-core Statistics Thread");
     this.statisticsHolder = statisticsHolder;
     this.reportingConfig = reportingConfig;
+
+    Set<Reporter<E>> reporters = reportingConfig.getLogReporters();
+    for (Reporter<E> reporter : reporters) {
+      reporter.header(description);
+    }
   }
 
   @Override

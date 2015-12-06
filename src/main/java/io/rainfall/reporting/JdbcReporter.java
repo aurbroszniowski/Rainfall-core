@@ -11,6 +11,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -48,6 +49,11 @@ public class JdbcReporter<E extends Enum<E>> extends Reporter<E> {
     } catch (IOException e) {
       throw new RuntimeException("Error when reading JDBC properties. ", e);
     }
+  }
+
+  @Override
+  public void header(final List<String> description) {
+    //TODO insert header in description
   }
 
   @Override

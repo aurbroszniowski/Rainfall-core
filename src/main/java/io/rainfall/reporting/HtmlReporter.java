@@ -26,6 +26,7 @@ import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -86,12 +87,27 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
         extractFromPath(new File(HtmlReporter.class.getClass().getResource("/report").toURI()), new File(this.basedir));
       }
 
+      extractReportFile();
+
       gcStatsCollector.registerGcEventListeners();
+
     } catch (URISyntaxException e) {
       throw new RuntimeException("Can not read report template");
     } catch (IOException e) {
       throw new RuntimeException("Can not copy report template");
     }
+  }
+
+  private void extractReportFile() throws IOException {
+    InputStream in = HtmlReporter.class.getClass().getResourceAsStream("/template/Tps-template.html");
+    OutputStream out = new FileOutputStream(new File(this.reportFile));
+    byte[] buffer = new byte[1024];
+    int len = in.read(buffer);
+    while (len > 0) {
+      out.write(buffer, 0, len);
+      len = in.read(buffer);
+    }
+    out.close();
   }
 
   private void extractFromPath(final File src, final File dst) throws IOException {
@@ -119,6 +135,19 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
 
       in.close();
       out.close();
+    }
+  }
+
+  @Override
+  public void header(final List<String> description) {
+    StringBuilder sb = new StringBuilder();
+    for (String desc : description) {
+      sb.append(desc).append("</br>");
+    }
+    try {
+      substituteInFile(reportFile, "//!header!", sb);
+    } catch (Exception e) {
+      throw new RuntimeException("Can not report to Html", e);
     }
   }
 
@@ -194,8 +223,7 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
             .append("', '" + mean + "', '" + maxValue)
             .append("');").append(CRLF);
       }
-      substituteInFile(new FileInputStream(new File(reportFile)), reportFile, "//!summary!", sb);
-
+      substituteInFile(reportFile, "//!summary!", sb);
 
     } catch (Exception e) {
       throw new RuntimeException("Can not report to Html", e);
@@ -375,20 +403,19 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
     sb.append("reportGc('gc', 'GC Time');")
         .append(CRLF);
 
-    InputStream in = HtmlReporter.class.getClass().getResourceAsStream("/template/Tps-template.html");
-    substituteInFile(in, reportFile, "//!report!", sb);
+    substituteInFile(reportFile, "//!report!", sb);
   }
 
   /**
    * take a StringBuilder and replace a marker inside a file by the content of that StringBuilder.
    *
-   * @param in         InputStream of the source file
-   * @param outputFile the destination file
-   * @param marker     marker String in file to be replace
-   * @param sb         StringBuilder that has the content to put instead of the marker
+   * @param filename path of the file to change
+   * @param marker   marker String in file to be replace
+   * @param sb       StringBuilder that has the content to put instead of the marker
    * @throws IOException
    */
-  private void substituteInFile(final InputStream in, final String outputFile, final String marker, final StringBuilder sb) throws IOException {
+  private void substituteInFile(final String filename, final String marker, final StringBuilder sb) throws IOException {
+    final InputStream in = new FileInputStream(filename);
     Scanner scanner = new Scanner(in);
     StringBuilder fileContents = new StringBuilder();
     try {
@@ -402,10 +429,10 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
 
     // create template
     byte[] replace = fileContents.toString().replace(marker, sb.toString()).getBytes();
-    OutputStream out = new FileOutputStream(outputFile);
+
+    OutputStream out = new FileOutputStream(new File(filename));
     out.write(replace, 0, replace.length);
     out.close();
-
   }
 
   private String formatTimestampInNano(final long timestamp) {

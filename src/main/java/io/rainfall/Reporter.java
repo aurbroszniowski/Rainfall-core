@@ -19,6 +19,8 @@ package io.rainfall;
 import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.statistics.StatisticsPeekHolder;
 
+import java.util.List;
+
 /**
  * A reporter is a class that will send the metrics to some output (text, file, etc.)
  *
@@ -27,7 +29,10 @@ import io.rainfall.statistics.StatisticsPeekHolder;
 
 public abstract class Reporter<E extends Enum<E>> {
 
+  public abstract void header(final List<String> description);
+
   public abstract void report(final StatisticsPeekHolder<E> statisticsHolder);
 
   public abstract void summarize(final StatisticsHolder<E> statisticsHolder);
+
 }

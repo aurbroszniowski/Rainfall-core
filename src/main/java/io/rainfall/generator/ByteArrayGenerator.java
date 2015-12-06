@@ -43,7 +43,7 @@ public class ByteArrayGenerator implements ObjectGenerator<byte[]> {
 
   @Override
   public String getDescription() {
-    return "byte[]";
+    return "byte[" + length + "]";
   }
 
   public static ObjectGenerator<byte[]> fixedLength(final int length) {

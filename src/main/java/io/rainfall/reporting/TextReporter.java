@@ -27,6 +27,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
 
@@ -45,6 +46,16 @@ public class TextReporter<E extends Enum<E>> extends Reporter<E> {
   private String CRLF = System.getProperty("line.separator");
   private Calendar calendar = GregorianCalendar.getInstance(TimeZone.getDefault());
   private SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+
+  @Override
+  public void header(final List<String> description) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("===================================================== SCENARIO ==========================================");
+    for (String desc : description) {
+      sb.append(desc).append(CRLF);
+    }
+    System.out.println(sb.toString());
+  }
 
   @Override
   public void report(final StatisticsPeekHolder<E> statisticsHolder) {

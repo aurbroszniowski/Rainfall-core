@@ -90,26 +90,6 @@ public class ScenarioRun<E extends Enum<E>> {
 
   // Start Scenario run
   public StatisticsPeekHolder<E> start() {
-    System.out.println("---------------------------------");
-
-    List<String> description = scenario.getDescription();
-    for (String desc : description) {
-      System.out.println(desc);
-    }
-    System.out.println("---------------------------------");
-    System.out.println("Execution of the scenario : ");
-    int step = 1;
-    for (Execution execution : executions) {
-      System.out.println(step + ") " + execution.getDescription());
-    }
-    System.out.println("---------------------------------");
-    for (Configuration configuration : configurations.values()) {
-      description = configuration.getDescription();
-      for (String desc : description) {
-        System.out.println(desc);
-      }
-    }
-
     long start = System.currentTimeMillis();
 
     //TODO : add generics ? cast?
@@ -136,7 +116,7 @@ public class ScenarioRun<E extends Enum<E>> {
     initStatistics(this.statisticsHolder);
 
     Timer timer = new Timer();
-    StatisticsThread<E> stats = new StatisticsThread<E>(statisticsHolder, reportingConfig);
+    StatisticsThread<E> stats = new StatisticsThread<E>(statisticsHolder, reportingConfig, getDescription());
     TimeUnit reportIntervalUnit = reportingConfig.getReportTimeUnit();
     long reportIntervalMillis = reportIntervalUnit.toMillis(reportingConfig.getReportInterval());
     timer.scheduleAtFixedRate(stats, reportIntervalMillis, reportIntervalMillis);
@@ -154,6 +134,33 @@ public class ScenarioRun<E extends Enum<E>> {
     long end = System.currentTimeMillis();
 
     return peek;
+  }
+
+  private List<String> getDescription() {
+    List<String> description = new ArrayList<String>();
+    description.addAll(scenario.getDescription());
+
+    description.add("");
+
+    if (warmup != null) {
+      description.add("Warmup phase " + this.warmup.getDescription());
+    }
+
+    description.add("Execution of the scenario : ");
+    int step = 1;
+    for (Execution execution : executions) {
+      description.add(step + ") " + execution.getDescription());
+    }
+
+    description.add("");
+
+    for (Configuration configuration : configurations.values()) {
+      List<String> descs = configuration.getDescription();
+      for (String desc : descs) {
+        description.add(desc);
+      }
+    }
+    return description;
   }
 
   private void initStatistics(RuntimeStatisticsHolder<E> statisticsHolder) {
