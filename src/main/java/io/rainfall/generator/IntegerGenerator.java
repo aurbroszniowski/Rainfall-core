@@ -18,6 +18,8 @@ package io.rainfall.generator;
 
 import io.rainfall.ObjectGenerator;
 
+import java.util.List;
+
 /**
  * @author Aurelien Broszniowski
  */
@@ -26,5 +28,10 @@ public class IntegerGenerator implements ObjectGenerator<Integer> {
   @Override
   public Integer generate(final Long l) {
     return l.intValue();
+  }
+
+  @Override
+  public String getDescription() {
+    return "Integer";
   }
 }

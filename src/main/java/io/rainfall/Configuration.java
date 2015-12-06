@@ -16,9 +16,14 @@
 
 package io.rainfall;
 
+import java.util.List;
+
 /**
  * @author Aurelien Broszniowski
  */
 
 public abstract class Configuration {
+
+  public abstract List<String> getDescription();
+
 }

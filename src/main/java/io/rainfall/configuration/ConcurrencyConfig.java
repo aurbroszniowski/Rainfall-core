@@ -18,7 +18,9 @@ package io.rainfall.configuration;
 
 import io.rainfall.Configuration;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -69,5 +71,10 @@ public class ConcurrencyConfig extends Configuration {
       }
     }
     return nbIterationsPerThread.get(threadNb).intValue();
+  }
+
+  @Override
+  public List<String> getDescription() {
+    return Arrays.asList("Threadpool size : " + nbThreads);
   }
 }

@@ -16,6 +16,8 @@
 
 package io.rainfall;
 
+import java.util.List;
+
 /**
  * @author Aurelien Broszniowski
  */
@@ -23,4 +25,6 @@ package io.rainfall;
 public interface ObjectGenerator<T> {
 
   T generate(Long seed);
+
+  String getDescription();
 }

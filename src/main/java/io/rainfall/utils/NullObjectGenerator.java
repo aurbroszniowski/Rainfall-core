@@ -29,6 +29,11 @@ public class NullObjectGenerator<T> implements ObjectGenerator<T> {
     throw new IllegalStateException("You must define an ObjectGenerator.");
   }
 
+  @Override
+  public String getDescription() {
+    return "Undefined";
+  }
+
   public static <T> ObjectGenerator<T> instance() {
     return new NullObjectGenerator<T>();
   }

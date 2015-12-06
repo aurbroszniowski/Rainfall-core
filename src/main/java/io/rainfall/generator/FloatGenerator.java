@@ -29,4 +29,9 @@ public class FloatGenerator implements ObjectGenerator<Float> {
   public Float generate(final Long l) {
     return l.floatValue();
   }
+
+  @Override
+  public String getDescription() {
+    return "Float";
+  }
 }

@@ -13,6 +13,11 @@ public class NullSequenceGenerator implements SequenceGenerator {
     throw new IllegalStateException("You must define a SequenceGenerator.");
   }
 
+  @Override
+  public String getDescription() {
+    return "No sequence generator defined yet";
+  }
+
   public static SequenceGenerator instance() {
     return new NullSequenceGenerator();
   }

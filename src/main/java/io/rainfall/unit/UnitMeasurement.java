@@ -23,7 +23,7 @@ import io.rainfall.Unit;
  */
 public class UnitMeasurement extends Unit {
 
-  private final int nb;
+  protected final int nb;
   private final Unit unit;
 
   public UnitMeasurement(int nb, Unit unit) {
@@ -33,5 +33,10 @@ public class UnitMeasurement extends Unit {
 
   public int getNb() {
     return nb;
+  }
+
+  @Override
+  public String getDescription() {
+    return nb + " " + unit.getDescription();
   }
 }

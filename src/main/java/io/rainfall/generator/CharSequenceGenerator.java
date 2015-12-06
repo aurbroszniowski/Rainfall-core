@@ -18,6 +18,8 @@ package io.rainfall.generator;
 
 import io.rainfall.ObjectGenerator;
 
+import java.util.List;
+
 /**
  * @author Aurelien Broszniowski
  */
@@ -26,5 +28,10 @@ public class CharSequenceGenerator implements ObjectGenerator<CharSequence> {
   @Override
   public CharSequence generate(final Long l) {
     return l.toString();
+  }
+
+  @Override
+  public String getDescription() {
+    return "CharSequence";
   }
 }

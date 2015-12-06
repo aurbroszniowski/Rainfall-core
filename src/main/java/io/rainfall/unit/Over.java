@@ -28,4 +28,9 @@ public class Over extends TimeMeasurement {
   public Over(final int nb, final TimeDivision timeDivision) {
     super(nb, timeDivision);
   }
+
+  @Override
+  public String getDescription() {
+    return "over " + super.getDescription();
+  }
 }

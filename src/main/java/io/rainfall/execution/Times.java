@@ -87,4 +87,9 @@ public class Times extends Execution {
       throw new TestException("Execution of Scenario didn't stop correctly.", e);
     }
   }
+
+  @Override
+  public String getDescription() {
+    return occurrences + " occurences";
+  }
 }

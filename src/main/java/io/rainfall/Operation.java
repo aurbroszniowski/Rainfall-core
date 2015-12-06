@@ -32,6 +32,7 @@ public abstract class Operation {
   private volatile Execution.ExecutionState state= Execution.ExecutionState.UNKNOWN;
 
   private float weight = 1;
+  private int weightInPercent;
 
   public abstract  void exec(final StatisticsHolder  statisticsHolder,
                             final Map<Class<? extends Configuration>, Configuration> configurations,
@@ -39,11 +40,16 @@ public abstract class Operation {
 
   public Operation withWeight(Double weight) {
     this.weight = weight.floatValue();
+    this.weightInPercent = (int)(100 * weight);
     return this;
   }
 
   public float getWeight() {
     return weight;
+  }
+
+  public int getWeightInPercent() {
+    return this.weightInPercent;
   }
 
   protected long getTimeInNs() {
@@ -57,4 +63,6 @@ public abstract class Operation {
   public void markExecutionState(Execution.ExecutionState state) {
     this.state = state;
   }
+
+  public abstract List<String> getDescription();
 }

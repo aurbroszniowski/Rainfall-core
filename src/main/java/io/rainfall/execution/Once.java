@@ -56,7 +56,7 @@ public class Once extends Execution {
                                           final Map<Class<? extends Configuration>, Configuration> configurations,
                                           final List<AssertionEvaluator> assertions) throws TestException {
 
-    ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig) configurations.get(ConcurrencyConfig.class);
+    ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
     int nbThreads = concurrencyConfig.getNbThreads();
     ExecutorService executor = Executors.newFixedThreadPool(nbThreads);
     markExecutionState(scenario, ExecutionState.BEGINNING);
@@ -72,7 +72,7 @@ public class Once extends Execution {
             List<RangeMap<Operation>> operations = scenario.getOperations();
             for (RangeMap<Operation> operation : operations) {
               operation.get(weightRnd.nextFloat(operation.getHigherBound())).exec(statisticsHolder, configurations,
-                assertions);
+                  assertions);
             }
             return null;
           }
@@ -82,7 +82,7 @@ public class Once extends Execution {
     markExecutionState(scenario, ExecutionState.ENDING);
     executor.shutdown();
     try {
-      long timeoutInSeconds = ((ConcurrencyConfig) configurations.get(ConcurrencyConfig.class)).getTimeoutInSeconds();
+      long timeoutInSeconds = ((ConcurrencyConfig)configurations.get(ConcurrencyConfig.class)).getTimeoutInSeconds();
       boolean success = executor.awaitTermination(timeoutInSeconds, SECONDS);
       if (!success) {
         throw new TestException("Execution of Scenario timed out after " + timeoutInSeconds + " seconds.");
@@ -90,5 +90,10 @@ public class Once extends Execution {
     } catch (InterruptedException e) {
       throw new TestException("Execution of Scenario didn't stop correctly.", e);
     }
+  }
+
+  @Override
+  public String getDescription() {
+    return nb + " " + unit.getDescription();
   }
 }

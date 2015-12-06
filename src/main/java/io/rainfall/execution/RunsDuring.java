@@ -64,7 +64,7 @@ public class RunsDuring extends Execution {
     ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(concurrencyConfig.getNbThreads());
     final ExecutorService executor = Executors.newFixedThreadPool(nbThreads);
     markExecutionState(scenario, ExecutionState.BEGINNING);
-    final AtomicBoolean doneFlag=new AtomicBoolean(false);
+    final AtomicBoolean doneFlag = new AtomicBoolean(false);
 
     List<Future<Void>> futures = new ArrayList<Future<Void>>();
     for (int threadNb = 0; threadNb < nbThreads; threadNb++) {
@@ -117,6 +117,11 @@ public class RunsDuring extends Execution {
     } catch (InterruptedException e) {
       throw new TestException("Execution of Scenario didn't stop correctly.", e);
     }
+  }
+
+  @Override
+  public String getDescription() {
+    return "" + during.getDescription();
   }
 
   private void shutdownNicely(AtomicBoolean doneFlag, ExecutorService executor) {

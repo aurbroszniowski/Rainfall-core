@@ -17,8 +17,10 @@
 package io.rainfall;
 
 import io.rainfall.utils.RangeMap;
+import javafx.collections.transformation.SortedList;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -53,4 +55,18 @@ public class Scenario {
     return this.operations;
   }
 
+  public List<String> getDescription() {
+    List<String> desc = new ArrayList<String>();
+    desc.add("Scenario : " + name);
+    int step = 1;
+    for (RangeMap<Operation> operationMap : operations) {
+      desc.add("Step " + step + ")");
+      Collection<Operation> parallelOperations = operationMap.getAll();
+      for (Operation operation : parallelOperations) {
+        desc.addAll(operation.getDescription());
+      }
+      step++;
+    }
+    return desc;
+  }
 }

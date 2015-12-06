@@ -12,6 +12,11 @@ public enum Distribution {
     public long generate(ConcurrentPseudoRandom rnd, long minimum, long maximum, long width) {
       return (Math.abs(rnd.nextLong()) % (maximum - minimum)) + minimum;
     }
+
+    @Override
+    public String getDescription() {
+      return "Flat";
+    }
   },
   GAUSSIAN {
     @Override
@@ -38,8 +43,14 @@ public enum Distribution {
         }
       }
     }
+
+    @Override
+    public String getDescription() {
+      return "Gaussian";
+    }
   };
 
   public abstract long generate(ConcurrentPseudoRandom rnd, long minimum, long maximum, long width);
 
+  public abstract String getDescription();
 }

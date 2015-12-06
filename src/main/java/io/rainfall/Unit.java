@@ -17,7 +17,6 @@
 package io.rainfall;
 
 import io.rainfall.execution.Once;
-import io.rainfall.unit.User;
 
 /**
  * This is a Unit for the parameter given to a {@link Execution} instance.
@@ -29,6 +28,6 @@ import io.rainfall.unit.User;
 
 public abstract class Unit {
 
-  public static final Unit users = new User();
+  public abstract String getDescription();
 
 }

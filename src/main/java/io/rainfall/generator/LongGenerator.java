@@ -27,4 +27,9 @@ public class LongGenerator implements ObjectGenerator<Long> {
   public Long generate(final Long seed) {
     return seed;
   }
+
+  @Override
+  public String getDescription() {
+    return "Long";
+  }
 }

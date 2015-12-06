@@ -18,9 +18,19 @@ package io.rainfall.unit;
 
 import io.rainfall.Unit;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * @author Aurelien Broszniowski
  */
 
-public class User extends Unit {
+public class Instance extends Unit {
+
+  public static Instance instances = new Instance();
+
+  @Override
+  public String getDescription() {
+    return "instance(s)";
+  }
 }

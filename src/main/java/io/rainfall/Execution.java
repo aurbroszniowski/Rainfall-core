@@ -39,7 +39,6 @@ public abstract class Execution {
 
   /**
    * Provide an easy way to mark all operations as underway.
-   *
    */
   public void markExecutionState(Scenario scenario, ExecutionState state) {
     for (RangeMap<Operation> opMap : scenario.getOperations()) {
@@ -54,5 +53,7 @@ public abstract class Execution {
   public abstract <E extends Enum<E>> void execute(final StatisticsHolder<E> statisticsHolder, final Scenario scenario,
                                                    final Map<Class<? extends Configuration>, Configuration> configurations,
                                                    final List<AssertionEvaluator> assertions) throws TestException;
+
+  public abstract String getDescription();
 
 }

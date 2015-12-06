@@ -52,4 +52,9 @@ public class NothingFor extends Execution {
       Thread.currentThread().interrupt();
     }
   }
+
+  @Override
+  public String getDescription() {
+    return "None for " + nb + " " + timeDivision.getDescription();
+  }
 }

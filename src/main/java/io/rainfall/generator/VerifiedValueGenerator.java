@@ -15,7 +15,12 @@ public class VerifiedValueGenerator<K> implements ObjectGenerator<VerifiedValueG
 
   @Override
   public VerifiedValue generate(final Long seed) {
-    return new VerifiedValue(seed, keyGenerator.generate(seed));
+    return new VerifiedValue<K>(seed, keyGenerator.generate(seed));
+  }
+
+  @Override
+  public String getDescription() {
+    return "VerifiedValue (custom object, with equality assertion)";
   }
 
   public static class VerifiedValue<K> {
@@ -33,7 +38,7 @@ public class VerifiedValueGenerator<K> implements ObjectGenerator<VerifiedValueG
 
     @Override
     public boolean equals(final Object obj) {
-      if (!(obj instanceof VerifiedValue) || obj == null ) {
+      if (!(obj instanceof VerifiedValue)) {
         return false;
       }
       return ((VerifiedValue)obj).getKey().equals(getKey());

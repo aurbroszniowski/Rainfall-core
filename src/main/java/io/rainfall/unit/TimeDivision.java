@@ -39,4 +39,9 @@ public class TimeDivision extends Unit {
   public TimeUnit getTimeUnit() {
     return timeUnit;
   }
+
+  @Override
+  public String getDescription() {
+    return timeUnit.name().toLowerCase();
+  }
 }

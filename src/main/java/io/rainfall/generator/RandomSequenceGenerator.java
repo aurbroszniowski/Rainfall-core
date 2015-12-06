@@ -40,6 +40,12 @@ public class RandomSequenceGenerator implements SequenceGenerator {
 
   @Override
   public long next() {
-    return distribution.generate(rnd, minimum, maximum, width);
+    return this.distribution.generate(rnd, minimum, maximum, width);
+  }
+
+  @Override
+  public String getDescription() {
+    return "Random sequence with " + this.distribution.getDescription() + " distribution. (min = " +
+           this.minimum + ", max = " + this.maximum + ", width = " + this.width + ")";
   }
 }

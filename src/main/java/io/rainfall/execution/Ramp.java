@@ -24,9 +24,9 @@ import io.rainfall.Scenario;
 import io.rainfall.TestException;
 import io.rainfall.configuration.ConcurrencyConfig;
 import io.rainfall.statistics.StatisticsHolder;
-import io.rainfall.unit.Over;
 import io.rainfall.unit.Every;
 import io.rainfall.unit.From;
+import io.rainfall.unit.Over;
 import io.rainfall.unit.To;
 import io.rainfall.utils.RangeMap;
 import jsr166e.extra.AtomicDouble;
@@ -124,5 +124,11 @@ public class Ramp extends Execution {
     if (exceptions.size() > 0) {
       throw exceptions.get(0);
     }
+  }
+
+  @Override
+  public String getDescription() {
+    return "Ramp " + from.getDescription() + " "
+           + to.getDescription() + " " + every.getDescription() + " " + over.getDescription();
   }
 }

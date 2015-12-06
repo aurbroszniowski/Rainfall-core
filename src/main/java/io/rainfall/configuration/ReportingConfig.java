@@ -21,7 +21,9 @@ import io.rainfall.Reporter;
 import io.rainfall.reporting.HtmlReporter;
 import io.rainfall.reporting.TextReporter;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -52,7 +54,7 @@ public class ReportingConfig<E extends Enum<E>> extends Configuration {
   public static <E extends Enum<E>> ReportingConfig<E> report(Class<E> results, Enum<E>[] resultsReported) {
     return new ReportingConfig<E>(results.getEnumConstants(), resultsReported);
   }
-  
+
   public ReportingConfig every(final long amount, final TimeUnit unit) {
     this.reportInterval = amount;
     this.reportIntervalUnit = unit;
@@ -90,7 +92,7 @@ public class ReportingConfig<E extends Enum<E>> extends Configuration {
   public Set<Reporter<E>> getLogReporters() {
     return logReporters;
   }
-  
+
   public long getReportInterval() {
     return reportInterval;
   }
@@ -99,4 +101,16 @@ public class ReportingConfig<E extends Enum<E>> extends Configuration {
     return reportIntervalUnit;
   }
 
+  @Override
+  public List<String> getDescription() {
+    List<String> desc = new ArrayList<String>();
+    StringBuilder sb = new StringBuilder("Reported results are [ ");
+    for (Enum<E> result : resultsReported) {
+      sb.append(result).append(" ");
+    }
+    sb.append("].");
+    desc.add(sb.toString());
+    desc.add("Report interval = " + reportInterval + " " + reportIntervalUnit.name());
+    return desc;
+  }
 }

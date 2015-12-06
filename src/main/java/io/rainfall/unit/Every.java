@@ -20,7 +20,7 @@ package io.rainfall.unit;
  * @author Aurelien Broszniowski
  */
 
-public class Every extends TimeMeasurement{
+public class Every extends TimeMeasurement {
 
   public static Every every(int nb, TimeDivision timeDivision) {
     return new Every(nb, timeDivision);
@@ -28,5 +28,10 @@ public class Every extends TimeMeasurement{
 
   public Every(final int nb, final TimeDivision timeDivision) {
     super(nb, timeDivision);
+  }
+
+  @Override
+  public String getDescription() {
+    return "every " + super.getDescription();
   }
 }

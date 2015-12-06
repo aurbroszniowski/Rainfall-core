@@ -46,6 +46,11 @@ public class RandomStringGenerator implements ObjectGenerator<String> {
     return (seed.toString() + this.randomString).substring(0, length);   // return a new instance
   }
 
+  @Override
+  public String getDescription() {
+    return "String (random, String length = " + this.length + ")";
+  }
+
   public static ObjectGenerator<String> fixedLength(final int length) {
     return new RandomStringGenerator(length);
   }

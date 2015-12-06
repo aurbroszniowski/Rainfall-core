@@ -31,4 +31,8 @@ public class To extends UnitMeasurement {
     super(nb, unit);
   }
 
+  @Override
+  public String getDescription() {
+    return "to " + super.getDescription();
+  }
 }

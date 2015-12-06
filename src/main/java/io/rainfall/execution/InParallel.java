@@ -63,7 +63,7 @@ public class InParallel extends Execution {
   public <E extends Enum<E>> void execute(final StatisticsHolder<E> statisticsHolder, final Scenario scenario,
                                           final Map<Class<? extends Configuration>, Configuration> configurations,
                                           final List<AssertionEvaluator> assertions) throws TestException {
-    final ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig) configurations.get(ConcurrencyConfig.class);
+    final ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
     int nbThreads = concurrencyConfig.getNbThreads();
 
     // Use a scheduled thread pool in order to execute concurrent Scenarios
@@ -81,13 +81,13 @@ public class InParallel extends Execution {
         @Override
         public void run() {
           Thread.currentThread().setName(
-            "Rainfall-core Operations Thread - " + THREAD_NUMBER_GENERATOR.getAndIncrement());
+              "Rainfall-core Operations Thread - " + THREAD_NUMBER_GENERATOR.getAndIncrement());
           try {
             for (int i = 0; i < max; i++) {
               List<RangeMap<Operation>> operations = scenario.getOperations();
               for (RangeMap<Operation> operation : operations) {
                 operation.get(weightRnd.nextFloat(operation.getHigherBound())).exec(statisticsHolder, configurations,
-                  assertions);
+                    assertions);
               }
             }
           } catch (TestException e) {
@@ -121,5 +121,11 @@ public class InParallel extends Execution {
     if (exceptions.size() > 0) {
       throw exceptions.get(0);
     }
+  }
+
+  @Override
+  public String getDescription() {
+    return  nb + " " + unit.getDescription()
+           + " every " + every.getDescription() + " during " + during.getDescription();
   }
 }

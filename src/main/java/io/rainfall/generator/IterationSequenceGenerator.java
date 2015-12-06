@@ -36,4 +36,9 @@ public class IterationSequenceGenerator implements SequenceGenerator {
   public long next() {
     return next.getAndIncrement();
   }
+
+  @Override
+  public String getDescription() {
+    return "Iterative sequence";
+  }
 }

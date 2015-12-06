@@ -90,6 +90,26 @@ public class ScenarioRun<E extends Enum<E>> {
 
   // Start Scenario run
   public StatisticsPeekHolder<E> start() {
+    System.out.println("---------------------------------");
+
+    List<String> description = scenario.getDescription();
+    for (String desc : description) {
+      System.out.println(desc);
+    }
+    System.out.println("---------------------------------");
+    System.out.println("Execution of the scenario : ");
+    int step = 1;
+    for (Execution execution : executions) {
+      System.out.println(step + ") " + execution.getDescription());
+    }
+    System.out.println("---------------------------------");
+    for (Configuration configuration : configurations.values()) {
+      description = configuration.getDescription();
+      for (String desc : description) {
+        System.out.println(desc);
+      }
+    }
+
     long start = System.currentTimeMillis();
 
     //TODO : add generics ? cast?
@@ -99,7 +119,8 @@ public class ScenarioRun<E extends Enum<E>> {
     // we need to call all operations to init the 'names', measured, should the 'name' be the key of the maps or instead
     // be inside of the Statistics, and the key would be operation result
     // besides, we end up having to initialize two stats holder, one real, and one blank for warmup phase, it's ugly
-    RuntimeStatisticsHolder<E> blankStatisticsHolder = new RuntimeStatisticsHolder<E>(reportingConfig.getResults(), reportingConfig.getResultsReported());
+    RuntimeStatisticsHolder<E> blankStatisticsHolder = new RuntimeStatisticsHolder<E>(reportingConfig.getResults(), reportingConfig
+        .getResultsReported());
     initStatistics(blankStatisticsHolder);
 
     try {

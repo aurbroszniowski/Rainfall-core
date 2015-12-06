@@ -20,6 +20,7 @@ import jsr166e.ThreadLocalRandom;
 import io.rainfall.ObjectGenerator;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Aurelien Broszniowski
@@ -38,6 +39,11 @@ public class ByteArrayGenerator implements ObjectGenerator<byte[]> {
     byte[] object = new byte[length];
     Arrays.fill(object, (byte)ThreadLocalRandom.current().nextInt());
     return object;
+  }
+
+  @Override
+  public String getDescription() {
+    return "byte[]";
   }
 
   public static ObjectGenerator<byte[]> fixedLength(final int length) {

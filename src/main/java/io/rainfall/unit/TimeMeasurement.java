@@ -43,4 +43,9 @@ public class TimeMeasurement extends Unit {
   public TimeDivision getTimeDivision() {
     return timeDivision;
   }
+
+  @Override
+  public String getDescription() {
+    return nb + " " + timeDivision.getDescription();
+  }
 }

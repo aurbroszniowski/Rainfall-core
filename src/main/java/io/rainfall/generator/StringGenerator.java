@@ -18,8 +18,6 @@ package io.rainfall.generator;
 
 import io.rainfall.ObjectGenerator;
 
-import java.util.UUID;
-
 /**
  * @author Aurelien Broszniowski
  */
@@ -45,6 +43,11 @@ public class StringGenerator implements ObjectGenerator<String> {
   public String generate(final Long seed) {
     String s = padding + seed;
     return s.substring(s.length() - length);
+  }
+
+  @Override
+  public String getDescription() {
+    return "String (length = " + length + ")";
   }
 
   public static ObjectGenerator<String> fixedLength(final int length) {
