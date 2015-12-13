@@ -26,7 +26,6 @@ import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -154,10 +153,6 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
   @Override
   public void report(final StatisticsPeekHolder<E> statisticsPeekHolder) {
     try {
-      if (!new File(reportFile).exists()) {
-        copyReportTemplate(statisticsPeekHolder);
-      }
-
       StatisticsPeek<E> totalStatisticsPeeks = statisticsPeekHolder.getTotalStatisticsPeeks();
 
       Set<String> keys = statisticsPeekHolder.getStatisticsPeeksNames();
@@ -172,23 +167,19 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
 
     } catch (IOException e) {
       throw new RuntimeException("Can not write report data");
-    } catch (URISyntaxException e) {
-      throw new RuntimeException("Can not write report data");
     }
   }
 
   @Override
   public void summarize(final StatisticsHolder<E> statisticsHolder) {
     try {
-      if (!new File(reportFile).exists()) {
-        copyReportTemplate(statisticsHolder);
-      }
+      copyReportTemplate(statisticsHolder);
       gcStatsCollector.unregisterGcEventListeners();
       StringBuilder sb = new StringBuilder();
       Enum<E>[] results = statisticsHolder.getResultsReported();
 
       for (Enum<E> result : results) {
-        Histogram histogram = statisticsHolder.getHistogramSink(result).fetchHistogram();
+        Histogram histogram = statisticsHolder.fetchHistogram(result);
         try {
           histogram = histogram.copyCorrectedForCoordinatedOmission(1000000L);
         } catch (Throwable t) {
@@ -371,6 +362,11 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
     return cleanName.toString();
   }
 
+  /**
+   * Define tps/latencies graph in html
+   * TODO : We know what is reported after hand (what domains are reported, e.g. cache1, cache2)
+   * TODO : We should define this during the constructor, we should be able to know what domain is going to be reported
+   */
   private void copyReportTemplate(final StatisticsHolder<E> peek) throws IOException, URISyntaxException {
     Set<String> names = peek.getStatisticsKeys();
     copyReport(names);

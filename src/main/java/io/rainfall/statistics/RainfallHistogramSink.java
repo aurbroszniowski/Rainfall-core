@@ -2,6 +2,8 @@ package io.rainfall.statistics;
 
 import org.HdrHistogram.Histogram;
 
+import java.util.Collection;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -12,8 +14,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * all the active histograms.
  *
  * @author cschanck
+ * @author Aurelien Broszniowski
  **/
-public class RainfallHistogramSink {
+public class RainfallHistogramSink<E extends Enum<E>> {
 
   private final Factory factory;
   private final ConcurrentLinkedQueue<HistogramHolder> actives = new ConcurrentLinkedQueue<HistogramHolder>();
@@ -21,9 +24,9 @@ public class RainfallHistogramSink {
 
   private static class HistogramHolder {
     private volatile boolean dead = false;
-    private Histogram histogram;
+    private ConcurrentHashMap<Enum, Histogram> histogram;
 
-    public HistogramHolder(Histogram histogram) {
+    public HistogramHolder(ConcurrentHashMap<Enum, Histogram> histogram) {
       this.setHistogram(histogram);
     }
 
@@ -35,17 +38,21 @@ public class RainfallHistogramSink {
       this.dead = dead;
     }
 
-    public Histogram getHistogram() {
-      return histogram;
+    public Histogram getHistogram(Enum result) {
+      return histogram.get(result);
     }
 
-    public void setHistogram(Histogram histogram) {
+    public Collection<Histogram> getHistograms() {
+      return histogram.values();
+    }
+
+    public void setHistogram(ConcurrentHashMap<Enum, Histogram> histogram) {
       this.histogram = histogram;
     }
   }
 
-  public static interface Factory {
-    public Histogram createHistogram();
+  public interface Factory {
+    ConcurrentHashMap<Enum, Histogram> createHistograms();
   }
 
   public RainfallHistogramSink(Factory factory) {
@@ -55,38 +62,41 @@ public class RainfallHistogramSink {
   private HistogramHolder perThread() {
     HistogramHolder hh = context.get();
     if (hh == null || hh.isDead()) {
-      hh = new HistogramHolder(factory.createHistogram());
+      hh = new HistogramHolder(factory.createHistograms());
       actives.add(hh);
       context.set(hh);
     }
     return hh;
   }
 
-  public void recordValueWithExpectedInterval(long value,
-                                              long expectedIntervalBetweenValueSamples) throws ArrayIndexOutOfBoundsException {
-    perThread().getHistogram().recordValueWithExpectedInterval(value, expectedIntervalBetweenValueSamples);
+  public void recordValueWithExpectedInterval(Enum<E> result, long value,
+                                              long expectedIntervalBetweenValueSamples) {
+    perThread().getHistogram(result).recordValueWithExpectedInterval(value, expectedIntervalBetweenValueSamples);
   }
 
-  public void recordValueWithCount(long value, long count) throws ArrayIndexOutOfBoundsException {
-    perThread().getHistogram().recordValueWithCount(value, count);
+  public void recordValueWithCount(Enum<E> result, long value, long count) {
+    perThread().getHistogram(result).recordValueWithCount(value, count);
   }
 
-  public void recordValue(long value) throws ArrayIndexOutOfBoundsException {
-    perThread().getHistogram().recordValue(value);
+  public void recordValue(Enum result, long value) {
+    perThread().getHistogram(result).recordValue(value);
   }
 
-  public Histogram fetchHistogram() {
-    Histogram aggregate = factory.createHistogram();
-    for(HistogramHolder hh:actives) {
-      aggregate.add(hh.getHistogram());
+  public Histogram fetchHistogram(final Enum<E> result) {
+    ConcurrentHashMap<Enum, Histogram> aggregate = factory.createHistograms();
+    for (HistogramHolder hh : actives) {
+      aggregate.get(result).add(hh.getHistogram(result));
     }
-    return aggregate;
+    return aggregate.get(result);
   }
 
-  public void reset() {
+  public synchronized void reset() {
     for (HistogramHolder hh : actives) {
       hh.setDead(true);
-      hh.getHistogram().reset();
+      Collection<Histogram> histograms = hh.getHistograms();
+      for (Histogram histogram : histograms) {
+        histogram.reset();
+      }
     }
     actives.clear();
   }

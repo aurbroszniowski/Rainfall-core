@@ -30,22 +30,23 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
 
   private final ConcurrentHashMap<String, LongAdder> assertionsErrors = new ConcurrentHashMap<String, LongAdder>();
   private final ConcurrentHashMap<String, Statistics<E>> statistics = new ConcurrentHashMap<String, Statistics<E>>();
-  private final ConcurrentHashMap<Enum, RainfallHistogramSink> histograms = new ConcurrentHashMap<Enum,
-    RainfallHistogramSink>();
+  private final RainfallHistogramSink<E> histograms;
   private Enum<E>[] results;
   private Enum<E>[] resultsReported;
 
   public RuntimeStatisticsHolder(final Enum<E>[] results, final Enum<E>[] resultsReported) {
     this.results = results;
     this.resultsReported = resultsReported;
-    for (Enum<E> result : results) {
-      this.histograms.put(result, new RainfallHistogramSink(new RainfallHistogramSink.Factory() {
-        @Override
-        public Histogram createHistogram() {
-          return new Histogram(3);
+    this.histograms = new RainfallHistogramSink<E>(new RainfallHistogramSink.Factory() {
+      @Override
+      public ConcurrentHashMap<Enum, Histogram> createHistograms() {
+        ConcurrentHashMap<Enum, Histogram> histograms = new ConcurrentHashMap<Enum, Histogram>();
+        for (Enum<E> result : results) {
+          histograms.put(result, new Histogram(3));
         }
-      }));
-    }
+        return histograms;
+      }
+    });
   }
 
   public Enum<E>[] getResults() {
@@ -67,8 +68,8 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
   }
 
   @Override
-  public RainfallHistogramSink getHistogramSink(final Enum<E> result) {
-    return this.histograms.get(result);
+  public Histogram fetchHistogram(final Enum<E> result) {
+    return this.histograms.fetchHistogram(result);
   }
 
   public void addStatistics(String name, Statistics<E> statistics) {
@@ -85,10 +86,7 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
     for (Statistics<E> statistics : this.statistics.values()) {
       statistics.reset();
     }
-    for (RainfallHistogramSink sink : histograms.values()) {
-      sink.reset();
-    }
-    System.out.println("reset");
+    histograms.reset();
   }
 
   @Override
@@ -103,12 +101,7 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
   @Override
   public void record(final String name, final long responseTimeInNs, final Enum result) {
     this.statistics.get(name).increaseCounterAndSetLatencyInNs(result, responseTimeInNs);
-    try {
-      histograms.get(result).recordValue(responseTimeInNs);
-    } catch (ArrayIndexOutOfBoundsException e) {
-      e.printStackTrace();
-    }
-
+    histograms.recordValue(result, responseTimeInNs);
   }
 
   @Override

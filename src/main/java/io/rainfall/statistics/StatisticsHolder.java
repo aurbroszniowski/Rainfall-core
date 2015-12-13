@@ -16,6 +16,8 @@
 
 package io.rainfall.statistics;
 
+import org.HdrHistogram.Histogram;
+
 import java.util.Set;
 
 /**
@@ -29,7 +31,7 @@ public interface StatisticsHolder<E extends Enum<E>> {
 
   Statistics<E> getStatistics(String name);
 
-  RainfallHistogramSink getHistogramSink(Enum<E> result);
+  Histogram fetchHistogram(final Enum<E> result);
 
   void reset();
 
