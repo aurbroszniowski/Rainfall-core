@@ -17,7 +17,6 @@
 package io.rainfall;
 
 import io.rainfall.utils.RangeMap;
-import javafx.collections.transformation.SortedList;
 
 import java.util.ArrayList;
 import java.util.Collection;

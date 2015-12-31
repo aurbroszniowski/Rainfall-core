@@ -78,7 +78,7 @@
 <br/>
 
 <script src="js/jquery-1.11.1.min.js"></script>
-<script src="js/d3.min.js"></script>
+<script src="js/plotly-latest.min.js"></script>
 <script>
     function addCommas(nStr) {
         nStr += '';
@@ -322,33 +322,132 @@
         });
     }
 
-    function reportTps(filename, name) {
-        $("#tps-box").append("<div id='" + filename + "'><div class='title'/><div class='graph'/></div>");
-        $("#" + filename + " .title").before("<h2>" + name + "</h2>");
-        addGraph(filename, 'Tps');
+    function reportTps(filename, title) {
+        $("#tps-box").append("<div id='" + filename + 'tps' + "' style='height: 550px;width: 1200px;'><div class='title'/><div class='graph'/></div>");
+        d3.csv(filename + ".csv", function (data) { processData(data, filename + 'tps', title, 'TPS') });
+
     }
 
-    function reportResponseTime(filename, name) {
-        $("#response-time-box").append("<div id='" + filename + "'><div class='title'/><div class='graph'/></div>");
-        $("#" + filename + " .title").before("<h2>" + name + "</h2>");
-        addGraph(filename, 'Response time (ms)');
+    function reportResponseTime(filename, title) {
+        $("#response-time-box").append("<div id='" + filename + 'rt' + "' style='height: 550px;width: 1200px;'><div class='title'/><div class='graph'/></div>");
+        d3.csv(filename + ".csv", function (data) { processData(data, filename + 'rt', title, 'Response time (ms)') });
     }
 
-    function reportGc(filename, name) {
-        $("#gc-box").append("<div id='" + filename + "'><div class='title'/><div class='graph'/></div>");
-        $("#" + filename + " .title").before("<h2>" + name + "</h2>");
-        addGraph(filename, 'Pause Time (ms)');
+    function reportGc(filename, title) {
+        $("#gc-box").append("<div id='" + filename + 'gc' + "' style='height: 550px;width: 1200px;'><div class='title'/><div class='graph'/></div>");
+        d3.csv(filename + ".csv", function (data) { processData(data, filename + 'gc', title, 'Pause Time (ms)') });
     }
 
-    function reportPercentiles(filename, name, mean, max) {
-        $("#percentiles-box").append("<div id='" + filename + "'><div class='title'/><div class='graph'/></div>");
-        $("<h2>" + name + "</h2>").appendTo("#" + filename + " .title");
-        $("#" + filename + " .title").after("Max Response Time = " + (Math.round((max / 1000000) * 1000) / 1000) + " ms<br/>");
-        $("#" + filename + " .title").after("Mean Response Time = " + (Math.round((mean / 1000000) * 1000) / 1000) + " ms<br/>");
+    function processData(allRows, filename, title, yTitle) {
+        var colors = ['#D2B48C', '#C491AB', '#808080', '#464646', '#000080', '#084C9E', '#0000CD', '#007FFF', '#008080', '#228B22',
+            '#808000', '#7FFF00', '#DAA520', '#C3B091', '#FF7F50', '#FA8072', '#FC0FC0', '#FF77FF', '#CC8899', '#B57EDC', '#843179', '#4B0082',
+            '#800000', '#DC143C'];
+        var d = [], d2 = [];
+        var colsNames = [];
+        var total = [];
 
-        addPercentileGraph(filename, 'Response Time (ms)');
+        row = allRows[0];
+        nbCols = -1;
+        $.each(row, function (index, value) {
+            d.push([]);
+            d2.push([]);
+            total.push(0);
+            colsNames.push(index);
+            nbCols++;
+        });
+
+        var nbLines = 1;
+        for (var i = 1; i < allRows.length; i++) {
+            row = allRows[i];
+
+            j = 0;
+            $.each(row, function (index, value) {
+                d[j].push(value);
+
+                // moving average
+                if (j === 0) {
+                    d2[j].push(value);
+                } else {
+                    total[j] = parseInt(total[j]) + parseInt(value);
+                    var avg = parseInt(total[j]) / nbLines;
+                    d2[j].push(avg);
+                }
+                j++;
+            });
+            nbLines++;
+        }
+
+        var data = [];
+        for (var i = 0; i < nbCols; i++) {
+            traces = {
+                type: 'scatter',
+                mode: 'lines',
+                line: {width: '1', color: colors[i % 24]}
+            };
+            traces['x'] = d[0];
+            traces['y'] = d[i + 1];
+            traces['name'] = colsNames[i + 1];
+            data.push(traces);
+
+            avtraces = {
+                type: 'scatter',
+                mode: 'lines',
+                line: {width: '2', color: colors[i % 24], shape: 'spline', dash:2}
+            };
+            avtraces['x'] = d2[0];
+            avtraces['y'] = d2[i + 1];
+            avtraces['name'] = 'Average ' + colsNames[i + 1];
+            data.push(avtraces);
+        }
+
+        var layout = {
+            title: title,
+            xaxis: {title: 'Time', type: 'date'},
+            yaxis: {title: yTitle}
+        };
+
+        Plotly.newPlot(filename, data, layout, {showLink: false});
     }
 
+    function reportPercentiles(filename, title, mean, max) {
+        $("#percentiles-box").append("<div id='" + filename + 'pct' + "'><div class='title'/><div class='graph'/></div>");
+//        $("#" + filename + 'pct' + " .title").after("Max Response Time = " + (Math.round((max / 1000000) * 1000) / 1000) + " ms<br/>");
+//        $("#" + filename + 'pct' + " .title").after("Mean Response Time = " + (Math.round((mean / 1000000) * 1000) / 1000) + " ms<br/>");
+        d3.csv(filename + ".csv", function (data) { processDataPct(data, filename + 'pct', title, 'Response Time percentiles distribution (ms)') });
+    }
+
+    function processDataPct(allRows, filename, title, yTitle) {
+        var x = [], y = [];
+
+        for (var i = 0; i < allRows.length; i++) {
+            row = allRows[i];
+            x.push(row['Percentile']);
+            y.push(row['Value']);
+        }
+
+        traces = {
+            type: 'scatter',
+            fill: 'tozeroy',
+            x: x,
+            y: y
+        };
+
+        var data = [traces];
+
+        var layout = {
+            xaxis: {
+                type: 'linear',
+                autorange: true,
+                title: 'Time',
+                tickmode: 'auto',
+                nticks: 20
+            },
+            yaxis: {title: yTitle},
+            title: title
+        };
+
+        Plotly.newPlot(filename, data, layout, {showLink: false});
+    }
 
     $(document).ready(function () {
 //!report!
