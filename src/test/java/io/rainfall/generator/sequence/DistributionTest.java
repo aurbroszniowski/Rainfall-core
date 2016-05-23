@@ -6,7 +6,9 @@ import org.junit.Test;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
@@ -23,7 +25,7 @@ public class DistributionTest {
     final ConcurrentPseudoRandom rnd = new ConcurrentPseudoRandom();
     long min = 0;
     long max = 100000;
-    for(int i=0;i<500;i++) {
+    for (int i = 0; i < 500; i++) {
       long next = distribution.generate(rnd, min, max, max);
       assertThat(next, greaterThanOrEqualTo(min));
       assertThat(next, lessThanOrEqualTo(max));
@@ -36,7 +38,7 @@ public class DistributionTest {
     final ConcurrentPseudoRandom rnd = new ConcurrentPseudoRandom();
     long min = -10000;
     long max = -200;
-    for(int i=0;i<500;i++) {
+    for (int i = 0; i < 500; i++) {
       long next = distribution.generate(rnd, min, max, max);
       assertThat(next, greaterThanOrEqualTo(min));
       assertThat(next, lessThanOrEqualTo(max));
@@ -86,5 +88,26 @@ public class DistributionTest {
       sb.append(nb).append("\n");
     }
     System.out.println(sb.toString());
+  }
+
+  @Test
+  public void testPrecalculatedDistribution() {
+    int maxentries = new Double(Math.pow(2, 21)).intValue();
+
+    Map<Integer, Long> map = new HashMap<Integer, Long>();
+
+    long minimum = 0;
+    long maximum = 2000000L;
+    long width = 200000L;
+    long mean = (maximum - minimum) / 2 + minimum;
+    double SQRPI2 = Math.sqrt(6.283185307179586);
+
+    for (int i = 0; i < maxentries; i++) {
+      double d2 = (i - mean) / width;
+      Double d = Math.exp(-0.5 * d2 * d2) / (SQRPI2 * width);
+
+      map.put(i, d.longValue());
+      if (i % 10000 == 0) System.out.println(i + " = " + d.longValue());
+    }
   }
 }

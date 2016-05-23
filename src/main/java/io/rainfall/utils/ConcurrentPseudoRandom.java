@@ -20,6 +20,8 @@ package io.rainfall.utils;
  * Concurrent deterministic random bit generator
  * Based on the XORSHIFT function
  *
+ * We want do avoid using a linear congruential generator in order to get a standardized test.
+ *
  * @author Aurelien Broszniowski
  */
 
@@ -74,6 +76,7 @@ public class ConcurrentPseudoRandom {
       return nb;
     }
 
+    //  Float.intBitsToFloat(nextInt()) ???
     public float nextFloat(final long next) {
       return Math.abs(((nextLong(next)) % 100000) / 100000f);
     }

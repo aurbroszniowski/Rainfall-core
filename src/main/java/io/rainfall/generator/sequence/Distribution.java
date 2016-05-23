@@ -2,6 +2,8 @@ package io.rainfall.generator.sequence;
 
 import io.rainfall.utils.ConcurrentPseudoRandom;
 
+import java.util.Random;
+
 /**
  * @author Aurelien Broszniowski
  */
@@ -16,6 +18,24 @@ public enum Distribution {
     @Override
     public String getDescription() {
       return "Flat";
+    }
+  },
+  SLOW_GAUSSIAN {
+    Random rndm = new Random();
+
+    @Override
+    public long generate(final ConcurrentPseudoRandom rnd, final long minimum, final long maximum, final long width) {
+      while (true) {
+        long candidate = (long)((rndm.nextGaussian() * width) + (((double)maximum + minimum) / 2));
+        if (candidate >= minimum && candidate < maximum) {
+          return candidate;
+        }
+      }
+    }
+
+    @Override
+    public String getDescription() {
+      return "Slow Gaussian";
     }
   },
   GAUSSIAN {
