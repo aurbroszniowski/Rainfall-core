@@ -27,30 +27,34 @@ package io.rainfall.utils;
 
 public class ConcurrentPseudoRandom {
 
-  private final RandomFunction randomFunction = new ThreadLocal<RandomFunction>() {
+  private final ThreadLocal<RandomFunction> randomFunction = new ThreadLocal<RandomFunction>() {
     protected RandomFunction initialValue() {
       return new RandomFunction();
     }
-  }.get();
+  };
+
+  private RandomFunction getRandomFunction() {
+    return randomFunction.get();
+  }
 
   public long nextLong() {
-    return this.randomFunction.nextLong();
+    return getRandomFunction().nextLong();
   }
 
   public long nextLong(final long seed) {
-    return this.randomFunction.nextLong(seed);
+    return getRandomFunction().nextLong(seed);
   }
 
   public float nextFloat() {
-    return this.randomFunction.nextFloat();
+    return getRandomFunction().nextFloat();
   }
 
   public float nextFloat(final long seed) {
-    return this.randomFunction.nextFloat(seed);
+    return getRandomFunction().nextFloat(seed);
   }
 
   public float nextFloat(float max) {
-    return max * this.randomFunction.nextFloat();
+    return max * getRandomFunction().nextFloat();
   }
 
   private class RandomFunction {
