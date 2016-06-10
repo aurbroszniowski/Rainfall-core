@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -63,6 +62,12 @@ public class ConcurrencyConfig extends Configuration {
       if (nbIterationsPerThread.size() == 0) {
         for (int i = 0; i < nbThreads; i++) {
           nbIterationsPerThread.put(i, new AtomicLong());
+        }
+
+        long roundedValue = new Double(Math.floor(nbIterations / nbThreads)).longValue();
+        for (int i = 0; i < nbThreads; i++) {
+          nbIterationsPerThread.get(i).addAndGet(roundedValue);
+          nbIterations -= roundedValue;
         }
 
         int i = 0;

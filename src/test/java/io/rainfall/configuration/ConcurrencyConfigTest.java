@@ -82,4 +82,13 @@ public class ConcurrencyConfigTest {
     assertThat(config.getNbIterationsForThread(3, 10L), is(equalTo(2L)));
   }
 
+  @Test
+  public void nbIterationsTooHighForInteger() {
+    ConcurrencyConfig config = new ConcurrencyConfig().threads(4);
+    assertThat(config.getNbIterationsForThread(0, 30000000000L), is(equalTo(7500000000L)));
+    assertThat(config.getNbIterationsForThread(1, 30000000000L), is(equalTo(7500000000L)));
+    assertThat(config.getNbIterationsForThread(2, 30000000000L), is(equalTo(7500000000L)));
+    assertThat(config.getNbIterationsForThread(3, 30000000000L), is(equalTo(7500000000L)));
+  }
+
 }
