@@ -75,7 +75,7 @@ public class InParallel extends Execution {
 
     // Schedule the scenario every second, until
     for (int threadNb = 0; threadNb < nbThreads; threadNb++) {
-      final int max = concurrencyConfig.getNbIterationsForThread(threadNb, nb);
+      final long max = concurrencyConfig.getNbIterationsForThread(threadNb, nb);
 
       final ScheduledFuture<?> future = scheduler.scheduleAtFixedRate(new Runnable() {
         @Override
@@ -83,7 +83,7 @@ public class InParallel extends Execution {
           Thread.currentThread().setName(
               "Rainfall-core Operations Thread - " + THREAD_NUMBER_GENERATOR.getAndIncrement());
           try {
-            for (int i = 0; i < max; i++) {
+            for (long i = 0; i < max; i++) {
               List<RangeMap<Operation>> operations = scenario.getOperations();
               for (RangeMap<Operation> operation : operations) {
                 operation.get(weightRnd.nextFloat(operation.getHigherBound())).exec(statisticsHolder, configurations,

@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author Aurelien Broszniowski
@@ -32,7 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ConcurrencyConfig extends Configuration {
 
   private int nbThreads = 1;
-  private final Map<Integer, AtomicInteger> nbIterationsPerThread = new HashMap<Integer, AtomicInteger>();
+  private final Map<Integer, AtomicLong> nbIterationsPerThread = new HashMap<Integer, AtomicLong>();
   private long timeoutInSeconds = 600L;
 
   public static ConcurrencyConfig concurrencyConfig() {
@@ -57,11 +58,13 @@ public class ConcurrencyConfig extends Configuration {
     return timeoutInSeconds;
   }
 
-  public int getNbIterationsForThread(int threadNb, long nbIterations) {
+  public long getNbIterationsForThread(int threadNb, long nbIterations) {
     synchronized (nbIterationsPerThread) {
       if (nbIterationsPerThread.size() == 0) {
-        for (int i = 0; i < nbThreads; i++)
-          nbIterationsPerThread.put(i, new AtomicInteger());
+        for (int i = 0; i < nbThreads; i++) {
+          nbIterationsPerThread.put(i, new AtomicLong());
+        }
+
         int i = 0;
         while (nbIterations > 0) {
           nbIterationsPerThread.get(i % nbThreads).incrementAndGet();
@@ -70,7 +73,7 @@ public class ConcurrencyConfig extends Configuration {
         }
       }
     }
-    return nbIterationsPerThread.get(threadNb).intValue();
+    return nbIterationsPerThread.get(threadNb).longValue();
   }
 
   @Override

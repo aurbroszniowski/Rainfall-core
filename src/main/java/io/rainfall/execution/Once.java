@@ -62,8 +62,8 @@ public class Once extends Execution {
     markExecutionState(scenario, ExecutionState.BEGINNING);
 
     for (int threadNb = 0; threadNb < nbThreads; threadNb++) {
-      final int max = concurrencyConfig.getNbIterationsForThread(threadNb, nb);
-      for (int i = 0; i < max; i++) {
+      final long max = concurrencyConfig.getNbIterationsForThread(threadNb, nb);
+      for (long i = 0; i < max; i++) {
         executor.submit(new Callable() {
 
           @Override

@@ -81,11 +81,11 @@ public class Ramp extends Execution {
         public void run() {
           Thread.currentThread().setName("Rainfall-core Operations Thread");
           System.out.println(" ramping users = " + nb.longValue() + " /" + nb.get());
-          int max = concurrencyConfig.getNbIterationsForThread(finalThreadNb, nb.longValue());
+          long max = concurrencyConfig.getNbIterationsForThread(finalThreadNb, nb.longValue());
           nb.addAndGet(increment);
 
           try {
-            for (int i = 0; i < max; i++) {
+            for (long i = 0; i < max; i++) {
               List<RangeMap<Operation>> operations = scenario.getOperations();
               for (RangeMap<Operation> operation : operations) {
                 operation.get(weightRnd.nextFloat(operation.getHigherBound()))

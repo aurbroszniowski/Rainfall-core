@@ -57,14 +57,14 @@ public class Times extends Execution {
     markExecutionState(scenario, ExecutionState.BEGINNING);
 
     for (int threadNb = 0; threadNb < nbThreads; threadNb++) {
-      final int max = concurrencyConfig.getNbIterationsForThread(threadNb, occurrences);
+      final long max = concurrencyConfig.getNbIterationsForThread(threadNb, occurrences);
       executor.submit(new Callable() {
 
         @Override
         public Object call() throws Exception {
           Thread.currentThread().setName("Rainfall-core Operations Thread");
           List<RangeMap<Operation>> operations = scenario.getOperations();
-          for (int i = 0; i < max; i++) {
+          for (long i = 0; i < max; i++) {
             for (RangeMap<Operation> operation : operations) {
               operation.get(weightRnd.nextFloat(operation.getHigherBound()))
                   .exec(statisticsHolder, configurations, assertions);
