@@ -17,6 +17,7 @@
 package io.rainfall;
 
 import io.rainfall.configuration.ConcurrencyConfig;
+import io.rainfall.configuration.DistributedConfig;
 import io.rainfall.configuration.ReportingConfig;
 import io.rainfall.statistics.InitStatisticsHolder;
 import io.rainfall.statistics.RuntimeStatisticsHolder;
@@ -90,6 +91,12 @@ public class ScenarioRun<E extends Enum<E>> {
 
   // Start Scenario run
   public StatisticsPeekHolder<E> start() {
+    //TODO : start distributed master thread, and clients connect to master,
+    DistributedConfig distributedConfig = (DistributedConfig)configurations.get(DistributedConfig.class);
+    if (distributedConfig != null) {
+      startCluster(distributedConfig);
+    }
+
     long start = System.currentTimeMillis();
 
     //TODO : add generics ? cast?
@@ -134,6 +141,25 @@ public class ScenarioRun<E extends Enum<E>> {
     long end = System.currentTimeMillis();
 
     return peek;
+  }
+
+  private void startCluster(final DistributedConfig distributedConfig) {
+//TODO
+    // look at server hostname
+    // if same hostname, then start server
+    // if succ, create map of reports then wait for reports to be given back
+
+    // if port is taken, then look if clients for current hostname
+    // if none, then error -> port taken, stop test
+
+    // if  one or more clients, then start them, connect to server
+
+  }
+
+  private void stopCluster(final DistributedConfig distributedConfig) {
+    // if current is server, then wait for  reports and ok command, group reports and create clustsred report
+
+    // if current is client, send report to server and send ok command
   }
 
   private List<String> getDescription() {

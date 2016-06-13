@@ -29,12 +29,12 @@ import java.util.Map;
 
 public abstract class Operation {
 
-  private volatile Execution.ExecutionState state= Execution.ExecutionState.UNKNOWN;
+  private volatile Execution.ExecutionState state = Execution.ExecutionState.UNKNOWN;
 
   private float weight = 1;
   private int weightInPercent;
 
-  public abstract  void exec(final StatisticsHolder  statisticsHolder,
+  public abstract void exec(final StatisticsHolder statisticsHolder,
                             final Map<Class<? extends Configuration>, Configuration> configurations,
                             final List<AssertionEvaluator> assertions) throws TestException;
 

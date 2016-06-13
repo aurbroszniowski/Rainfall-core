@@ -20,6 +20,7 @@ import io.rainfall.AssertionEvaluator;
 import io.rainfall.Configuration;
 import io.rainfall.Execution;
 import io.rainfall.Scenario;
+import io.rainfall.TestException;
 import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.unit.TimeDivision;
 
@@ -44,7 +45,7 @@ public class NothingFor extends Execution {
   @Override
   public <E extends Enum<E>> void execute(final StatisticsHolder<E> statisticsHolder, final Scenario scenario,
                                           final Map<Class<? extends Configuration>, Configuration> configurations,
-                                          final List<AssertionEvaluator> assertions) {
+                                          final List<AssertionEvaluator> assertions) throws TestException {
     try {
       Thread.currentThread().setName("Rainfall-core Operations Thread");
       Thread.sleep(timeDivision.getTimeUnit().toMillis(nb));
