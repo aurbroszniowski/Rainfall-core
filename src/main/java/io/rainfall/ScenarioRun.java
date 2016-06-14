@@ -23,14 +23,23 @@ import io.rainfall.statistics.InitStatisticsHolder;
 import io.rainfall.statistics.RuntimeStatisticsHolder;
 import io.rainfall.statistics.StatisticsPeekHolder;
 import io.rainfall.statistics.StatisticsThread;
+import io.rainfall.utils.MergeableBitSet;
+import io.rainfall.utils.RainfallClient;
+import io.rainfall.utils.RainfallServer;
 import io.rainfall.utils.RangeMap;
 
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -91,10 +100,15 @@ public class ScenarioRun<E extends Enum<E>> {
 
   // Start Scenario run
   public StatisticsPeekHolder<E> start() {
-    //TODO : start distributed master thread, and clients connect to master,
     DistributedConfig distributedConfig = (DistributedConfig)configurations.get(DistributedConfig.class);
     if (distributedConfig != null) {
-      startCluster(distributedConfig);
+      try {
+        attemptServerStart(distributedConfig);
+
+        distributedConfig.setCurrentClient(clientsStart(distributedConfig));
+      } catch (TestException e) {
+        throw new RuntimeException(e);
+      }
     }
 
     long start = System.currentTimeMillis();
@@ -140,26 +154,104 @@ public class ScenarioRun<E extends Enum<E>> {
 
     long end = System.currentTimeMillis();
 
+    if (distributedConfig != null) {
+      try {
+        stopCluster(distributedConfig);
+      } catch (TestException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
     return peek;
   }
 
-  private void startCluster(final DistributedConfig distributedConfig) {
-//TODO
-    // look at server hostname
-    // if same hostname, then start server
-    // if succ, create map of reports then wait for reports to be given back
-
-    // if port is taken, then look if clients for current hostname
-    // if none, then error -> port taken, stop test
-
-    // if  one or more clients, then start them, connect to server
-
+  private void stopCluster(final DistributedConfig distributedConfig) throws TestException {
+    // TODO
+    //  send report to server and send ok command
+    RainfallClient currentClient = distributedConfig.getCurrentClient();
+    try {
+      currentClient.sendReport();
+      currentClient.shutdown();
+      currentClient.join();
+    } catch (IOException e) {
+      throw new TestException("Error when stopping the Rainfall cluster", e);
+    } catch (InterruptedException e) {
+      throw new TestException("Error when stopping the Rainfall cluster", e);
+    }
   }
 
-  private void stopCluster(final DistributedConfig distributedConfig) {
-    // if current is server, then wait for  reports and ok command, group reports and create clustsred report
+  private RainfallClient clientsStart(final DistributedConfig distributedConfig) throws TestException {
+    RainfallClient client = new RainfallClient(distributedConfig.getMasterAddress());
+    client.run();
+    try {
+      client.waitForGo();
+    } catch (IOException e) {
+      throw new TestException("test client couldn't read from the master", e);
+    }
+    return client;
+  }
 
-    // if current is client, send report to server and send ok command
+  private void attemptServerStart(final DistributedConfig distributedConfig) throws TestException {
+    try {
+      // look at server hostname, if same hostname than localhost, then start server
+      if (Arrays.toString(InetAddress.getByName("localhost").getAddress()).equalsIgnoreCase(
+          Arrays.toString(distributedConfig.getMasterAddress().getAddress().getAddress()))) {
+
+        Socket socket;
+        ServerSocket serverSocket;
+        try {
+          serverSocket = new ServerSocket(distributedConfig.getMasterAddress().getPort());
+          System.out.println("--- > Server Listening......");
+        } catch (IOException e) {
+          // TODO verify exception type : used
+//          e.printStackTrace();
+          System.out.println("--- > Server already started");
+          return;
+        }
+
+        // if success, create map of reports then waits for reports to be given back
+        //TODO
+
+        String sessionId = UUID.randomUUID().toString();
+        List<Thread> serverThreads = new ArrayList<Thread>();
+        MergeableBitSet testRunning = new MergeableBitSet(distributedConfig.getNbClients());
+        while (!testRunning.isTrue()) {
+          try {
+            socket = serverSocket.accept();
+            System.out.println("---> connection with client Established");
+            Thread serverThread = new Thread(new RainfallServer(
+                distributedConfig.getMasterAddress(), socket, testRunning, sessionId));
+            serverThread.start();
+            serverThreads.add(serverThread);
+
+            Thread.sleep(1000);
+
+            System.out.println("test running nb "+ testRunning + " = " + testRunning.getCurrentSize()+ " isrunning " + testRunning.isTrue());
+
+          } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Connection Error");
+          }
+        }
+        System.out.println("--> clients are running");
+
+        for (Thread serverThread : serverThreads) {
+          try {
+            serverThread.join();
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
+        }
+
+        // if current is server, then wait for  reports and ok command, group reports and create clustsred report
+        // server stop
+        //TODO
+
+        System.exit(0);
+      }
+    } catch (UnknownHostException e) {
+      throw new TestException("Can not run multi-clients test. (Master issue)", e);
+    }
   }
 
   private List<String> getDescription() {

@@ -1,12 +1,12 @@
 package io.rainfall.configuration;
 
 import io.rainfall.Configuration;
+import io.rainfall.utils.RainfallClient;
 
 import java.net.InetSocketAddress;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * holds Distributed tests information
@@ -15,8 +15,13 @@ import java.util.List;
  */
 public class DistributedConfig extends Configuration {
 
-  private InetSocketAddress masterSocketAddress;
-  private InetSocketAddress[] clientsSocketAddresses;
+  private InetSocketAddress masterAddress;
+  private int nbClients;
+
+  private RainfallClient currentClient;
+
+  private DistributedConfig() {
+  }
 
   public static DistributedConfig distributedConfig() {
     return new DistributedConfig();
@@ -26,20 +31,32 @@ public class DistributedConfig extends Configuration {
     return new InetSocketAddress(hostname, port);
   }
 
-  public DistributedConfig master(final InetSocketAddress masterSocketAddress) {
-    this.masterSocketAddress = masterSocketAddress;
+  public DistributedConfig master(final InetSocketAddress masterAddress, int nbClients) {
+    this.masterAddress = masterAddress;
+    this.nbClients = nbClients;
     return this;
   }
 
-  public DistributedConfig clients(final InetSocketAddress... clientsSocketAddresses) {
-    this.clientsSocketAddresses = clientsSocketAddresses;
-    return this;
+  public int getNbClients() {
+    return this.nbClients;
+  }
+
+  public InetSocketAddress getMasterAddress() {
+    return masterAddress;
   }
 
   @Override
   public List<String> getDescription() {
     List<String> desc = new ArrayList<String>();
-    desc.add("Number of testing clients = " + clientsSocketAddresses.length);
+    desc.add("Number of testing clients = " + nbClients);
     return desc;
+  }
+
+  public void setCurrentClient(final RainfallClient currentClient) {
+    this.currentClient = currentClient;
+  }
+
+  public RainfallClient getCurrentClient() {
+    return currentClient;
   }
 }
