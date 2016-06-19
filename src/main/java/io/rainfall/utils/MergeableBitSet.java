@@ -23,5 +23,9 @@ public class MergeableBitSet {
   public int getCurrentSize() {
     return currentSize;
   }
+
+  public void setTrue() {
+    currentSize = size;
+  }
 }
 

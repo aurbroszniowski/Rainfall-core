@@ -59,4 +59,8 @@ public class DistributedConfig extends Configuration {
   public RainfallClient getCurrentClient() {
     return currentClient;
   }
+
+  public int getCurrentClientId() {
+    return currentClient.getClientId();
+  }
 }
