@@ -20,21 +20,17 @@ public class DistributedConfig extends Configuration {
 
   private RainfallClient currentClient;
 
-  private DistributedConfig() {
+  private DistributedConfig(final InetSocketAddress masterAddress, final int nbClients) {
+    this.masterAddress = masterAddress;
+    this.nbClients = nbClients;
   }
 
-  public static DistributedConfig distributedConfig() {
-    return new DistributedConfig();
+  public static DistributedConfig distributedConfig(final InetSocketAddress masterAddress, int nbClients) {
+    return new DistributedConfig(masterAddress, nbClients);
   }
 
   public static InetSocketAddress address(String hostname, int port) {
     return new InetSocketAddress(hostname, port);
-  }
-
-  public DistributedConfig master(final InetSocketAddress masterAddress, int nbClients) {
-    this.masterAddress = masterAddress;
-    this.nbClients = nbClients;
-    return this;
   }
 
   public int getNbClients() {
