@@ -158,11 +158,6 @@ public class GcStatisticsCollector implements StatisticsCollector {
         GcStats gcStats = gcStatsQueue.poll();
         if (gcStats == null) break;
         gcStatsList.add(gcStats);
-
-        gcStats.getDuration() + "," +
-        gcStats.getAction() + "," +
-        gcStats.getCause() + "," +
-        gcStats.getName());
       }
     }
 
