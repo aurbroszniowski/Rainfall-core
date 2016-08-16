@@ -38,6 +38,25 @@ public enum Distribution {
       return "Slow Gaussian";
     }
   },
+  SLOW_GAUSSIAN_PARETO {
+    Random rndm = new Random();
+
+    @Override
+    public long generate(final ConcurrentPseudoRandom rnd, final long minimum, final long maximum, final long ignore) {
+      long width = (long)(0.7 * (maximum - minimum));
+      while (true) {
+        long candidate = (long)((rndm.nextGaussian() * width) + (((double)maximum + minimum) / 2));
+        if (candidate >= minimum && candidate < maximum) {
+          return candidate;
+        }
+      }
+    }
+
+    @Override
+    public String getDescription() {
+      return "Slow Gaussian with Pareto distribution";
+    }
+  },
   GAUSSIAN {
     @Override
     public long generate(ConcurrentPseudoRandom rnd, long minimum, long maximum, long width) {

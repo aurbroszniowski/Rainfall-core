@@ -3,8 +3,14 @@ package io.rainfall.generator.sequence;
 import io.rainfall.utils.ConcurrentPseudoRandom;
 import org.junit.Test;
 
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -47,7 +53,7 @@ public class DistributionTest {
 
   @Test
   public void testGaussian() {
-    Distribution distribution = Distribution.GAUSSIAN;
+    Distribution distribution = Distribution.SLOW_GAUSSIAN;
     final ConcurrentPseudoRandom rnd = new ConcurrentPseudoRandom();
     long min = Long.MAX_VALUE;
     long max = Long.MIN_VALUE;
@@ -68,6 +74,29 @@ public class DistributionTest {
     }
     System.out.println(sb.toString());
   }
+
+  @Test
+  public void testSlowGaussian() throws IOException {
+    Distribution distribution = Distribution.SLOW_GAUSSIAN;
+    final ConcurrentPseudoRandom rnd = new ConcurrentPseudoRandom();
+
+    List<Long> nbs = new ArrayList<Long>();
+
+    for (long i = 0; i < 50000; i++) {
+      long next = distribution.generate(rnd, 0, 5000000, 350000);
+      nbs.add(next);
+    }
+    Collections.sort(nbs);
+    FileOutputStream fileOutputStream = new FileOutputStream("gaussian.csv");
+    BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(fileOutputStream));
+    for (int i = 0; i < nbs.size(); i++) {
+      final Long nb = nbs.get(i);
+      bufferedWriter.append("" +i +", "+ nb+"\n" );
+    }
+    bufferedWriter.close();
+  }
+
+
 
   @Test
   public void testSecureGaussian() {
