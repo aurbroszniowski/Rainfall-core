@@ -20,8 +20,11 @@ import io.rainfall.Configuration;
 import io.rainfall.Reporter;
 import io.rainfall.reporting.HtmlReporter;
 import io.rainfall.reporting.TextReporter;
+import io.rainfall.statistics.collector.StatisticsCollector;
+import io.rainfall.statistics.monitor.GcStatisticsCollector;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -41,6 +44,7 @@ public class ReportingConfig<E extends Enum<E>> extends Configuration {
   private TimeUnit reportIntervalUnit = TimeUnit.MILLISECONDS;
 
   private final Set<Reporter<E>> logReporters = new HashSet<Reporter<E>>();
+  private final Set<StatisticsCollector> statisticsCollectors = new HashSet<StatisticsCollector>();
 
   public ReportingConfig(Enum<E>[] results, Enum<E>[] resultsReported) {
     this.results = results;
@@ -55,6 +59,10 @@ public class ReportingConfig<E extends Enum<E>> extends Configuration {
     return new ReportingConfig<E>(results.getEnumConstants(), resultsReported);
   }
 
+  public static StatisticsCollector gcStatistics( ) {
+    return new GcStatisticsCollector() ;
+  }
+
   public ReportingConfig every(final long amount, final TimeUnit unit) {
     this.reportInterval = amount;
     this.reportIntervalUnit = unit;
@@ -66,6 +74,11 @@ public class ReportingConfig<E extends Enum<E>> extends Configuration {
     for (Reporter reporter : reporters) {
       logReporters.add(reporter);
     }
+    return this;
+  }
+
+  public ReportingConfig collect(StatisticsCollector... statisticsCollectors) {
+    Collections.addAll(this.statisticsCollectors, statisticsCollectors);
     return this;
   }
 
@@ -99,6 +112,10 @@ public class ReportingConfig<E extends Enum<E>> extends Configuration {
 
   public TimeUnit getReportTimeUnit() {
     return reportIntervalUnit;
+  }
+
+  public Set<StatisticsCollector> getStatisticsCollectors() {
+    return statisticsCollectors;
   }
 
   @Override

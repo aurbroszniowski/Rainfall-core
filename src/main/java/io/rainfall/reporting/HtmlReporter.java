@@ -20,6 +20,8 @@ import io.rainfall.Reporter;
 import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.statistics.StatisticsPeek;
 import io.rainfall.statistics.StatisticsPeekHolder;
+import io.rainfall.statistics.exporter.Exporter;
+import io.rainfall.statistics.exporter.HtmlExporter;
 import org.HdrHistogram.Histogram;
 
 import java.io.BufferedOutputStream;
@@ -33,7 +35,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Writer;
-import java.lang.management.ManagementFactory;
 import java.net.JarURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -44,6 +45,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.TimeZone;
@@ -61,13 +63,11 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
   private String averageLatencyFile = "averageLatency.csv";
   private String tpsFile = "tps.csv";
   private String percentilesFile = "total-percentiles.csv";
-  private String gcFile = "gc.csv";
   private String reportFile;
   private final File jarFile = new File(getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
   private final static String CRLF = System.getProperty("line.separator");
   private Calendar calendar = GregorianCalendar.getInstance(TimeZone.getDefault());
   private SimpleDateFormat sdf = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
-  private final GcStatsCollector gcStatsCollector = new GcStatsCollector();
 
   public HtmlReporter() {
     this("target/rainfall-report");
@@ -87,8 +87,6 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
       }
 
       extractReportFile();
-
-      gcStatsCollector.registerGcEventListeners();
 
     } catch (URISyntaxException e) {
       throw new RuntimeException("Can not read report template");
@@ -165,8 +163,16 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
       if (totalStatisticsPeeks != null)
         logPeriodicStats("total", totalStatisticsPeeks, statisticsPeekHolder.getResultsReported());
 
-    } catch (IOException e) {
-      throw new RuntimeException("Can not write report data");
+      logPeriodicExtraStats(statisticsPeekHolder.getExtraCollectedStatistics());
+
+    } catch (Exception e) {
+      throw new RuntimeException("Can not write report data",e );
+    }
+  }
+
+  private void logPeriodicExtraStats(final Map<String, Exporter> extraCollectedStatistics) throws Exception {
+    for (String statisticsCollectorName : extraCollectedStatistics.keySet()) {
+      ((HtmlExporter)extraCollectedStatistics.get(statisticsCollectorName)).ouputCsv(this.basedir);
     }
   }
 
@@ -174,7 +180,6 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
   public void summarize(final StatisticsHolder<E> statisticsHolder) {
     try {
       copyReportTemplate(statisticsHolder);
-      gcStatsCollector.unregisterGcEventListeners();
       StringBuilder sb = new StringBuilder();
       Enum<E>[] results = statisticsHolder.getResultsReported();
 
@@ -225,11 +230,9 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
   private void logPeriodicStats(String name, StatisticsPeek<E> statisticsPeek, final Enum<E>[] resultsReported) throws IOException {
     String avgFilename = this.basedir + File.separatorChar + getAverageLatencyFilename(name);
     String tpsFilename = this.basedir + File.separatorChar + getTpsFilename(name);
-    String gcFilename = this.basedir + File.separatorChar + getGcFilename();
 
     Writer averageLatencyOutput;
     Writer tpsOutput;
-    Writer gcOutput;
 
     averageLatencyOutput = new BufferedWriter(new FileWriter(avgFilename, true));
     if (new File(avgFilename).length() == 0)
@@ -237,9 +240,6 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
     tpsOutput = new BufferedWriter(new FileWriter(tpsFilename, true));
     if (new File(tpsFilename).length() == 0)
       addHeader(tpsOutput, resultsReported);
-    gcOutput = new BufferedWriter(new FileWriter(gcFilename, true));
-    if (new File(gcFilename).length() == 0)
-      addHeader(gcOutput, GcStatsCollector.GcStats.Header.values());
 
     String timestamp = formatTimestampInNano(statisticsPeek.getTimestamp());
 
@@ -254,24 +254,10 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
     averageLatencyOutput.append(averageLatencySb.toString()).append("\n");
     tpsOutput.append(tpsSb.toString()).append("\n");
 
-    List<GcStatsCollector.GcStats> gcStatsList = gcStatsCollector.drain();
-    for (GcStatsCollector.GcStats gcStats : gcStatsList) {
-      gcOutput.append(toCsv(gcStats)).append("\n");
-    }
-
     averageLatencyOutput.close();
     tpsOutput.close();
-    gcOutput.close();
   }
 
-  private String toCsv(GcStatsCollector.GcStats gcStats) {
-    long jvmStartTime = ManagementFactory.getRuntimeMXBean().getStartTime();
-    return String.valueOf(formatTimestampInNano(jvmStartTime + gcStats.getStartTimestamp())) + "," +
-           gcStats.getDuration() + "," +
-           gcStats.getAction() + "," +
-           gcStats.getCause() + "," +
-           gcStats.getName();
-  }
 
   /**
    * extract the subdirectory from a jar on the classpath to {@code writeDirectory}
@@ -340,10 +326,6 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
 
   private String getPercentilesFilename(String result) {
     return cleanFilename(result) + "-" + this.percentilesFile;
-  }
-
-  private String getGcFilename() {
-    return this.gcFile;
   }
 
   private final static int[] illegalChars = { 34, 60, 62, 124, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
@@ -431,12 +413,12 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
     out.close();
   }
 
-  private String formatTimestampInNano(final long timestamp) {
+  public String formatTimestampInNano(final long timestamp) {
     calendar.setTime(new Date(timestamp));
     return sdf.format(calendar.getTime());
   }
 
-  private void addHeader(Writer output, Enum[] keys) throws IOException {
+  public void addHeader(Writer output, Enum[] keys) throws IOException {
     StringBuilder sb = new StringBuilder();
     sb.append("timestamp");
     for (Enum key : keys) {

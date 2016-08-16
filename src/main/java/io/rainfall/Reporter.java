@@ -20,6 +20,7 @@ import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.statistics.StatisticsPeekHolder;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * A reporter is a class that will send the metrics to some output (text, file, etc.)

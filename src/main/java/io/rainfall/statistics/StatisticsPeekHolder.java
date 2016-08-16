@@ -1,7 +1,10 @@
 package io.rainfall.statistics;
 
+import io.rainfall.statistics.collector.StatisticsCollector;
+import io.rainfall.statistics.exporter.Exporter;
 import jsr166e.LongAdder;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,10 +18,13 @@ public class StatisticsPeekHolder<E extends Enum<E>> {
   private final ConcurrentHashMap<String, LongAdder> assertionsErrors;
 
   private Map<String, StatisticsPeek<E>> statisticsPeeks = new ConcurrentHashMap<String, StatisticsPeek<E>>();
+  private Map<String, Exporter> extraCollectedStatistics = new ConcurrentHashMap<String, Exporter>();
   private StatisticsPeek<E> totalStatisticsPeeks = null;
   private long timestamp;
 
-  public StatisticsPeekHolder(final Enum<E>[] resultsReported, final Map<String, Statistics<E>> statisticsMap, final ConcurrentHashMap<String, LongAdder> assertionsErrors) {
+  public StatisticsPeekHolder(final Enum<E>[] resultsReported, final Map<String, Statistics<E>> statisticsMap,
+                              final Set<StatisticsCollector> statisticsCollectors,
+                              final ConcurrentHashMap<String, LongAdder> assertionsErrors) {
     this.resultsReported = resultsReported;
     this.assertionsErrors = assertionsErrors;
     this.timestamp = System.currentTimeMillis();
@@ -27,6 +33,10 @@ public class StatisticsPeekHolder<E extends Enum<E>> {
     }
     this.totalStatisticsPeeks = new StatisticsPeek<E>(ALL, this.resultsReported, this.timestamp);
     totalStatisticsPeeks.addAll(statisticsPeeks);
+
+    for (StatisticsCollector statisticsCollector : statisticsCollectors) {
+      extraCollectedStatistics.put(statisticsCollector.getName(), statisticsCollector.peek());
+    }
   }
 
   public StatisticsPeek<E> getStatisticsPeeks(String name) {
@@ -51,10 +61,14 @@ public class StatisticsPeekHolder<E extends Enum<E>> {
     return resultsReported;
   }
 
+  public Map<String, Exporter> getExtraCollectedStatistics() {
+    return extraCollectedStatistics;
+  }
+
   public Long getTotalAssertionsErrorsCount() {
     Long totalAssertionsErrorsCount = 0L;
     for (LongAdder count : assertionsErrors.values()) {
-      totalAssertionsErrorsCount+=count.longValue();
+      totalAssertionsErrorsCount += count.longValue();
     }
     return totalAssertionsErrorsCount;
   }
