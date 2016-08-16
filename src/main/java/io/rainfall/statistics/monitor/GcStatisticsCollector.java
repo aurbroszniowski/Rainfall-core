@@ -159,7 +159,6 @@ public class GcStatisticsCollector implements StatisticsCollector {
         if (gcStats == null) break;
         gcStatsList.add(gcStats);
 
-        System.out.println(String.valueOf(reporterUtils.formatTimestampInNano(gcStats.getStartTimestamp())) + "," +
         gcStats.getDuration() + "," +
         gcStats.getAction() + "," +
         gcStats.getCause() + "," +
