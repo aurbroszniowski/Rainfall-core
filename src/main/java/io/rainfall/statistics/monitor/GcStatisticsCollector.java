@@ -145,9 +145,9 @@ public class GcStatisticsCollector implements StatisticsCollector {
     return GC_STATS;
   }
 
-
   public class GcStatisticsExporter implements HtmlExporter, TextExporter {
 
+    private HtmlReporter reporterUtils = new HtmlReporter();
     private String gcFile = "gc.csv";
     List<GcStats> gcStatsList;
     long jvmStartTime = ManagementFactory.getRuntimeMXBean().getStartTime();
@@ -179,6 +179,11 @@ public class GcStatisticsCollector implements StatisticsCollector {
       }
 
       gcOutput.close();
+    }
+
+    @Override
+    public String outputHtml() {
+      return "reportGc('gc', 'GC Time');";
     }
 
     private String toCsv(GcStats gcStats) {

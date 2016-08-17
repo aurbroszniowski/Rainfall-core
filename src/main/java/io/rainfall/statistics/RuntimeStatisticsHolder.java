@@ -72,6 +72,11 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
   }
 
   @Override
+  public Set<StatisticsCollector> getStatisticsCollectors() {
+    return statisticsCollectors;
+  }
+
+  @Override
   public Histogram fetchHistogram(final Enum<E> result) {
     return this.histograms.fetchHistogram(result);
   }

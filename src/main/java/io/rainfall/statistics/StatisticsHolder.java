@@ -16,6 +16,7 @@
 
 package io.rainfall.statistics;
 
+import io.rainfall.statistics.collector.StatisticsCollector;
 import org.HdrHistogram.Histogram;
 
 import java.util.Set;
@@ -30,6 +31,8 @@ public interface StatisticsHolder<E extends Enum<E>> {
   Set<String> getStatisticsKeys();
 
   Statistics<E> getStatistics(String name);
+
+  Set<StatisticsCollector> getStatisticsCollectors();
 
   Histogram fetchHistogram(final Enum<E> result);
 

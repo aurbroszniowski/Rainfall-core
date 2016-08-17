@@ -20,6 +20,7 @@ import io.rainfall.Reporter;
 import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.statistics.StatisticsPeek;
 import io.rainfall.statistics.StatisticsPeekHolder;
+import io.rainfall.statistics.collector.StatisticsCollector;
 import io.rainfall.statistics.exporter.Exporter;
 import io.rainfall.statistics.exporter.HtmlExporter;
 import org.HdrHistogram.Histogram;
@@ -166,7 +167,7 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
       logPeriodicExtraStats(statisticsPeekHolder.getExtraCollectedStatistics());
 
     } catch (Exception e) {
-      throw new RuntimeException("Can not write report data",e );
+      throw new RuntimeException("Can not write report data", e);
     }
   }
 
@@ -351,15 +352,6 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
    */
   private void copyReportTemplate(final StatisticsHolder<E> peek) throws IOException, URISyntaxException {
     Set<String> names = peek.getStatisticsKeys();
-    copyReport(names);
-  }
-
-  private void copyReportTemplate(final StatisticsPeekHolder<E> peek) throws IOException, URISyntaxException {
-    Set<String> names = peek.getStatisticsPeeksNames();
-    copyReport(names);
-  }
-
-  private void copyReport(Set<String> names) throws IOException {
     StringBuilder sb = new StringBuilder();
     // Periodic
     for (String name : names) {
@@ -378,8 +370,10 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
     }
     sb.append("reportResponseTime('total-averageLatency', 'Periodic Average Response Time of all entities');")
         .append(CRLF);
-    sb.append("reportGc('gc', 'GC Time');")
-        .append(CRLF);
+    for (StatisticsCollector statisticsCollector : peek.getStatisticsCollectors()) {
+      sb.append(((HtmlExporter)statisticsCollector.peek()).outputHtml()).append(CRLF);
+    }
+
 
     substituteInFile(reportFile, "//!report!", sb);
   }
