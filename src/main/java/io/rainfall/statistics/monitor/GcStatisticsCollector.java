@@ -183,7 +183,13 @@ public class GcStatisticsCollector implements StatisticsCollector {
 
     @Override
     public String outputHtml() {
-      return "reportGc('gc', 'GC Time');";
+      return "    function reportGc(filename, title) {\n" +
+             "        $(\"#gc-box\").append(\"<div id='\" + filename + 'gc' + \"' style='height: 550px;width: 1200px;'><div class='title'/><div class='graph'/></div>\");\n" +
+             "        d3.csv(filename + \".csv\", function (data) { processData(data, filename + 'gc', title, 'Pause Time (ms)') });\n" +
+             "    }\n" +
+             "\n" +
+             "$('body').append('<div class=\"border\"><h1><a name=\"gc\">Garbage Collection</a></h1><div id=\"gc-box\"></div></div><br/>');\n" +
+             "reportGc('gc', 'GC Time');\n";
     }
 
     private String toCsv(GcStats gcStats) {

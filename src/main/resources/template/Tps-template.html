@@ -67,11 +67,6 @@
 </div>
 <br/>
 
-<div class="border"><h1><a name="gc">Garbage Collection</a></h1>
-    <div id="gc-box"></div>
-</div>
-<br/>
-
 <div class="border"><h1><a name="percentile">Response time percentiles distribution</a></h1>
     <div id="percentiles-box"></div>
 </div>
@@ -331,11 +326,6 @@
     function reportResponseTime(filename, title) {
         $("#response-time-box").append("<div id='" + filename + 'rt' + "' style='height: 550px;width: 1200px;'><div class='title'/><div class='graph'/></div>");
         d3.csv(filename + ".csv", function (data) { processData(data, filename + 'rt', title, 'Response time (ms)') });
-    }
-
-    function reportGc(filename, title) {
-        $("#gc-box").append("<div id='" + filename + 'gc' + "' style='height: 550px;width: 1200px;'><div class='title'/><div class='graph'/></div>");
-        d3.csv(filename + ".csv", function (data) { processData(data, filename + 'gc', title, 'Pause Time (ms)') });
     }
 
     function processData(allRows, filename, title, yTitle) {
