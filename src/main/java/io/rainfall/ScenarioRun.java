@@ -163,8 +163,10 @@ public class ScenarioRun<E extends Enum<E>> {
     }
 
     StatisticsPeekHolder peek = stats.stop();
-
     long end = System.currentTimeMillis();
+
+    timer.purge();
+    timer.cancel();
 
     if (distributedConfig != null) {
       try {
