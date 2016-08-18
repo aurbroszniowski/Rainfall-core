@@ -12,10 +12,6 @@ import java.io.FileWriter;
 import java.io.Writer;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Created by KECL on 8/18/2016.
@@ -28,21 +24,9 @@ public class OSStatisticsCollector implements StatisticsCollector {
 
   private Writer osOutput;
 
-  public static class OSStats {
-    public enum Header {
-      PROCESSOR_UTILIZATION
-    }
-
-    private final long startTimestamp;
-    private final double procUtilization;
-
-    public OSStats(long startTimestamp, double procUtilization) {
-      this.startTimestamp = startTimestamp;
-      this.procUtilization = procUtilization;
-    }
+  public enum Header {
+    PROCESSOR_UTILIZATION
   }
-
-  private final Queue<OSStatisticsCollector.OSStats> osStatsQueue = new ConcurrentLinkedQueue<OSStatisticsCollector.OSStats>();
 
   @Override
   public void initialize() {}
@@ -52,8 +36,7 @@ public class OSStatisticsCollector implements StatisticsCollector {
 
   @Override
   public Exporter peek() {
-    osStatsQueue.add(new OSStats(System.currentTimeMillis(), OS_BEAN.getSystemLoadAverage() / AVAILABLE_PROCESSORS * 100.0));
-    return new OSStatisticsCollector.OSStatisticsExporter();
+    return new OSStatisticsCollector.OSStatisticsExporter(System.currentTimeMillis(), OS_BEAN.getSystemLoadAverage() / AVAILABLE_PROCESSORS * 100.0);
   }
 
   @Override
@@ -65,16 +48,12 @@ public class OSStatisticsCollector implements StatisticsCollector {
 
     private HtmlReporter reporterUtils = new HtmlReporter();
     private String osFile = "os.csv";
-    List<OSStatisticsCollector.OSStats> osStatsList;
-    long jvmStartTime = ManagementFactory.getRuntimeMXBean().getStartTime();
+    private long timestamp;
+    private double processorUsage;
 
-    public OSStatisticsExporter() {
-      osStatsList = new ArrayList<OSStatisticsCollector.OSStats>();
-      while (true) {
-        OSStatisticsCollector.OSStats osStats = osStatsQueue.poll();
-        if (osStats == null) break;
-        osStatsList.add(osStats);
-      }
+    public OSStatisticsExporter(long timestamp, double processorUsage) {
+      this.timestamp = timestamp;
+      this.processorUsage = processorUsage;
     }
 
     @Override
@@ -88,12 +67,9 @@ public class OSStatisticsCollector implements StatisticsCollector {
 
       osOutput = new BufferedWriter(new FileWriter(osFilename, true));
       if (new File(osFilename).length() == 0)
-        reporterUtils.addHeader(osOutput, OSStatisticsCollector.OSStats.Header.values());
+        reporterUtils.addHeader(osOutput, OSStatisticsCollector.Header.values());
 
-      for (OSStatisticsCollector.OSStats osStats : this.osStatsList) {
-        osOutput.append(toCsv(osStats)).append("\n");
-      }
-
+      osOutput.append(reporterUtils.formatTimestampInNano(timestamp) + "," + processorUsage);
       osOutput.close();
     }
 
@@ -106,11 +82,6 @@ public class OSStatisticsCollector implements StatisticsCollector {
              "\n" +
              "$('body').append('<div class=\"border\"><h1><a name=\"os\">Processor Utilization</a></h1><div id=\"os-box\"></div></div><br/>');\n" +
              "reportOS('os', 'Processor Utilization');\n";
-    }
-
-    private String toCsv(OSStatisticsCollector.OSStats osStats) {
-      return String.valueOf(reporterUtils.formatTimestampInNano(jvmStartTime + osStats.startTimestamp)) + "," +
-             osStats.procUtilization;
     }
   }
 }

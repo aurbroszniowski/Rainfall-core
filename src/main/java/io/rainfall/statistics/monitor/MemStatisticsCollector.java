@@ -12,10 +12,6 @@ import java.io.FileWriter;
 import java.io.Writer;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Created by KECL on 8/18/2016.
@@ -27,21 +23,9 @@ public class MemStatisticsCollector  implements StatisticsCollector {
 
   private Writer memOutput;
 
-  public static class MemStats {
-    public enum Header {
-      MEMORY_UTILIZATION
-    }
-
-    private final long startTimestamp;
-    private final long memUtilization;
-
-    public MemStats(long startTimestamp, long memUtilization) {
-      this.startTimestamp = startTimestamp;
-      this.memUtilization = memUtilization;
-    }
+  public enum Header {
+    MEMORY_UTILIZATION
   }
-
-  private final Queue<MemStatisticsCollector.MemStats> memStatsQueue = new ConcurrentLinkedQueue<MemStatisticsCollector.MemStats>();
 
   @Override
   public void initialize() {}
@@ -51,8 +35,7 @@ public class MemStatisticsCollector  implements StatisticsCollector {
 
   @Override
   public Exporter peek() {
-    memStatsQueue.add(new MemStatisticsCollector.MemStats(System.currentTimeMillis(), MEM_BEAN.getHeapMemoryUsage().getUsed()));
-    return new MemStatisticsCollector.MemStatisticsExporter();
+    return new MemStatisticsCollector.MemStatisticsExporter(System.currentTimeMillis(), MEM_BEAN.getHeapMemoryUsage().getUsed());
   }
 
   @Override
@@ -64,16 +47,12 @@ public class MemStatisticsCollector  implements StatisticsCollector {
 
     private HtmlReporter reporterUtils = new HtmlReporter();
     private String memFile = "memory.csv";
-    List<MemStatisticsCollector.MemStats> memStatsList;
-    long jvmStartTime = ManagementFactory.getRuntimeMXBean().getStartTime();
+    long timestamp;
+    long memoryUsage;
 
-    public MemStatisticsExporter() {
-      memStatsList = new ArrayList<MemStatisticsCollector.MemStats>();
-      while (true) {
-        MemStatisticsCollector.MemStats memStats = memStatsQueue.poll();
-        if (memStats == null) break;
-        memStatsList.add(memStats);
-      }
+    public MemStatisticsExporter(long timestamp, long memoryUsage) {
+      this.timestamp = timestamp;
+      this.memoryUsage = memoryUsage;
     }
 
     @Override
@@ -87,12 +66,9 @@ public class MemStatisticsCollector  implements StatisticsCollector {
 
       memOutput = new BufferedWriter(new FileWriter(memFilename, true));
       if (new File(memFilename).length() == 0)
-        reporterUtils.addHeader(memOutput, MemStatisticsCollector.MemStats.Header.values());
+        reporterUtils.addHeader(memOutput, MemStatisticsCollector.Header.values());
 
-      for (MemStatisticsCollector.MemStats memStats : this.memStatsList) {
-        memOutput.append(toCsv(memStats)).append("\n");
-      }
-
+      memOutput.append(reporterUtils.formatTimestampInNano(timestamp) + "," + memoryUsage);
       memOutput.close();
     }
 
@@ -105,11 +81,6 @@ public class MemStatisticsCollector  implements StatisticsCollector {
              "\n" +
              "$('body').append('<div class=\"border\"><h1><a name=\"memory\">Memory Utilization</a></h1><div id=\"memory-box\"></div></div><br/>');\n" +
              "reportMemory('memory', 'Memory Utilization');\n";
-    }
-
-    private String toCsv(MemStatisticsCollector.MemStats memStats) {
-      return String.valueOf(reporterUtils.formatTimestampInNano(jvmStartTime + memStats.startTimestamp)) + "," +
-             memStats.memUtilization;
     }
   }
 }
