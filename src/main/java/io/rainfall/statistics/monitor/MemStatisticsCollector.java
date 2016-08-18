@@ -27,8 +27,6 @@ public class MemStatisticsCollector  implements StatisticsCollector {
   private static final MemoryMXBean MEM_BEAN = ManagementFactory.getMemoryMXBean();
   private static final String MEM_STATS = "Memory Utilization";
 
-  private final Timer timer = new Timer();
-
   private Writer memOutput;
 
   public static class MemStats {
@@ -48,22 +46,14 @@ public class MemStatisticsCollector  implements StatisticsCollector {
   private final Queue<MemStatisticsCollector.MemStats> memStatsQueue = new ConcurrentLinkedQueue<MemStatisticsCollector.MemStats>();
 
   @Override
-  public void initialize() {
-    timer.scheduleAtFixedRate(new TimerTask() {
-      @Override
-      public void run() {
-        memStatsQueue.add(new MemStatisticsCollector.MemStats(System.currentTimeMillis(), MEM_BEAN.getHeapMemoryUsage().getUsed()));
-      }
-    }, 5000, 5000);
-  }
+  public void initialize() {}
 
   @Override
-  public void terminate() {
-    timer.cancel();
-  }
+  public void terminate() {}
 
   @Override
   public Exporter peek() {
+    memStatsQueue.add(new MemStatisticsCollector.MemStats(System.currentTimeMillis(), MEM_BEAN.getHeapMemoryUsage().getUsed()));
     return new MemStatisticsCollector.MemStatisticsExporter();
   }
 

@@ -26,8 +26,7 @@ public class OSStatisticsCollector implements StatisticsCollector {
 
   private static final OperatingSystemMXBean OS_BEAN = ManagementFactory.getOperatingSystemMXBean();
   private static final String OS_STATS = "Processor Utilization";
-
-  private final Timer timer = new Timer();
+  private static final int AVAILABLE_PROCESSORS = OS_BEAN.getAvailableProcessors();
 
   private Writer osOutput;
 
@@ -48,22 +47,14 @@ public class OSStatisticsCollector implements StatisticsCollector {
   private final Queue<OSStatisticsCollector.OSStats> osStatsQueue = new ConcurrentLinkedQueue<OSStatisticsCollector.OSStats>();
 
   @Override
-  public void initialize() {
-    timer.scheduleAtFixedRate(new TimerTask() {
-      @Override
-      public void run() {
-        osStatsQueue.add(new OSStats(System.currentTimeMillis(), OS_BEAN.getSystemLoadAverage() / OS_BEAN.getAvailableProcessors() * 100.0));
-      }
-    }, 5000, 5000);
-  }
+  public void initialize() {}
 
   @Override
-  public void terminate() {
-    timer.cancel();
-  }
+  public void terminate() {}
 
   @Override
   public Exporter peek() {
+    osStatsQueue.add(new OSStats(System.currentTimeMillis(), OS_BEAN.getSystemLoadAverage() / AVAILABLE_PROCESSORS * 100.0));
     return new OSStatisticsCollector.OSStatisticsExporter();
   }
 
