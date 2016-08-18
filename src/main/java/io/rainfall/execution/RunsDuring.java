@@ -61,7 +61,7 @@ public class RunsDuring extends Execution {
     ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
     int nbThreads = concurrencyConfig.getNbThreads();
 
-    ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(concurrencyConfig.getNbThreads());
+    final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(concurrencyConfig.getNbThreads());
     final ExecutorService executor = Executors.newFixedThreadPool(nbThreads);
     markExecutionState(scenario, ExecutionState.BEGINNING);
     final AtomicBoolean doneFlag = new AtomicBoolean(false);
@@ -91,7 +91,7 @@ public class RunsDuring extends Execution {
       @Override
       public void run() {
         markExecutionState(scenario, ExecutionState.ENDING);
-        shutdownNicely(doneFlag, executor);
+        shutdownNicely(doneFlag, executor, scheduler);
       }
     }, during.getNb(), during.getTimeDivision().getTimeUnit());
 
@@ -101,20 +101,34 @@ public class RunsDuring extends Execution {
       }
     } catch (InterruptedException e) {
       markExecutionState(scenario, ExecutionState.ENDING);
-      shutdownNicely(doneFlag, executor);
+      shutdownNicely(doneFlag, executor, scheduler);
       throw new TestException("Thread execution Interruption", e);
     } catch (ExecutionException e) {
       markExecutionState(scenario, ExecutionState.ENDING);
-      shutdownNicely(doneFlag, executor);
+      shutdownNicely(doneFlag, executor, scheduler);
       throw new TestException("Thread execution error", e);
     }
     try {
-      long timeoutInSeconds = ((ConcurrencyConfig)configurations.get(ConcurrencyConfig.class)).getTimeoutInSeconds();
-      boolean success = executor.awaitTermination(timeoutInSeconds, SECONDS);
+      boolean executorSuccess = executor.awaitTermination(60, SECONDS);
+      if (!executorSuccess) {
+        executor.shutdownNow();
+        executorSuccess = executor.awaitTermination(60, SECONDS);
+      }
+
+      boolean schedulerSuccess = scheduler.awaitTermination(60, SECONDS);
+      if (!schedulerSuccess) {
+        scheduler.shutdownNow();
+        schedulerSuccess = scheduler.awaitTermination(60, SECONDS);
+      }
+
+      boolean success = schedulerSuccess & executorSuccess;
       if (!success) {
-        throw new TestException("Execution of Scenario timed out after " + timeoutInSeconds + " seconds.");
+        throw new TestException("Execution of Scenario timed out.");
       }
     } catch (InterruptedException e) {
+      executor.shutdownNow();
+      scheduler.shutdownNow();
+      Thread.currentThread().interrupt();
       throw new TestException("Execution of Scenario didn't stop correctly.", e);
     }
   }
@@ -124,8 +138,9 @@ public class RunsDuring extends Execution {
     return "" + during.getDescription();
   }
 
-  private void shutdownNicely(AtomicBoolean doneFlag, ExecutorService executor) {
+  private void shutdownNicely(AtomicBoolean doneFlag, ExecutorService executor, ExecutorService scheduler) {
     doneFlag.set(true);
     executor.shutdown();
+    scheduler.shutdown();
   }
 }

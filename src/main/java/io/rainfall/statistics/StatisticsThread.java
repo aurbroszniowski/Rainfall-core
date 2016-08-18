@@ -18,6 +18,7 @@ package io.rainfall.statistics;
 
 import io.rainfall.Reporter;
 import io.rainfall.configuration.ReportingConfig;
+import io.rainfall.statistics.collector.StatisticsCollector;
 
 import java.util.List;
 import java.util.Set;
@@ -31,14 +32,20 @@ public class StatisticsThread<E extends Enum<E>> extends TimerTask {
 
   private RuntimeStatisticsHolder<E> statisticsHolder;
   private ReportingConfig<E> reportingConfig;
+  private final Set<StatisticsCollector> statisticsCollectors;
   private List<String> description;
 
   public StatisticsThread(final RuntimeStatisticsHolder<E> statisticsHolder, final ReportingConfig<E> reportingConfig,
-                          final List<String> description) {
+                          final List<String> description, final Set<StatisticsCollector> statisticsCollectors) {
     this.description = description;
     Thread.currentThread().setName("Rainfall-core Statistics Thread");
     this.statisticsHolder = statisticsHolder;
     this.reportingConfig = reportingConfig;
+
+    this.statisticsCollectors = statisticsCollectors;
+    for (StatisticsCollector statisticsCollector : statisticsCollectors) {
+      statisticsCollector.initialize();
+    }
 
     Set<Reporter<E>> reporters = reportingConfig.getLogReporters();
     for (Reporter<E> reporter : reporters) {
@@ -57,6 +64,11 @@ public class StatisticsThread<E extends Enum<E>> extends TimerTask {
 
   public StatisticsPeekHolder<E> stop() {
     StatisticsPeekHolder<E> peek = statisticsHolder.peek();
+
+    for (StatisticsCollector statisticsCollector : reportingConfig.getStatisticsCollectors()) {
+      statisticsCollector.terminate();
+    }
+
     Set<Reporter<E>> reporters = reportingConfig.getLogReporters();
     for (Reporter<E> reporter : reporters) {
       reporter.summarize(statisticsHolder);

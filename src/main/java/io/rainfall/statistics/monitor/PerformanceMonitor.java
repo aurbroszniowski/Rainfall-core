@@ -1,4 +1,4 @@
-package io.rainfall.statistics.system;
+package io.rainfall.statistics.monitor;
 
 import com.sun.management.OperatingSystemMXBean;
 

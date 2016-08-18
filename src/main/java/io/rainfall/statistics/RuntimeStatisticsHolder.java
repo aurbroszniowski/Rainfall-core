@@ -16,6 +16,7 @@
 
 package io.rainfall.statistics;
 
+import io.rainfall.statistics.collector.StatisticsCollector;
 import jsr166e.LongAdder;
 import org.HdrHistogram.Histogram;
 
@@ -31,12 +32,15 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
   private final ConcurrentHashMap<String, LongAdder> assertionsErrors = new ConcurrentHashMap<String, LongAdder>();
   private final ConcurrentHashMap<String, Statistics<E>> statistics = new ConcurrentHashMap<String, Statistics<E>>();
   private final RainfallHistogramSink<E> histograms;
+  private final Set<StatisticsCollector> statisticsCollectors;
   private Enum<E>[] results;
   private Enum<E>[] resultsReported;
 
-  public RuntimeStatisticsHolder(final Enum<E>[] results, final Enum<E>[] resultsReported) {
+  public RuntimeStatisticsHolder(final Enum<E>[] results, final Enum<E>[] resultsReported,
+                                 final Set<StatisticsCollector> statisticsCollectors) {
     this.results = results;
     this.resultsReported = resultsReported;
+    this.statisticsCollectors = statisticsCollectors;
     this.histograms = new RainfallHistogramSink<E>(new RainfallHistogramSink.Factory() {
       @Override
       public ConcurrentHashMap<Enum, Histogram> createHistograms() {
@@ -65,6 +69,11 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
   @Override
   public Statistics<E> getStatistics(String name) {
     return this.statistics.get(name);
+  }
+
+  @Override
+  public Set<StatisticsCollector> getStatisticsCollectors() {
+    return statisticsCollectors;
   }
 
   @Override
@@ -110,6 +119,7 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
   }
 
   public StatisticsPeekHolder<E> peek() {
-    return new StatisticsPeekHolder<E>(this.resultsReported, this.statistics, this.assertionsErrors);
+    return new StatisticsPeekHolder<E>(this.resultsReported, this.statistics, this.statisticsCollectors,
+        this.assertionsErrors);
   }
 }

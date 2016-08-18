@@ -10,8 +10,9 @@ import java.net.Socket;
 /**
  * Server thread
  */
-public class RainfallServer implements Runnable {
+public class RainfallServerConnection implements Runnable {
   private final String currentSessionId;
+  private final int clientId;
   private final InetSocketAddress socketAddress;
 
   String line = null;
@@ -20,12 +21,13 @@ public class RainfallServer implements Runnable {
   Socket socket = null;
   private MergeableBitSet testRunning;
 
-  public RainfallServer(InetSocketAddress socketAddress, Socket socket, MergeableBitSet testRunning,
-                        String currentSessionId) {
+  public RainfallServerConnection(InetSocketAddress socketAddress, Socket socket, MergeableBitSet testRunning,
+                                  String currentSessionId, final int clientId) {
     this.socketAddress = socketAddress;
     this.socket = socket;
     this.testRunning = testRunning;
     this.currentSessionId = currentSessionId;
+    this.clientId = clientId;
   }
 
   @Override
@@ -39,11 +41,11 @@ public class RainfallServer implements Runnable {
     }
 
     try {
-      System.out.println("Server started [" + this.currentSessionId + "]");
+      System.out.println("Rainfall Server started [" + this.currentSessionId + "]");
       boolean isRunning = true;
       line = is.readLine();
       while (isRunning) {
-        System.out.println("Server received from client : " + line);
+        System.out.println("Rainfall Server received from Rainfall Client : " + line);
         if ("READY".equalsIgnoreCase(line)) {
           System.out.println("test running nb " + testRunning + " = " + testRunning.getCurrentSize());
           testRunning.increase();
@@ -54,8 +56,8 @@ public class RainfallServer implements Runnable {
               e.printStackTrace();
             }
           }
-          System.out.println("- Sending go to client");
-          os.println("GO," + currentSessionId);
+          System.out.println("Sending go to Rainfall Client " + clientId);
+          os.println("GO," + currentSessionId + "," + clientId);
           os.flush();
         } else if (("FINISHED," + currentSessionId).equalsIgnoreCase(line)) {
           // TODO receive report
@@ -78,29 +80,26 @@ public class RainfallServer implements Runnable {
       }
 
     } catch (IOException e) {
-      System.out.println("IO Error/ Client terminated abruptly");
+      System.out.println("IO Error/ Rainfall Client terminated abruptly");
     } catch (NullPointerException e) {
-      System.out.println("Client Closed");
+      System.out.println("Rainfall Client Closed");
     } finally {
       try {
-        System.out.println("Connection Closing..");
+        System.out.println("Rainfall Server Connection Closing...");
         if (is != null) {
           is.close();
-          System.out.println(" Socket Input Stream Closed");
         }
-
         if (os != null) {
           os.close();
-          System.out.println("Socket Out Closed");
         }
         if (socket != null) {
           socket.close();
-          System.out.println("Socket Closed");
         }
 
       } catch (IOException ie) {
-        System.out.println("Socket Close Error");
+        System.out.println("Rainfall Socket Close Error");
       }
+      testRunning.setTrue();
     }
   }
 }

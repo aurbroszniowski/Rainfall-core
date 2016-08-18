@@ -25,7 +25,7 @@ import io.rainfall.statistics.StatisticsPeekHolder;
 import io.rainfall.statistics.StatisticsThread;
 import io.rainfall.utils.MergeableBitSet;
 import io.rainfall.utils.RainfallClient;
-import io.rainfall.utils.RainfallServer;
+import io.rainfall.utils.RainfallServerConnection;
 import io.rainfall.utils.RangeMap;
 
 import java.io.IOException;
@@ -105,9 +105,19 @@ public class ScenarioRun<E extends Enum<E>> {
       try {
         attemptServerStart(distributedConfig);
 
-        distributedConfig.setCurrentClient(clientsStart(distributedConfig));
+        RainfallClient currentClient = new RainfallClient(distributedConfig.getMasterAddress());
+        currentClient.start();
+        currentClient.join();
+        TestException testException = currentClient.getTestException().get();
+        if (testException != null) {
+          throw testException;
+        }
+        distributedConfig.setCurrentClient(currentClient);
+
       } catch (TestException e) {
         throw new RuntimeException(e);
+      } catch (InterruptedException e) {
+        throw new RuntimeException("Rainfall Client interrupted", e);
       }
     }
 
@@ -121,7 +131,7 @@ public class ScenarioRun<E extends Enum<E>> {
     // be inside of the Statistics, and the key would be operation result
     // besides, we end up having to initialize two stats holder, one real, and one blank for warmup phase, it's ugly
     RuntimeStatisticsHolder<E> blankStatisticsHolder = new RuntimeStatisticsHolder<E>(reportingConfig.getResults(), reportingConfig
-        .getResultsReported());
+        .getResultsReported(), reportingConfig.getStatisticsCollectors());
     initStatistics(blankStatisticsHolder);
 
     try {
@@ -133,11 +143,13 @@ public class ScenarioRun<E extends Enum<E>> {
       throw new RuntimeException(e);
     }
 
-    this.statisticsHolder = new RuntimeStatisticsHolder<E>(reportingConfig.getResults(), reportingConfig.getResultsReported());
+    this.statisticsHolder = new RuntimeStatisticsHolder<E>(reportingConfig.getResults(), reportingConfig.getResultsReported(),
+        reportingConfig.getStatisticsCollectors());
     initStatistics(this.statisticsHolder);
 
     Timer timer = new Timer();
-    StatisticsThread<E> stats = new StatisticsThread<E>(statisticsHolder, reportingConfig, getDescription());
+    StatisticsThread<E> stats = new StatisticsThread<E>(statisticsHolder, reportingConfig, getDescription(),
+        reportingConfig.getStatisticsCollectors());
     TimeUnit reportIntervalUnit = reportingConfig.getReportTimeUnit();
     long reportIntervalMillis = reportIntervalUnit.toMillis(reportingConfig.getReportInterval());
     timer.scheduleAtFixedRate(stats, reportIntervalMillis, reportIntervalMillis);
@@ -151,8 +163,10 @@ public class ScenarioRun<E extends Enum<E>> {
     }
 
     StatisticsPeekHolder peek = stats.stop();
-
     long end = System.currentTimeMillis();
+
+    timer.purge();
+    timer.cancel();
 
     if (distributedConfig != null) {
       try {
@@ -172,23 +186,9 @@ public class ScenarioRun<E extends Enum<E>> {
     try {
       currentClient.sendReport();
       currentClient.shutdown();
-      currentClient.join();
     } catch (IOException e) {
       throw new TestException("Error when stopping the Rainfall cluster", e);
-    } catch (InterruptedException e) {
-      throw new TestException("Error when stopping the Rainfall cluster", e);
     }
-  }
-
-  private RainfallClient clientsStart(final DistributedConfig distributedConfig) throws TestException {
-    RainfallClient client = new RainfallClient(distributedConfig.getMasterAddress());
-    client.run();
-    try {
-      client.waitForGo();
-    } catch (IOException e) {
-      throw new TestException("test client couldn't read from the master", e);
-    }
-    return client;
   }
 
   private void attemptServerStart(final DistributedConfig distributedConfig) throws TestException {
@@ -201,11 +201,11 @@ public class ScenarioRun<E extends Enum<E>> {
         ServerSocket serverSocket;
         try {
           serverSocket = new ServerSocket(distributedConfig.getMasterAddress().getPort());
-          System.out.println("--- > Server Listening......");
+          System.out.println("Rainfall Server Listening......");
         } catch (IOException e) {
           // TODO verify exception type : used
 //          e.printStackTrace();
-          System.out.println("--- > Server already started");
+          System.out.println("Rainfall Server already started");
           return;
         }
 
@@ -215,25 +215,23 @@ public class ScenarioRun<E extends Enum<E>> {
         String sessionId = UUID.randomUUID().toString();
         List<Thread> serverThreads = new ArrayList<Thread>();
         MergeableBitSet testRunning = new MergeableBitSet(distributedConfig.getNbClients());
+        int clientId = 0;
         while (!testRunning.isTrue()) {
           try {
             socket = serverSocket.accept();
-            System.out.println("---> connection with client Established");
-            Thread serverThread = new Thread(new RainfallServer(
-                distributedConfig.getMasterAddress(), socket, testRunning, sessionId));
+            System.out.println("Connection with Rainfall Client " + clientId + " Established");
+            Thread serverThread = new Thread(
+                new RainfallServerConnection(distributedConfig.getMasterAddress(), socket, testRunning, sessionId, clientId));
             serverThread.start();
             serverThreads.add(serverThread);
+            clientId++;
 
             Thread.sleep(1000);
-
-            System.out.println("test running nb "+ testRunning + " = " + testRunning.getCurrentSize()+ " isrunning " + testRunning.isTrue());
-
           } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("Connection Error");
+            System.out.println("Rainfall Client Connection Error");
           }
         }
-        System.out.println("--> clients are running");
 
         for (Thread serverThread : serverThreads) {
           try {
