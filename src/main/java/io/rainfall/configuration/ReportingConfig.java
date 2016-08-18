@@ -22,6 +22,8 @@ import io.rainfall.reporting.HtmlReporter;
 import io.rainfall.reporting.TextReporter;
 import io.rainfall.statistics.collector.StatisticsCollector;
 import io.rainfall.statistics.monitor.GcStatisticsCollector;
+import io.rainfall.statistics.monitor.MemStatisticsCollector;
+import io.rainfall.statistics.monitor.OSStatisticsCollector;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -61,6 +63,14 @@ public class ReportingConfig<E extends Enum<E>> extends Configuration {
 
   public static StatisticsCollector gcStatistics( ) {
     return new GcStatisticsCollector() ;
+  }
+
+  public static StatisticsCollector osStatistics() {
+    return new OSStatisticsCollector();
+  }
+
+  public static StatisticsCollector memStatistics() {
+    return new MemStatisticsCollector();
   }
 
   public ReportingConfig every(final long amount, final TimeUnit unit) {
