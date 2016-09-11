@@ -41,7 +41,7 @@ public class TimesTest {
                 try {
                   Thread.sleep(random.nextInt(100));
                 } catch (InterruptedException e) {
-                  e.printStackTrace();
+                  Thread.currentThread().interrupt();
                 }
                 cnt.getAndIncrement();
               }

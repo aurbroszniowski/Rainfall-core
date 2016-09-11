@@ -27,5 +27,10 @@ public class MergeableBitSet {
   public void setTrue() {
     currentSize = size;
   }
+
+  @Override
+  public String toString() {
+    return "Current size = " + currentSize + " and needs to grow to " + size;
+  }
 }
 

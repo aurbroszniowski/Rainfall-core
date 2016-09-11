@@ -23,15 +23,15 @@ import io.rainfall.statistics.InitStatisticsHolder;
 import io.rainfall.statistics.RuntimeStatisticsHolder;
 import io.rainfall.statistics.StatisticsPeekHolder;
 import io.rainfall.statistics.StatisticsThread;
-import io.rainfall.utils.MergeableBitSet;
 import io.rainfall.utils.RainfallClient;
-import io.rainfall.utils.RainfallServerConnection;
+import io.rainfall.utils.RainfallServer;
 import io.rainfall.utils.RangeMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
-import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,7 +39,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -48,6 +47,8 @@ import java.util.concurrent.TimeUnit;
  */
 
 public class ScenarioRun<E extends Enum<E>> {
+
+  private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
   private Scenario scenario;
   //TODO : is it possible to generify?
@@ -102,23 +103,7 @@ public class ScenarioRun<E extends Enum<E>> {
   public StatisticsPeekHolder<E> start() {
     DistributedConfig distributedConfig = (DistributedConfig)configurations.get(DistributedConfig.class);
     if (distributedConfig != null) {
-      try {
-        attemptServerStart(distributedConfig);
-
-        RainfallClient currentClient = new RainfallClient(distributedConfig.getMasterAddress());
-        currentClient.start();
-        currentClient.join();
-        TestException testException = currentClient.getTestException().get();
-        if (testException != null) {
-          throw testException;
-        }
-        distributedConfig.setCurrentClient(currentClient);
-
-      } catch (TestException e) {
-        throw new RuntimeException(e);
-      } catch (InterruptedException e) {
-        throw new RuntimeException("Rainfall Client interrupted", e);
-      }
+      startCluster(distributedConfig);
     }
 
     long start = System.currentTimeMillis();
@@ -179,77 +164,75 @@ public class ScenarioRun<E extends Enum<E>> {
     return peek;
   }
 
-  private void stopCluster(final DistributedConfig distributedConfig) throws TestException {
-    // TODO
-    //  send report to server and send ok command
-    RainfallClient currentClient = distributedConfig.getCurrentClient();
+  private void startCluster(final DistributedConfig distributedConfig) {
     try {
-      currentClient.sendReport();
-      currentClient.shutdown();
-    } catch (IOException e) {
-      throw new TestException("Error when stopping the Rainfall cluster", e);
+      attemptServerStart(distributedConfig);
+
+      RainfallClient currentClient = new RainfallClient(distributedConfig.getMasterAddress());
+      distributedConfig.setCurrentClient(currentClient);
+      currentClient.start();
+
+      while (!currentClient.canStart()) {
+        Thread.sleep(250);
+      }
+    } catch (TestException e) {
+      throw new RuntimeException(e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
+  }
+
+  private void stopCluster(final DistributedConfig distributedConfig) throws TestException {
+    RainfallClient currentClient = distributedConfig.getCurrentClient();
+    currentClient.sendReport();
+    try {
+      currentClient.join();
+      TestException testException = currentClient.getTestException().get();
+      if (testException != null) {
+        throw testException;
+      }
+    } catch (InterruptedException e) {
+      throw new TestException("Rainfall cluster client interrupted", e);
     }
   }
 
   private void attemptServerStart(final DistributedConfig distributedConfig) throws TestException {
     try {
-      // look at server hostname, if same hostname than localhost, then start server
-      if (Arrays.toString(InetAddress.getByName("localhost").getAddress()).equalsIgnoreCase(
+      logger.debug("[Rainfall server] Check if configuration server hostname is current host.");
+      if (!Arrays.toString(InetAddress.getByName("localhost").getAddress()).equalsIgnoreCase(
           Arrays.toString(distributedConfig.getMasterAddress().getAddress().getAddress()))) {
-
-        Socket socket;
-        ServerSocket serverSocket;
-        try {
-          serverSocket = new ServerSocket(distributedConfig.getMasterAddress().getPort());
-          System.out.println("Rainfall Server Listening......");
-        } catch (IOException e) {
-          // TODO verify exception type : used
-//          e.printStackTrace();
-          System.out.println("Rainfall Server already started");
-          return;
-        }
-
-        // if success, create map of reports then waits for reports to be given back
-        //TODO
-
-        String sessionId = UUID.randomUUID().toString();
-        List<Thread> serverThreads = new ArrayList<Thread>();
-        MergeableBitSet testRunning = new MergeableBitSet(distributedConfig.getNbClients());
-        int clientId = 0;
-        while (!testRunning.isTrue()) {
-          try {
-            socket = serverSocket.accept();
-            System.out.println("Connection with Rainfall Client " + clientId + " Established");
-            Thread serverThread = new Thread(
-                new RainfallServerConnection(distributedConfig.getMasterAddress(), socket, testRunning, sessionId, clientId));
-            serverThread.start();
-            serverThreads.add(serverThread);
-            clientId++;
-
-            Thread.sleep(1000);
-          } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Rainfall Client Connection Error");
-          }
-        }
-
-        for (Thread serverThread : serverThreads) {
-          try {
-            serverThread.join();
-          } catch (InterruptedException e) {
-            e.printStackTrace();
-          }
-        }
-
-        // if current is server, then wait for  reports and ok command, group reports and create clustsred report
-        // server stop
-        //TODO
-
-        System.exit(0);
+        logger.debug("[Rainfall server] Current host is NOT the server host, so we return to start the client");
+        return;
       }
     } catch (UnknownHostException e) {
-      throw new TestException("Can not run multi-clients test. (Master issue)", e);
+      throw new TestException("Can not run multi-clients test.", e);
     }
+
+    ServerSocket serverSocket;
+    try {
+      serverSocket = new ServerSocket(distributedConfig.getMasterAddress().getPort());
+    } catch (IOException e) {
+//      if (e.getMessage().startsWith()) {
+      logger.debug("[Rainfall server] already started");
+      return;
+//    } else {
+//      throw new TestException("Rainfall Server already started");
+//    }
+    }
+
+    logger.debug("[Rainfall server] Current host is the server host, so we start the Rainfall server");
+    RainfallServer rainfallServer = new RainfallServer(distributedConfig, serverSocket);
+    rainfallServer.start();
+    try {
+      rainfallServer.join();
+      TestException testException = rainfallServer.getTestException().get();
+      if (testException != null) {
+        throw testException;
+      }
+    } catch (InterruptedException e) {
+      throw new TestException("Rainfall server client interrupted", e);
+    }
+    System.exit(0);
   }
 
   private List<String> getDescription() {

@@ -1,24 +1,33 @@
 package io.rainfall.utils;
 
+import io.rainfall.TestException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Server thread
  */
-public class RainfallServerConnection implements Runnable {
-  private final String currentSessionId;
-  private final int clientId;
-  private final InetSocketAddress socketAddress;
+public class RainfallServerConnection extends Thread {
 
-  String line = null;
-  BufferedReader is = null;
-  PrintWriter os = null;
-  Socket socket = null;
+  private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+  private String currentSessionId;
+  private int clientId;
+  private InetSocketAddress socketAddress;
+  private AtomicReference<TestException> testException = new AtomicReference<TestException>();
+  private boolean running;
+
+  private BufferedReader is = null;
+  private PrintWriter os = null;
+  private Socket socket = null;
   private MergeableBitSet testRunning;
 
   public RainfallServerConnection(InetSocketAddress socketAddress, Socket socket, MergeableBitSet testRunning,
@@ -33,73 +42,80 @@ public class RainfallServerConnection implements Runnable {
   @Override
   public void run() {
     try {
-      is = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-      os = new PrintWriter(socket.getOutputStream());
+      setupConnection();
+      logger.info("[Rainfall server] New session created (id = {})", this.currentSessionId);
 
-    } catch (IOException e) {
-      System.out.println("IO error in server thread");
-    }
-
-    try {
-      System.out.println("Rainfall Server started [" + this.currentSessionId + "]");
-      boolean isRunning = true;
-      line = is.readLine();
-      while (isRunning) {
-        System.out.println("Rainfall Server received from Rainfall Client : " + line);
-        if ("READY".equalsIgnoreCase(line)) {
-          System.out.println("test running nb " + testRunning + " = " + testRunning.getCurrentSize());
-          testRunning.increase();
-          while (!testRunning.isTrue()) {
-            try {
-              Thread.sleep(500);
-            } catch (InterruptedException e) {
-              e.printStackTrace();
-            }
-          }
-          System.out.println("Sending go to Rainfall Client " + clientId);
-          os.println("GO," + currentSessionId + "," + clientId);
-          os.flush();
-        } else if (("FINISHED," + currentSessionId).equalsIgnoreCase(line)) {
-          // TODO receive report
-
-          isRunning = false;
-          os.println("SHUTDOWN," + currentSessionId);
-          os.flush();
-        }
-        line = is.readLine();
-        if (line == null) {
-          isRunning = false;
-        }
-
+      String response;
+      while (running) {
         try {
-          Thread.sleep(500);
-        } catch (InterruptedException e) {
-          e.printStackTrace();
+          response = is.readLine();
+
+          if (response == null) {
+            Thread.sleep(2000);
+          } else if ("READY".equalsIgnoreCase(response)) {
+            logger.debug("[Rainfall server] Waiting for all clients to connect : current state is {}", testRunning.toString());
+            testRunning.increase();
+          } else if (("FINISHED," + currentSessionId).equalsIgnoreCase(response)) {
+            // TODO : get report back
+
+            stopClient();
+            this.running = false;
+          } else {
+            Thread.sleep(500);
+          }
+        } catch (IOException e) {
+          throw new TestException("Rainfall server couldn't read from a Rainfall client", e);
+        } catch (InterruptedException e1) {
+          Thread.currentThread().interrupt();
         }
-
       }
-
-    } catch (IOException e) {
-      System.out.println("IO Error/ Rainfall Client terminated abruptly");
-    } catch (NullPointerException e) {
-      System.out.println("Rainfall Client Closed");
+    } catch (TestException e) {
+      testException.set(e);
     } finally {
       try {
-        System.out.println("Rainfall Server Connection Closing...");
-        if (is != null) {
-          is.close();
-        }
-        if (os != null) {
-          os.close();
-        }
-        if (socket != null) {
-          socket.close();
-        }
-
-      } catch (IOException ie) {
-        System.out.println("Rainfall Socket Close Error");
+        shutdown();
+      } catch (IOException e) {
+        logger.debug("[Rainfall server] Issue when shutting down connections", e);
       }
-      testRunning.setTrue();
     }
+  }
+
+  private void shutdown() throws IOException {
+    if (os != null) {
+      os.close();
+    }
+    if (is != null) {
+      is.close();
+    }
+    if (socket != null) {
+      socket.close();
+    }
+
+  }
+
+  private void setupConnection() throws TestException {
+    try {
+      is = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+      os = new PrintWriter(socket.getOutputStream());
+      running = true;
+      logger.info("[Rainfall server] waiting for clients");
+    } catch (IOException e) {
+      throw new TestException("Rainfall server couldn't start listening for clients", e);
+    }
+  }
+
+  private void command(String command) {
+    os.println(command);
+    os.flush();
+  }
+
+  public void startClient() {
+    logger.info("[Rainfall server] All clients connected - Sending GO to client {}", clientId);
+    command("GO," + currentSessionId + "," + clientId);
+  }
+
+  public void stopClient() {
+    logger.info("[Rainfall server] Sending shutdown to client {}", clientId);
+    command("SHUTDOWN," + currentSessionId);
   }
 }
