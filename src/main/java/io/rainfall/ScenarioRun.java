@@ -57,6 +57,7 @@ public class ScenarioRun<E extends Enum<E>> {
   private Execution warmup = null;
   private List<Execution> executions = null;
   private RuntimeStatisticsHolder<E> statisticsHolder;
+  private RainfallServer rainfallServer;
 
   public ScenarioRun(final Scenario scenario) {
     this.scenario = scenario;
@@ -187,9 +188,18 @@ public class ScenarioRun<E extends Enum<E>> {
     currentClient.sendReport();
     try {
       currentClient.join();
+      if (rainfallServer != null) {
+        rainfallServer.join();
+      }
       TestException testException = currentClient.getTestException().get();
       if (testException != null) {
         throw testException;
+      }
+      if (rainfallServer != null) {
+        testException = rainfallServer.getTestException().get();
+        if (testException != null) {
+          throw testException;
+        }
       }
     } catch (InterruptedException e) {
       throw new TestException("Rainfall cluster client interrupted", e);
@@ -221,18 +231,8 @@ public class ScenarioRun<E extends Enum<E>> {
     }
 
     logger.debug("[Rainfall server] Current host is the server host, so we start the Rainfall server");
-    RainfallServer rainfallServer = new RainfallServer(distributedConfig, serverSocket);
+    rainfallServer = new RainfallServer(distributedConfig, serverSocket);
     rainfallServer.start();
-    try {
-      rainfallServer.join();
-      TestException testException = rainfallServer.getTestException().get();
-      if (testException != null) {
-        throw testException;
-      }
-    } catch (InterruptedException e) {
-      throw new TestException("Rainfall server client interrupted", e);
-    }
-    System.exit(0);
   }
 
   private List<String> getDescription() {
