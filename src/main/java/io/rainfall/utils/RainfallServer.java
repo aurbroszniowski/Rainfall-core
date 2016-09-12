@@ -24,6 +24,7 @@ public class RainfallServer extends Thread {
   private Socket socket;
 
   private AtomicReference<TestException> testException = new AtomicReference<TestException>();
+  private boolean running = true;
 
   public RainfallServer(DistributedConfig distributedConfig, ServerSocket serverSocket) {
     this.distributedConfig = distributedConfig;
@@ -34,56 +35,66 @@ public class RainfallServer extends Thread {
   public void run() {
     try {
       logger.debug("We started the Rainfall server. We will create a placehodler for clients reports.");
-      //TODO if success, create map of reports then waits for reports to be given back
 
-      logger.info("[Rainfall Server] Ready - Listening for incoming clients");
-      String sessionId = UUID.randomUUID().toString();
-      List<RainfallServerConnection> serverConnectionThreads = new ArrayList<RainfallServerConnection>();
-      MergeableBitSet testRunning = new MergeableBitSet(distributedConfig.getNbClients());
-      int clientId = 0;
-      while (!testRunning.isTrue()) {
-        try {
-          socket = serverSocket.accept();
-          logger.info("[Rainfall server] Connection with Rainfall client {} established", clientId);
-          RainfallServerConnection serverConnectionThread =
-              new RainfallServerConnection(distributedConfig.getMasterAddress(), socket, testRunning, sessionId, clientId);
-          serverConnectionThread.start();
-          serverConnectionThreads.add(serverConnectionThread);
-          clientId++;
+      while (running) {
+        //TODO  create map of reports then waits for reports to be given back
 
-          Thread.sleep(500);
-        } catch (Exception e) {
-          throw new TestException("Connection Error with Rainfall client", e);
+        logger.info("[Rainfall Server] Ready - Listening for incoming clients");
+        String sessionId = UUID.randomUUID().toString();
+        List<RainfallServerConnection> serverConnectionThreads = new ArrayList<RainfallServerConnection>();
+        MergeableBitSet testRunning = new MergeableBitSet(distributedConfig.getNbClients());
+        int clientId = 0;
+        while (!testRunning.isTrue()) {
+          try {
+            socket = serverSocket.accept();
+            logger.info("[Rainfall server] Connection with Rainfall client {} established", clientId);
+            RainfallServerConnection serverConnectionThread =
+                new RainfallServerConnection(distributedConfig.getMasterAddress(), socket, testRunning, sessionId, clientId);
+            serverConnectionThread.start();
+            serverConnectionThreads.add(serverConnectionThread);
+            clientId++;
+
+            Thread.sleep(500);
+          } catch (Exception e) {
+            throw new TestException("Connection Error with Rainfall client", e);
+          }
         }
-      }
 
-      for (RainfallServerConnection serverConnectionThread : serverConnectionThreads) {
-        serverConnectionThread.startClient();
-      }
-
-      for (RainfallServerConnection serverThread : serverConnectionThreads) {
-        try {
-          serverThread.join();
-        } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
+        for (RainfallServerConnection serverConnectionThread : serverConnectionThreads) {
+          serverConnectionThread.startClient();
         }
+
+        for (RainfallServerConnection serverThread : serverConnectionThreads) {
+          try {
+            serverThread.join();
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+          }
+        }
+        try {
+          socket.close();
+        } catch (IOException e) {
+          throw new TestException("Cannot close socket", e);
+        }
+
+        //TODO  group reports and create clustered report
       }
-
-      // group reports and create clustsred report
-      //TODO
-
     } catch (TestException e) {
       testException.set(e);
     } finally {
       try {
-        shutdown();
+        closeConnections();
       } catch (IOException e) {
         logger.debug("[Rainfall server] Issue when shutting down connections", e);
       }
     }
   }
 
-  private void shutdown() throws IOException {
+  public void shutdown() {
+    this.running = false;
+  }
+
+  private void closeConnections() throws IOException {
     if (this.socket != null) {
       this.socket.close();
     }

@@ -57,7 +57,6 @@ public class ScenarioRun<E extends Enum<E>> {
   private Execution warmup = null;
   private List<Execution> executions = null;
   private RuntimeStatisticsHolder<E> statisticsHolder;
-  private RainfallServer rainfallServer;
 
   public ScenarioRun(final Scenario scenario) {
     this.scenario = scenario;
@@ -167,8 +166,6 @@ public class ScenarioRun<E extends Enum<E>> {
 
   private void startCluster(final DistributedConfig distributedConfig) {
     try {
-      attemptServerStart(distributedConfig);
-
       RainfallClient currentClient = new RainfallClient(distributedConfig.getMasterAddress());
       distributedConfig.setCurrentClient(currentClient);
       currentClient.start();
@@ -176,8 +173,6 @@ public class ScenarioRun<E extends Enum<E>> {
       while (!currentClient.canStart()) {
         Thread.sleep(250);
       }
-    } catch (TestException e) {
-      throw new RuntimeException(e);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
     }
@@ -188,51 +183,13 @@ public class ScenarioRun<E extends Enum<E>> {
     currentClient.sendReport();
     try {
       currentClient.join();
-      if (rainfallServer != null) {
-        rainfallServer.join();
-      }
       TestException testException = currentClient.getTestException().get();
       if (testException != null) {
         throw testException;
       }
-      if (rainfallServer != null) {
-        testException = rainfallServer.getTestException().get();
-        if (testException != null) {
-          throw testException;
-        }
-      }
     } catch (InterruptedException e) {
       throw new TestException("Rainfall cluster client interrupted", e);
     }
-  }
-
-  private void attemptServerStart(final DistributedConfig distributedConfig) throws TestException {
-    try {
-      logger.debug("[Rainfall server] Check if configuration server hostname is current host.");
-      if (!Arrays.toString(InetAddress.getByName("localhost").getAddress()).equalsIgnoreCase(
-          Arrays.toString(distributedConfig.getMasterAddress().getAddress().getAddress()))) {
-        logger.debug("[Rainfall server] Current host is NOT the server host, so we return to start the client");
-        return;
-      }
-    } catch (UnknownHostException e) {
-      throw new TestException("Can not run multi-clients test.", e);
-    }
-
-    ServerSocket serverSocket;
-    try {
-      serverSocket = new ServerSocket(distributedConfig.getMasterAddress().getPort());
-    } catch (IOException e) {
-//      if (e.getMessage().startsWith()) {
-      logger.debug("[Rainfall server] already started");
-      return;
-//    } else {
-//      throw new TestException("Rainfall Server already started");
-//    }
-    }
-
-    logger.debug("[Rainfall server] Current host is the server host, so we start the Rainfall server");
-    rainfallServer = new RainfallServer(distributedConfig, serverSocket);
-    rainfallServer.start();
   }
 
   private List<String> getDescription() {
