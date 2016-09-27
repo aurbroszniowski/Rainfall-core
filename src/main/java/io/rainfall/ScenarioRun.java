@@ -133,25 +133,29 @@ public class ScenarioRun<E extends Enum<E>> {
     initStatistics(this.statisticsHolder);
 
     Timer timer = new Timer();
-    StatisticsThread<E> stats = new StatisticsThread<E>(statisticsHolder, reportingConfig, getDescription(),
-        reportingConfig.getStatisticsCollectors());
-    TimeUnit reportIntervalUnit = reportingConfig.getReportTimeUnit();
-    long reportIntervalMillis = reportIntervalUnit.toMillis(reportingConfig.getReportInterval());
-    timer.scheduleAtFixedRate(stats, reportIntervalMillis, reportIntervalMillis);
-
+    StatisticsThread<E> stats = null;
+    StatisticsPeekHolder<E> peek = null;
     try {
+      stats = new StatisticsThread<E>(statisticsHolder, reportingConfig, getDescription(),
+          reportingConfig.getStatisticsCollectors());
+      TimeUnit reportIntervalUnit = reportingConfig.getReportTimeUnit();
+      long reportIntervalMillis = reportIntervalUnit.toMillis(reportingConfig.getReportInterval());
+
+      timer.scheduleAtFixedRate(stats, reportIntervalMillis, reportIntervalMillis);
+
       for (final Execution execution : executions) {
         execution.execute(statisticsHolder, scenario, configurations, assertions);
       }
-    } catch (TestException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
+    } finally {
+      if (stats != null) {
+        peek = stats.stop();
+      }
+      long end = System.currentTimeMillis();
+      timer.purge();
+      timer.cancel();
     }
-
-    StatisticsPeekHolder peek = stats.stop();
-    long end = System.currentTimeMillis();
-
-    timer.purge();
-    timer.cancel();
 
     if (distributedConfig != null) {
       try {
@@ -160,7 +164,6 @@ public class ScenarioRun<E extends Enum<E>> {
         throw new RuntimeException(e);
       }
     }
-
     return peek;
   }
 
