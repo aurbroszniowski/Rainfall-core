@@ -16,8 +16,6 @@
 
 package io.rainfall;
 
-import java.util.List;
-
 /**
  * @author Aurelien Broszniowski
  */
