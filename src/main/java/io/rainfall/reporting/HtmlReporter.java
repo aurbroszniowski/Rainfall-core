@@ -216,7 +216,7 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
 
         sb.append("reportPercentiles('")
             .append(getPercentilesFilename(result.name()).substring(0, getPercentilesFilename(result.name()).length() - 4))
-            .append("', 'Reponse Time percentiles for ").append(result.name())
+            .append("', 'Response Time percentiles for ").append(result.name())
             .append("', '" + mean + "', '" + maxValue)
             .append("');").append(CRLF);
       }
@@ -365,7 +365,7 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
       String averageLatencyFilename = getAverageLatencyFilename(key);
       sb.append("reportResponseTime('")
           .append(averageLatencyFilename.substring(0, averageLatencyFilename.length() - 4))
-          .append("', 'Periodic Reponse Time - ").append(key)
+          .append("', 'Periodic Response Time - ").append(key)
           .append("');").append(CRLF);
     }
     sb.append("reportResponseTime('total-averageLatency', 'Periodic Average Response Time of all entities');")
