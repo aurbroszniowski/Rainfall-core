@@ -143,9 +143,13 @@ public class ScenarioRun<E extends Enum<E>> {
 
       timer.scheduleAtFixedRate(stats, reportIntervalMillis, reportIntervalMillis);
 
+      System.out.println("Starting scenario.");
+
       for (final Execution execution : executions) {
         execution.execute(statisticsHolder, scenario, configurations, assertions);
       }
+
+      System.out.println("End of scenario.");
     } catch (Exception e) {
       throw new RuntimeException(e);
     } finally {
