@@ -26,8 +26,8 @@ import java.util.List;
 public class IntegerGenerator implements ObjectGenerator<Integer> {
 
   @Override
-  public Integer generate(final Long l) {
-    return l.intValue();
+  public Integer generate(long l) {
+    return (int) l;
   }
 
   @Override

@@ -22,7 +22,7 @@ package io.rainfall;
 
 public interface ObjectGenerator<T> {
 
-  T generate(Long seed);
+  T generate(long seed);
 
   String getDescription();
 }
