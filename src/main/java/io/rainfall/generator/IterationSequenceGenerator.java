@@ -32,6 +32,15 @@ public class IterationSequenceGenerator implements SequenceGenerator {
     this.next = new AtomicLong();
   }
 
+  /**
+   * Constructor taking the first value to be returned by {@link #next()} in parameter
+   *
+   * @param firstValue first value to be returned
+   */
+  public IterationSequenceGenerator(long firstValue) {
+    this.next = new AtomicLong(firstValue);
+  }
+
   @Override
   public long next() {
     return next.getAndIncrement();
