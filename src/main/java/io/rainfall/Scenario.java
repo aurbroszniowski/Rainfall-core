@@ -31,16 +31,26 @@ import java.util.List;
 public class Scenario {
 
   private String name;
-  private final List<RangeMap<Operation>> operations = new ArrayList<RangeMap<Operation>>();
+  private final List<RangeMap<WeightedOperation>> operations = new ArrayList<RangeMap<WeightedOperation>>();
 
   public Scenario(final String name) {
     this.name = name;
   }
 
-  public Scenario exec(final Operation... operations) {
-    RangeMap<Operation> operationRangeMap = new RangeMap<Operation>();
-    for (Operation operation : operations) {
+  public Scenario exec(final WeightedOperation... operations) {
+    RangeMap<WeightedOperation> operationRangeMap = new RangeMap<WeightedOperation>();
+    for (WeightedOperation operation : operations) {
       operationRangeMap.put(operation.getWeight(), operation);
+    }
+    this.operations.add(operationRangeMap);
+    return this;
+  }
+
+  public Scenario exec(final Operation... operations) {
+    RangeMap<WeightedOperation> operationRangeMap = new RangeMap<WeightedOperation>();
+    for (Operation operation : operations) {
+      float percent = 1.0f / operations.length;
+      operationRangeMap.put(percent, new WeightedOperation((double)percent, operation));
     }
     this.operations.add(operationRangeMap);
     return this;
@@ -50,7 +60,7 @@ public class Scenario {
     return new Scenario(name);
   }
 
-  public List<RangeMap<Operation>> getOperations() {
+  public List<RangeMap<WeightedOperation>> getOperations() {
     return this.operations;
   }
 
@@ -58,14 +68,24 @@ public class Scenario {
     List<String> desc = new ArrayList<String>();
     desc.add("Scenario : " + name);
     int step = 1;
-    for (RangeMap<Operation> operationMap : operations) {
+    for (RangeMap<WeightedOperation> operationMap : operations) {
       desc.add("Step " + step + ")");
-      Collection<Operation> parallelOperations = operationMap.getAll();
-      for (Operation operation : parallelOperations) {
+      Collection<WeightedOperation> parallelOperations = operationMap.getAll();
+      for (WeightedOperation operation : parallelOperations) {
         desc.addAll(operation.getDescription());
       }
       step++;
     }
     return desc;
   }
+
+  public static WeightedOperation weighted(Double weight, Operation operation) {
+    return new WeightedOperation(weight, operation);
+  }
+
+  public static WeightedOperation fixed(Operation operation) {
+    return new WeightedOperation(operation); //TODO : fixed thread
+  }
+
+
 }

@@ -24,7 +24,7 @@ import java.util.Set;
 /**
  * @author Aurelien Broszniowski
  */
-public class InitStatisticsHolder<E extends Enum<E>> implements StatisticsHolder<E> {
+public class InitStatisticsHolder<E extends Enum<E>> extends StatisticsHolder<E> {
 
   private RuntimeStatisticsHolder<E> statisticsHolder;
 

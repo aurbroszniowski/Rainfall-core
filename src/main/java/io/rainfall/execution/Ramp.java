@@ -22,6 +22,7 @@ import io.rainfall.Execution;
 import io.rainfall.Operation;
 import io.rainfall.Scenario;
 import io.rainfall.TestException;
+import io.rainfall.WeightedOperation;
 import io.rainfall.configuration.ConcurrencyConfig;
 import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.unit.Every;
@@ -86,10 +87,10 @@ public class Ramp extends Execution {
 
           try {
             for (long i = 0; i < max; i++) {
-              List<RangeMap<Operation>> operations = scenario.getOperations();
-              for (RangeMap<Operation> operation : operations) {
+              List<RangeMap<WeightedOperation>> operations = scenario.getOperations();
+              for (RangeMap<WeightedOperation> operation : operations) {
                 operation.get(weightRnd.nextFloat(operation.getHigherBound()))
-                    .exec(statisticsHolder, configurations, assertions);
+                    .getOperation().exec(statisticsHolder, configurations, assertions);
               }
             }
           } catch (TestException e) {

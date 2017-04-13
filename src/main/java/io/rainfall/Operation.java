@@ -27,42 +27,12 @@ import java.util.Map;
  * @author Aurelien Broszniowski
  */
 
-public abstract class Operation {
+public interface Operation {
 
-  private volatile Execution.ExecutionState state = Execution.ExecutionState.UNKNOWN;
-
-  private float weight = 1;
-  private int weightInPercent;
-
-  public abstract void exec(final StatisticsHolder statisticsHolder,
+  void exec(final StatisticsHolder statisticsHolder,
                             final Map<Class<? extends Configuration>, Configuration> configurations,
                             final List<AssertionEvaluator> assertions) throws TestException;
 
-  public Operation withWeight(Double weight) {
-    this.weight = weight.floatValue();
-    this.weightInPercent = (int)(100 * weight);
-    return this;
-  }
+  List<String> getDescription();
 
-  public float getWeight() {
-    return weight;
-  }
-
-  public int getWeightInPercent() {
-    return this.weightInPercent;
-  }
-
-  protected long getTimeInNs() {
-    return System.nanoTime();
-  }
-
-  public Execution.ExecutionState getExecutionState() {
-    return state;
-  }
-
-  public void markExecutionState(Execution.ExecutionState state) {
-    this.state = state;
-  }
-
-  public abstract List<String> getDescription();
 }

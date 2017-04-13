@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Aurelien Broszniowski
  */
 
-public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHolder<E> {
+public class RuntimeStatisticsHolder<E extends Enum<E>> extends StatisticsHolder<E> {
 
   private final ConcurrentHashMap<String, LongAdder> assertionsErrors = new ConcurrentHashMap<String, LongAdder>();
   private final ConcurrentHashMap<String, Statistics<E>> statistics = new ConcurrentHashMap<String, Statistics<E>>();
@@ -84,10 +84,6 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> implements StatisticsHol
   public void addStatistics(String name, Statistics<E> statistics) {
     this.statistics.put(name, statistics);
     this.assertionsErrors.put(name, new LongAdder());
-  }
-
-  protected long getTimeInNs() {
-    return System.nanoTime();
   }
 
   @Override

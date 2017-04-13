@@ -19,10 +19,10 @@ package io.rainfall.execution;
 import io.rainfall.AssertionEvaluator;
 import io.rainfall.Configuration;
 import io.rainfall.Execution;
-import io.rainfall.Operation;
 import io.rainfall.Scenario;
 import io.rainfall.TestException;
 import io.rainfall.Unit;
+import io.rainfall.WeightedOperation;
 import io.rainfall.configuration.ConcurrencyConfig;
 import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.unit.Every;
@@ -84,10 +84,10 @@ public class InParallel extends Execution {
               "Rainfall-core Operations Thread - " + THREAD_NUMBER_GENERATOR.getAndIncrement());
           try {
             for (long i = 0; i < max; i++) {
-              List<RangeMap<Operation>> operations = scenario.getOperations();
-              for (RangeMap<Operation> operation : operations) {
-                operation.get(weightRnd.nextFloat(operation.getHigherBound())).exec(statisticsHolder, configurations,
-                    assertions);
+              List<RangeMap<WeightedOperation>> operations = scenario.getOperations();
+              for (RangeMap<WeightedOperation> operation : operations) {
+                operation.get(weightRnd.nextFloat(operation.getHigherBound()))
+                    .getOperation().exec(statisticsHolder, configurations, assertions);
               }
             }
           } catch (TestException e) {
@@ -125,7 +125,7 @@ public class InParallel extends Execution {
 
   @Override
   public String getDescription() {
-    return  nb + " " + unit.getDescription()
+    return nb + " " + unit.getDescription()
            + " every " + every.getDescription() + " during " + during.getDescription();
   }
 }

@@ -19,10 +19,10 @@ package io.rainfall.execution;
 import io.rainfall.AssertionEvaluator;
 import io.rainfall.Configuration;
 import io.rainfall.Execution;
-import io.rainfall.Operation;
 import io.rainfall.Scenario;
 import io.rainfall.TestException;
 import io.rainfall.Unit;
+import io.rainfall.WeightedOperation;
 import io.rainfall.configuration.ConcurrencyConfig;
 import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.utils.RangeMap;
@@ -69,10 +69,10 @@ public class Once extends Execution {
           @Override
           public Object call() throws Exception {
             Thread.currentThread().setName("Rainfall-core Operations Thread");
-            List<RangeMap<Operation>> operations = scenario.getOperations();
-            for (RangeMap<Operation> operation : operations) {
-              operation.get(weightRnd.nextFloat(operation.getHigherBound())).exec(statisticsHolder, configurations,
-                  assertions);
+            List<RangeMap<WeightedOperation>> operations = scenario.getOperations();
+            for (RangeMap<WeightedOperation> operation : operations) {
+              operation.get(weightRnd.nextFloat(operation.getHigherBound()))
+                  .getOperation().exec(statisticsHolder, configurations, assertions);
             }
             return null;
           }

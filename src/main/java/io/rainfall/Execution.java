@@ -41,8 +41,8 @@ public abstract class Execution {
    * Provide an easy way to mark all operations as underway.
    */
   public void markExecutionState(Scenario scenario, ExecutionState state) {
-    for (RangeMap<Operation> opMap : scenario.getOperations()) {
-      for (Operation op : opMap.getAll()) {
+    for (RangeMap<WeightedOperation> opMap : scenario.getOperations()) {
+      for (WeightedOperation op : opMap.getAll()) {
         op.markExecutionState(state);
       }
     }

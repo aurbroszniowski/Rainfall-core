@@ -224,11 +224,11 @@ public class ScenarioRun<E extends Enum<E>> {
 
   private void initStatistics(RuntimeStatisticsHolder<E> statisticsHolder) {
     try {
-      List<RangeMap<Operation>> operations = scenario.getOperations();
-      for (RangeMap<Operation> operation : operations) {
-        Collection<Operation> allOperations = operation.getAll();
-        for (Operation allOperation : allOperations) {
-          allOperation.exec(new InitStatisticsHolder<E>(statisticsHolder), this.configurations, this.assertions);
+      List<RangeMap<WeightedOperation>> operations = scenario.getOperations();
+      for (RangeMap<WeightedOperation> operation : operations) {
+        Collection<WeightedOperation> allOperations = operation.getAll();
+        for (WeightedOperation allOperation : allOperations) {
+          allOperation.getOperation().exec(new InitStatisticsHolder<E>(statisticsHolder), this.configurations, this.assertions);
         }
       }
     } catch (TestException e) {

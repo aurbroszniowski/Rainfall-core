@@ -24,23 +24,28 @@ import java.util.Set;
 /**
  * @author Aurelien Broszniowski
  */
-public interface StatisticsHolder<E extends Enum<E>> {
+public abstract class StatisticsHolder<E extends Enum<E>> {
 
-  Enum<E>[] getResultsReported();
+  public abstract Enum<E>[] getResultsReported();
 
-  Set<String> getStatisticsKeys();
+  public abstract Set<String> getStatisticsKeys();
 
-  Statistics<E> getStatistics(String name);
+  public abstract Statistics<E> getStatistics(String name);
 
-  Set<StatisticsCollector> getStatisticsCollectors();
+  public abstract Set<StatisticsCollector> getStatisticsCollectors();
 
-  Histogram fetchHistogram(final Enum<E> result);
+  public abstract Histogram fetchHistogram(final Enum<E> result);
 
-  void reset();
+  public abstract void reset();
 
-  long getCurrentTps(Enum result);
+  public abstract long getCurrentTps(Enum result);
 
-  void record(String name, long responseTimeInNs, Enum result);
+  public abstract void record(String name, long responseTimeInNs, Enum result);
 
-  void increaseAssertionsErrorsCount(String name);
+  public abstract void increaseAssertionsErrorsCount(String name);
+
+  public long getTimeInNs() {
+    return System.nanoTime();
+  }
+
 }
