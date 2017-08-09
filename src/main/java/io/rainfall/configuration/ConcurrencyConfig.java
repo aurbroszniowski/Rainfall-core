@@ -18,6 +18,9 @@ package io.rainfall.configuration;
 
 import io.rainfall.Configuration;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -31,8 +34,10 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class ConcurrencyConfig extends Configuration {
 
-  private int nbThreads = 1;
-  private final Map<Integer, AtomicLong> nbIterationsPerThread = new HashMap<Integer, AtomicLong>();
+  private final static Logger logger = LoggerFactory.getLogger(ConcurrencyConfig.class);
+
+  private int threadsCount = 1;
+  private final Map<Integer, AtomicLong> iterationsCountPerThread = new HashMap<Integer, AtomicLong>();
   private long timeoutInSeconds = 600L;
 
   public static ConcurrencyConfig concurrencyConfig() {
@@ -40,7 +45,7 @@ public class ConcurrencyConfig extends Configuration {
   }
 
   public ConcurrencyConfig threads(final int nbThreads) {
-    this.nbThreads = nbThreads;
+    this.threadsCount = nbThreads;
     return this;
   }
 
@@ -49,40 +54,54 @@ public class ConcurrencyConfig extends Configuration {
     return this;
   }
 
-  public int getNbThreads() {
-    return nbThreads;
+  public int getThreadsCount() {
+    return threadsCount;
   }
 
   public long getTimeoutInSeconds() {
     return timeoutInSeconds;
   }
 
-  public long getNbIterationsForThread(int threadNb, long nbIterations) {
-    synchronized (nbIterationsPerThread) {
-      if (nbIterationsPerThread.size() == 0) {
-        for (int i = 0; i < nbThreads; i++) {
-          nbIterationsPerThread.put(i, new AtomicLong());
+  public long getNbIterationsForThread(final DistributedConfig distributedConfig, final int threadNb, final long iterationsCount) {
+    synchronized (iterationsCountPerThread) {
+      int clientsCount = 1;
+      if (distributedConfig != null) {
+        clientsCount = distributedConfig.getNbClients();
+      }
+
+      if (iterationsCount % clientsCount != 0) {
+        logger.warn("The iterations count is not a multiple of clients count, therefore the iterations count will be approximative.");
+      }
+
+      long iterationsCountForClient = iterationsCount / clientsCount;
+      if (iterationsCountPerThread.size() == 0) {
+        for (int i = 0; i < threadsCount; i++) {
+          iterationsCountPerThread.put(i, new AtomicLong());
         }
 
-        long roundedValue = new Double(Math.floor(nbIterations / nbThreads)).longValue();
-        for (int i = 0; i < nbThreads; i++) {
-          nbIterationsPerThread.get(i).addAndGet(roundedValue);
-          nbIterations -= roundedValue;
+        long roundedValue = new Double(Math.floor(iterationsCountForClient / threadsCount)).longValue();
+        for (int i = 0; i < threadsCount; i++) {
+          iterationsCountPerThread.get(i).addAndGet(roundedValue);
+          iterationsCountForClient -= roundedValue;
         }
 
         int i = 0;
-        while (nbIterations > 0) {
-          nbIterationsPerThread.get(i % nbThreads).incrementAndGet();
+        while (iterationsCountForClient > 0) {
+          iterationsCountPerThread.get(i % threadsCount).incrementAndGet();
           i++;
-          nbIterations--;
+          iterationsCountForClient--;
         }
       }
     }
-    return nbIterationsPerThread.get(threadNb).longValue();
+    return iterationsCountPerThread.get(threadNb).longValue();
   }
 
   @Override
   public List<String> getDescription() {
-    return Arrays.asList("Threadpool size : " + nbThreads);
+    return Arrays.asList("Threadpool size : " + threadsCount);
+  }
+
+  public void clearNbIterationsForThread() {
+    iterationsCountPerThread.clear();
   }
 }

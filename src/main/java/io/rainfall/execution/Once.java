@@ -24,6 +24,7 @@ import io.rainfall.TestException;
 import io.rainfall.Unit;
 import io.rainfall.WeightedOperation;
 import io.rainfall.configuration.ConcurrencyConfig;
+import io.rainfall.configuration.DistributedConfig;
 import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.utils.RangeMap;
 
@@ -56,13 +57,14 @@ public class Once extends Execution {
                                           final Map<Class<? extends Configuration>, Configuration> configurations,
                                           final List<AssertionEvaluator> assertions) throws TestException {
 
+    final DistributedConfig distributedConfig = (DistributedConfig)configurations.get(DistributedConfig.class);
     ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
-    int nbThreads = concurrencyConfig.getNbThreads();
+    int nbThreads = concurrencyConfig.getThreadsCount();
     ExecutorService executor = Executors.newFixedThreadPool(nbThreads);
     markExecutionState(scenario, ExecutionState.BEGINNING);
 
     for (int threadNb = 0; threadNb < nbThreads; threadNb++) {
-      final long max = concurrencyConfig.getNbIterationsForThread(threadNb, nb);
+      final long max = concurrencyConfig.getNbIterationsForThread(distributedConfig, threadNb, nb);
       for (long i = 0; i < max; i++) {
         executor.submit(new Callable() {
 

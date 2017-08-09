@@ -10,6 +10,7 @@ import java.util.UUID;
 
 /**
  * holds Distributed tests information
+ * TODO :Merge Distributed and Concurrency configs
  *
  * @author Aurelien Broszniowski
  */

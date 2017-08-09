@@ -19,11 +19,11 @@ package io.rainfall.execution;
 import io.rainfall.AssertionEvaluator;
 import io.rainfall.Configuration;
 import io.rainfall.Execution;
-import io.rainfall.Operation;
 import io.rainfall.Scenario;
 import io.rainfall.TestException;
 import io.rainfall.WeightedOperation;
 import io.rainfall.configuration.ConcurrencyConfig;
+import io.rainfall.configuration.DistributedConfig;
 import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.unit.Every;
 import io.rainfall.unit.From;
@@ -62,11 +62,12 @@ public class Ramp extends Execution {
   public <E extends Enum<E>> void execute(final StatisticsHolder<E> statisticsHolder, final Scenario scenario,
                                           final Map<Class<? extends Configuration>, Configuration> configurations,
                                           final List<AssertionEvaluator> assertions) throws TestException {
+    final DistributedConfig distributedConfig = (DistributedConfig)configurations.get(DistributedConfig.class);
     final ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
-    int nbThreads = concurrencyConfig.getNbThreads();
+    int nbThreads = concurrencyConfig.getThreadsCount();
 
     // Use a scheduled thread pool in order to execute concurrent Scenarios
-    ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(concurrencyConfig.getNbThreads());
+    ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(concurrencyConfig.getThreadsCount());
 
     // This is done to collect exceptions because the Runnable doesn't throw
     final List<TestException> exceptions = new ArrayList<TestException>();
@@ -82,7 +83,7 @@ public class Ramp extends Execution {
         public void run() {
           Thread.currentThread().setName("Rainfall-core Operations Thread");
           System.out.println(" ramping users = " + nb.longValue() + " /" + nb.get());
-          long max = concurrencyConfig.getNbIterationsForThread(finalThreadNb, nb.longValue());
+          long max = concurrencyConfig.getNbIterationsForThread(distributedConfig, finalThreadNb, nb.longValue());
           nb.addAndGet(increment);
 
           try {

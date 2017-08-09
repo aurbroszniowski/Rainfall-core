@@ -24,6 +24,7 @@ import io.rainfall.TestException;
 import io.rainfall.Unit;
 import io.rainfall.WeightedOperation;
 import io.rainfall.configuration.ConcurrencyConfig;
+import io.rainfall.configuration.DistributedConfig;
 import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.unit.Every;
 import io.rainfall.unit.TimeMeasurement;
@@ -63,11 +64,12 @@ public class InParallel extends Execution {
   public <E extends Enum<E>> void execute(final StatisticsHolder<E> statisticsHolder, final Scenario scenario,
                                           final Map<Class<? extends Configuration>, Configuration> configurations,
                                           final List<AssertionEvaluator> assertions) throws TestException {
+    final DistributedConfig distributedConfig = (DistributedConfig)configurations.get(DistributedConfig.class);
     final ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
-    int nbThreads = concurrencyConfig.getNbThreads();
+    int nbThreads = concurrencyConfig.getThreadsCount();
 
     // Use a scheduled thread pool in order to execute concurrent Scenarios
-    ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(concurrencyConfig.getNbThreads());
+    ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(concurrencyConfig.getThreadsCount());
 
     // This is done to collect exceptions because the Runnable doesn't throw
     final List<TestException> exceptions = new ArrayList<TestException>();
@@ -75,7 +77,7 @@ public class InParallel extends Execution {
 
     // Schedule the scenario every second, until
     for (int threadNb = 0; threadNb < nbThreads; threadNb++) {
-      final long max = concurrencyConfig.getNbIterationsForThread(threadNb, nb);
+      final long max = concurrencyConfig.getNbIterationsForThread(distributedConfig, threadNb, nb);
 
       final ScheduledFuture<?> future = scheduler.scheduleAtFixedRate(new Runnable() {
         @Override

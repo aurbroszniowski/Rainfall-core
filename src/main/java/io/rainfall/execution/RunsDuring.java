@@ -19,7 +19,6 @@ package io.rainfall.execution;
 import io.rainfall.AssertionEvaluator;
 import io.rainfall.Configuration;
 import io.rainfall.Execution;
-import io.rainfall.Operation;
 import io.rainfall.Scenario;
 import io.rainfall.TestException;
 import io.rainfall.WeightedOperation;
@@ -60,9 +59,9 @@ public class RunsDuring extends Execution {
                                           final Map<Class<? extends Configuration>, Configuration> configurations,
                                           final List<AssertionEvaluator> assertions) throws TestException {
     ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
-    int nbThreads = concurrencyConfig.getNbThreads();
+    int nbThreads = concurrencyConfig.getThreadsCount();
 
-    final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(concurrencyConfig.getNbThreads());
+    final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(concurrencyConfig.getThreadsCount());
     final ExecutorService executor = Executors.newFixedThreadPool(nbThreads);
     markExecutionState(scenario, ExecutionState.BEGINNING);
     final AtomicBoolean doneFlag = new AtomicBoolean(false);
