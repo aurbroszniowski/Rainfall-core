@@ -188,6 +188,5 @@ TODO : fix
     assertThat(statistics.averageTps(), is(tps));
   }
 */
-
-  enum Result {ONE, TWO, THREE}
+ enum Result {ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE}
 }
