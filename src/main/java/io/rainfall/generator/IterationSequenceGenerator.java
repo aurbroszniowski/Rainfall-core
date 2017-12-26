@@ -29,7 +29,7 @@ public class IterationSequenceGenerator implements SequenceGenerator {
   private final AtomicLong next;
 
   public IterationSequenceGenerator() {
-    this.next = new AtomicLong();
+    this.next = new AtomicLong(1);
   }
 
   /**
