@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author Aurelien Broszniowski
+ *
  */
 
 public class IterationSequenceGenerator implements SequenceGenerator {
