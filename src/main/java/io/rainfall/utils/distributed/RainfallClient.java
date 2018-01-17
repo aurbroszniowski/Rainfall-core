@@ -8,11 +8,10 @@ import io.rainfall.utils.CompressionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Set;
@@ -35,8 +34,8 @@ public class RainfallClient extends Thread {
   private String currentSessionId = "Uninitialized";
   private final InetSocketAddress socketAddress;
   private Socket socket = null;
-  private BufferedReader in = null;
-  private PrintWriter out = null;
+  private InputStream is = null;
+  private OutputStream os = null;
   private int clientId;
   private AtomicReference<TestException> testException = new AtomicReference<TestException>();
   private boolean running;
@@ -93,8 +92,8 @@ public class RainfallClient extends Thread {
   private void setupConnection() throws TestException {
     try {
       socket = new Socket(socketAddress.getAddress(), socketAddress.getPort());
-      in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-      out = new PrintWriter(socket.getOutputStream());
+      is = socket.getInputStream();
+      os = socket.getOutputStream();
       running = true;
       logger.info("[Rainfall client] Connection successfull to Server");
     } catch (IOException e) {
@@ -118,7 +117,6 @@ public class RainfallClient extends Thread {
     }
     logger.info("[Rainfall client {}] done sending zipped report", currentSessionId);
     writeLine(FINISHED + "," + currentSessionId);
-    out.flush();
   }
 
   private void writeBinary(final byte[] zippedReport) {
@@ -126,11 +124,11 @@ public class RainfallClient extends Thread {
   }
 
   private void shutdown() throws IOException {
-    if (in != null) {
-      in.close();
+    if (is != null) {
+      is.close();
     }
-    if (out != null) {
-      out.close();
+    if (os != null) {
+      os.close();
     }
     if (socket != null) {
       socket.close();
@@ -139,12 +137,20 @@ public class RainfallClient extends Thread {
   }
 
   private String readLine() throws IOException {
-    return in.readLine();
+    int length = is.read();
+    byte[] arr = new byte[length];
+    is.read(arr, 0, length);
+    String ret = new String(arr);
+    System.out.println(" **** client reading ** " + length + " >> " + ret);
+    return ret;
   }
 
-  private void writeLine(String command) {
-    out.println(command);
-    out.flush();
+  private void writeLine(String str) throws IOException {
+    System.out.println("***** client Writing [" + str.length() + "] : " + str);
+    os.write(str.length());
+    os.flush();
+    os.write(str.getBytes());
+    os.flush();
   }
 
   public int getClientId() {

@@ -11,7 +11,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -60,18 +59,18 @@ public class RainfallServer extends Thread {
           }
         }
 
-        for (RainfallServerConnection serverConnectionThread : serverConnectionThreads) {
-          serverConnectionThread.startClient();
-        }
-
-        for (RainfallServerConnection serverThread : serverConnectionThreads) {
-          try {
-            serverThread.join();
-          } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-          }
-        }
         try {
+          for (RainfallServerConnection serverThread : serverConnectionThreads) {
+            serverThread.startClient();
+          }
+
+          for (RainfallServerConnection serverThread : serverConnectionThreads) {
+            try {
+              serverThread.join();
+            } catch (InterruptedException e) {
+              Thread.currentThread().interrupt();
+            }
+          }
           socket.close();
         } catch (IOException e) {
           throw new TestException("Cannot close socket", e);

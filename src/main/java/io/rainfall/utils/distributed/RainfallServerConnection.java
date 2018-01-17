@@ -6,11 +6,12 @@ import io.rainfall.utils.MergeableBitSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.UUID;
@@ -37,8 +38,8 @@ public class RainfallServerConnection extends Thread {
   private boolean running;
   private CompressionUtils compressionUtils = new CompressionUtils();
 
-  private BufferedReader is = null;
-  private PrintWriter os = null;
+  private InputStream is = null;
+  private OutputStream os = null;
   private Socket socket;
   private MergeableBitSet testRunning;
 
@@ -60,6 +61,7 @@ public class RainfallServerConnection extends Thread {
       String response;
       while (running) {
         try {
+          System.out.println(" /??? reading line");
           response = readLine();
 
           if (READY.equalsIgnoreCase(response)) {
@@ -126,11 +128,19 @@ public class RainfallServerConnection extends Thread {
   }
 
   private String readLine() throws IOException {
-    return is.readLine();
+    int length = is.read();
+    byte[] arr = new byte[length];
+    is.read(arr, 0, length);
+    String ret = new String(arr);
+    System.out.println(" **** client reading ** " + length + " >> " + ret);
+    return ret;
   }
 
-  private void writeLine(String command) {
-    os.println(command);
+  private void writeLine(String str) throws IOException {
+    System.out.println("***** client Writing [" + str.length() + "] : " + str);
+    os.write(str.length());
+    os.flush();
+    os.write(str.getBytes());
     os.flush();
   }
 
@@ -144,13 +154,12 @@ public class RainfallServerConnection extends Thread {
     if (socket != null) {
       socket.close();
     }
-
   }
 
   private void setupConnection() throws TestException {
     try {
-      is = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-      os = new PrintWriter(socket.getOutputStream());
+      is = new DataInputStream(socket.getInputStream());
+      os = new DataOutputStream(socket.getOutputStream());
       running = true;
       logger.info("[Rainfall server] waiting for clients");
     } catch (IOException e) {
@@ -158,12 +167,12 @@ public class RainfallServerConnection extends Thread {
     }
   }
 
-  public void startClient() {
-    logger.info("[Rainfall server] All clients connected - Sending GO to client {}", clientId);
+  public void startClient() throws IOException {
+    logger.info("[Rainfall server] All clients connected - Sending GO [{}] to client {}", currentSessionId, clientId);
     writeLine(GO + "," + currentSessionId + "," + clientId);
   }
 
-  public void stopClient() {
+  public void stopClient() throws IOException {
     logger.info("[Rainfall server] Sending shutdown to client {}", clientId);
     writeLine(SHUTDOWN + "," + currentSessionId);
   }
