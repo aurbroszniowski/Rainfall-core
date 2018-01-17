@@ -111,7 +111,7 @@ public class RainfallClient extends Thread {
         writeLine(SENDING_REPORT + "," + currentSessionId);
 
         byte[] zippedReport = compressionUtils.zipAsByteArray(reportLocation);
-        writeLine((SIZE + "," + zippedReport.length + "," + new String(new char[40])).substring(0, 40));
+        writeLine(SIZE + "," + zippedReport.length);
 
         writeBinary(zippedReport);
       }

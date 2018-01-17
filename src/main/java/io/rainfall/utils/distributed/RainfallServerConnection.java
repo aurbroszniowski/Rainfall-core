@@ -87,7 +87,6 @@ public class RainfallServerConnection extends Thread {
                 byte[] data = readBinary(zipSize);
 
                 response = readLine();
-                System.out.println("*************************** >>" + response);
 
                 try {
                   compressionUtils.byteArrayToZip(new File("rainfall-" + UUID.randomUUID() + ".zip"), data);
