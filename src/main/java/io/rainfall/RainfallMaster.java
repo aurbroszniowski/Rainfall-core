@@ -1,7 +1,7 @@
 package io.rainfall;
 
 import io.rainfall.configuration.DistributedConfig;
-import io.rainfall.utils.RainfallServer;
+import io.rainfall.utils.distributed.RainfallServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

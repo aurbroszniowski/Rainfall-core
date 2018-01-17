@@ -16,7 +16,6 @@
 
 package io.rainfall.reporting;
 
-import io.rainfall.Reporter;
 import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.statistics.StatisticsPeek;
 import io.rainfall.statistics.StatisticsPeekHolder;
@@ -58,7 +57,7 @@ import java.util.zip.ZipFile;
  * @author Aurelien Broszniowski
  */
 
-public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
+public class HtmlReporter<E extends Enum<E>> extends FileReporter<E> {
 
   private String basedir;
   private String averageLatencyFile = "averageLatency.csv";
@@ -77,6 +76,7 @@ public class HtmlReporter<E extends Enum<E>> extends Reporter<E> {
   public HtmlReporter(String outputPath) {
     try {
       this.basedir = new File(outputPath).getAbsoluteFile().getAbsolutePath();
+      this.reportPath = new File(this.basedir);
       this.reportFile = this.basedir + File.separatorChar + "report.html";
 
       deleteDirectory(new File(this.basedir));

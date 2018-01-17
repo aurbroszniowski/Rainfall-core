@@ -23,16 +23,12 @@ import io.rainfall.statistics.InitStatisticsHolder;
 import io.rainfall.statistics.RuntimeStatisticsHolder;
 import io.rainfall.statistics.StatisticsPeekHolder;
 import io.rainfall.statistics.StatisticsThread;
-import io.rainfall.utils.RainfallClient;
-import io.rainfall.utils.RainfallServer;
 import io.rainfall.utils.RangeMap;
+import io.rainfall.utils.distributed.RainfallClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -159,7 +155,7 @@ public class ScenarioRun<E extends Enum<E>> {
 
     if (distributedConfig != null) {
       try {
-        stopCluster(distributedConfig);
+        stopCluster(distributedConfig, reportingConfig);
       } catch (TestException e) {
         throw new RuntimeException(e);
       }
@@ -181,10 +177,10 @@ public class ScenarioRun<E extends Enum<E>> {
     }
   }
 
-  private void stopCluster(final DistributedConfig distributedConfig) throws TestException {
+  private void stopCluster(final DistributedConfig distributedConfig, final ReportingConfig<E> reportingConfig) throws TestException {
     RainfallClient currentClient = distributedConfig.getCurrentClient();
-    currentClient.sendReport();
     try {
+      currentClient.sendReport(reportingConfig);
       currentClient.join();
       TestException testException = currentClient.getTestException().get();
       if (testException != null) {
@@ -192,6 +188,8 @@ public class ScenarioRun<E extends Enum<E>> {
       }
     } catch (InterruptedException e) {
       throw new TestException("Rainfall cluster client interrupted", e);
+    } catch (IOException e) {
+      throw new TestException("Rainfall cluster client exception", e);
     }
   }
 
@@ -228,7 +226,8 @@ public class ScenarioRun<E extends Enum<E>> {
       for (RangeMap<WeightedOperation> operation : operations) {
         Collection<WeightedOperation> allOperations = operation.getAll();
         for (WeightedOperation allOperation : allOperations) {
-          allOperation.getOperation().exec(new InitStatisticsHolder<E>(statisticsHolder), this.configurations, this.assertions);
+          allOperation.getOperation()
+              .exec(new InitStatisticsHolder<E>(statisticsHolder), this.configurations, this.assertions);
         }
       }
     } catch (TestException e) {

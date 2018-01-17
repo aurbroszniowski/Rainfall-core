@@ -16,7 +16,7 @@
 
 package io.rainfall.statistics;
 
-import io.rainfall.Reporter;
+import io.rainfall.reporting.Reporter;
 import io.rainfall.configuration.ReportingConfig;
 import io.rainfall.statistics.collector.StatisticsCollector;
 

@@ -1,7 +1,8 @@
-package io.rainfall.utils;
+package io.rainfall.utils.distributed;
 
 import io.rainfall.TestException;
 import io.rainfall.configuration.DistributedConfig;
+import io.rainfall.utils.MergeableBitSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,6 @@ public class RainfallServer extends Thread {
         //TODO  create map of reports then waits for reports to be given back
 
         logger.info("[Rainfall Server] Ready - Listening for incoming clients");
-        String sessionId = UUID.randomUUID().toString();
         List<RainfallServerConnection> serverConnectionThreads = new ArrayList<RainfallServerConnection>();
         MergeableBitSet testRunning = new MergeableBitSet(distributedConfig.getNbClients());
         int clientId = 0;
@@ -49,7 +49,7 @@ public class RainfallServer extends Thread {
             socket = serverSocket.accept();
             logger.info("[Rainfall server] Connection with Rainfall client {} established", clientId);
             RainfallServerConnection serverConnectionThread =
-                new RainfallServerConnection(distributedConfig.getMasterAddress(), socket, testRunning, sessionId, clientId);
+                new RainfallServerConnection(distributedConfig.getMasterAddress(), socket, testRunning, clientId);
             serverConnectionThread.start();
             serverConnectionThreads.add(serverConnectionThread);
             clientId++;
@@ -76,8 +76,6 @@ public class RainfallServer extends Thread {
         } catch (IOException e) {
           throw new TestException("Cannot close socket", e);
         }
-
-        //TODO  group reports and create clustered report
       }
     } catch (TestException e) {
       testException.set(e);

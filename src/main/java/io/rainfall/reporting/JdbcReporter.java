@@ -1,6 +1,5 @@
 package io.rainfall.reporting;
 
-import io.rainfall.Reporter;
 import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.statistics.StatisticsPeek;
 import io.rainfall.statistics.StatisticsPeekHolder;

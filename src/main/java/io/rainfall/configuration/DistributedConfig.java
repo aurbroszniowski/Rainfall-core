@@ -1,12 +1,11 @@
 package io.rainfall.configuration;
 
 import io.rainfall.Configuration;
-import io.rainfall.utils.RainfallClient;
+import io.rainfall.utils.distributed.RainfallClient;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * holds Distributed tests information
