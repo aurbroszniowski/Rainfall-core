@@ -38,8 +38,8 @@ public class RainfallServerConnection extends Thread {
   private boolean running;
   private CompressionUtils compressionUtils = new CompressionUtils();
 
-  private InputStream is = null;
-  private OutputStream os = null;
+  private DataInputStream is = null;
+  private DataOutputStream os = null;
   private Socket socket;
   private MergeableBitSet testRunning;
 
@@ -61,7 +61,6 @@ public class RainfallServerConnection extends Thread {
       String response;
       while (running) {
         try {
-          System.out.println(" /??? reading line");
           response = readLine();
 
           if (READY.equalsIgnoreCase(response)) {
@@ -122,27 +121,21 @@ public class RainfallServerConnection extends Thread {
     }
   }
 
-  private byte[] readBinary(final int zipSize) {
-    System.out.println("*** READING REMOTE ZIP");
-    return new byte[10];
+  private byte[] readBinary(final int zipSize) throws IOException {
+    byte[] data = new byte[zipSize];
+    is.readFully(data);
+    return data;
   }
 
   private String readLine() throws IOException {
-    int length = is.read();
-    byte[] arr = new byte[length];
-    is.read(arr, 0, length);
-    String ret = new String(arr);
-    System.out.println(" **** client reading ** " + length + " >> " + ret);
-    return ret;
+    return is.readUTF();
   }
 
   private void writeLine(String str) throws IOException {
-    System.out.println("***** client Writing [" + str.length() + "] : " + str);
-    os.write(str.length());
-    os.flush();
-    os.write(str.getBytes());
+    os.writeUTF(str);
     os.flush();
   }
+
 
   private void shutdown() throws IOException {
     if (os != null) {

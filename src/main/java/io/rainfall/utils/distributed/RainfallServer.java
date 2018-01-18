@@ -54,6 +54,8 @@ public class RainfallServer extends Thread {
             clientId++;
 
             Thread.sleep(500);
+          } catch (InterruptedException e) {
+            return;
           } catch (Exception e) {
             throw new TestException("Connection Error with Rainfall client", e);
           }

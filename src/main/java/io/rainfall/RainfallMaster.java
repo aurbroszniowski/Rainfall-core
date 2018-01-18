@@ -64,6 +64,7 @@ public class RainfallMaster {
     if (rainfallServer != null) {
       try {
         rainfallServer.shutdown();
+        rainfallServer.interrupt();
         rainfallServer.join();
       } catch (InterruptedException e) {
         throw new TestException("Rainfall cluster client interrupted", e);

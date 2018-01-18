@@ -8,6 +8,8 @@ import io.rainfall.utils.CompressionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,8 +36,8 @@ public class RainfallClient extends Thread {
   private String currentSessionId = "Uninitialized";
   private final InetSocketAddress socketAddress;
   private Socket socket = null;
-  private InputStream is = null;
-  private OutputStream os = null;
+  private DataInputStream is = null;
+  private DataOutputStream os = null;
   private int clientId;
   private AtomicReference<TestException> testException = new AtomicReference<TestException>();
   private boolean running;
@@ -92,8 +94,8 @@ public class RainfallClient extends Thread {
   private void setupConnection() throws TestException {
     try {
       socket = new Socket(socketAddress.getAddress(), socketAddress.getPort());
-      is = socket.getInputStream();
-      os = socket.getOutputStream();
+      is = new DataInputStream(socket.getInputStream());
+      os = new DataOutputStream(socket.getOutputStream());
       running = true;
       logger.info("[Rainfall client] Connection successfull to Server");
     } catch (IOException e) {
@@ -119,8 +121,9 @@ public class RainfallClient extends Thread {
     writeLine(FINISHED + "," + currentSessionId);
   }
 
-  private void writeBinary(final byte[] zippedReport) {
-    System.out.println("Write zip file form client to server");
+  private void writeBinary(final byte[] zippedReport) throws IOException {
+    os.write(zippedReport);
+    os.flush();
   }
 
   private void shutdown() throws IOException {
@@ -137,19 +140,11 @@ public class RainfallClient extends Thread {
   }
 
   private String readLine() throws IOException {
-    int length = is.read();
-    byte[] arr = new byte[length];
-    is.read(arr, 0, length);
-    String ret = new String(arr);
-    System.out.println(" **** client reading ** " + length + " >> " + ret);
-    return ret;
+    return is.readUTF();
   }
 
   private void writeLine(String str) throws IOException {
-    System.out.println("***** client Writing [" + str.length() + "] : " + str);
-    os.write(str.length());
-    os.flush();
-    os.write(str.getBytes());
+    os.writeUTF(str);
     os.flush();
   }
 
