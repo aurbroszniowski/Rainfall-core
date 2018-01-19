@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -21,10 +22,9 @@ public class RainfallServer extends Thread {
   private final Logger logger = LoggerFactory.getLogger(this.getClass());
   private final DistributedConfig distributedConfig;
   private final ServerSocket serverSocket;
-  private Socket socket;
 
-  private AtomicReference<TestException> testException = new AtomicReference<TestException>();
-  private boolean running = true;
+  private final AtomicReference<TestException> testException = new AtomicReference<TestException>();
+  private volatile boolean running = true;
 
   public RainfallServer(DistributedConfig distributedConfig, ServerSocket serverSocket) {
     this.distributedConfig = distributedConfig;
@@ -33,6 +33,7 @@ public class RainfallServer extends Thread {
 
   @Override
   public void run() {
+    Socket socket = null;
     try {
       logger.debug("We started the Rainfall server. We will create a placehodler for clients reports.");
 
@@ -54,7 +55,9 @@ public class RainfallServer extends Thread {
             clientId++;
 
             Thread.sleep(500);
-          } catch (InterruptedException e) {
+          } catch (SocketException e) {
+            // serverSocket.accept() was interrupted by a serverSocket.close() call
+            logger.info("[Rainfall Server] Shutting down");
             return;
           } catch (Exception e) {
             throw new TestException("Connection Error with Rainfall client", e);
@@ -82,7 +85,7 @@ public class RainfallServer extends Thread {
       testException.set(e);
     } finally {
       try {
-        closeConnections();
+        closeConnections(socket);
       } catch (IOException e) {
         logger.debug("[Rainfall server] Issue when shutting down connections", e);
       }
@@ -90,16 +93,20 @@ public class RainfallServer extends Thread {
   }
 
   public void shutdown() {
+    try {
+      // close the serverSocket here to eventually make it interrupt its accept() call
+      serverSocket.close();
+    } catch (IOException ioe) {
+      logger.error("caught unexpected IO exception", ioe);
+    }
     this.running = false;
   }
 
-  private void closeConnections() throws IOException {
-    if (this.socket != null) {
-      this.socket.close();
+  private void closeConnections(Socket socket) throws IOException {
+    if (socket != null) {
+      socket.close();
     }
-    if (this.serverSocket != null) {
-      this.serverSocket.close();
-    }
+    this.serverSocket.close();
   }
 
   public AtomicReference<TestException> getTestException() {

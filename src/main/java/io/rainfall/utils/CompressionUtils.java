@@ -1,5 +1,6 @@
 package io.rainfall.utils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -14,48 +15,48 @@ import java.util.zip.ZipOutputStream;
 public class CompressionUtils {
 
   public synchronized byte[] zipAsByteArray(final File dirToBeCompressed) throws IOException {
-    byte[] bytesArray;
-
-    File zipFileName = File.createTempFile("temp", Long.toString(System.nanoTime()));
-    ZipOutputStream out = new ZipOutputStream(new FileOutputStream(zipFileName));
-    addDir(dirToBeCompressed, out);
-    out.close();
-
-    bytesArray = new byte[(int)zipFileName.length()];
-
-    FileInputStream fis = new FileInputStream(zipFileName);
-    fis.read(bytesArray);
-    fis.close();
-
-    return bytesArray;
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    ZipOutputStream out = new ZipOutputStream(baos);
+    try {
+      addDir(dirToBeCompressed, out, new File("."));
+    } finally {
+      out.close();
+    }
+    return baos.toByteArray();
   }
 
-  private void addDir(File dirObj, ZipOutputStream out) throws IOException {
+  private void addDir(File dirObj, ZipOutputStream out, File parentPath) throws IOException {
     File[] files = dirObj.listFiles();
     byte[] tmpBuf = new byte[1024];
 
     if (files != null) {
       for (final File file : files) {
         if (file.isDirectory()) {
-          addDir(file, out);
+          addDir(file, out, new File(parentPath.getPath() + "/" + file.getName()));
           continue;
         }
         FileInputStream in = new FileInputStream(file.getAbsolutePath());
-        System.out.println(" Adding: " + file.getAbsolutePath());
-        out.putNextEntry(new ZipEntry(file.getAbsolutePath()));
-        int len;
-        while ((len = in.read(tmpBuf)) > 0) {
-          out.write(tmpBuf, 0, len);
+        try {
+          System.out.println(" Adding: " + file.getAbsolutePath());
+          out.putNextEntry(new ZipEntry(parentPath.getPath() + "/" + file.getName()));
+          int len;
+          while ((len = in.read(tmpBuf)) > 0) {
+            out.write(tmpBuf, 0, len);
+          }
+          out.closeEntry();
+        } finally {
+          in.close();
         }
-        out.closeEntry();
-        in.close();
       }
     }
   }
 
   public synchronized void byteArrayToZip(final File location, byte[] bytesArray) throws Exception {
     FileOutputStream fos = new FileOutputStream(location);
-    fos.write(bytesArray);
-    fos.close();
+    try {
+      fos.write(bytesArray);
+    } finally {
+      fos.close();
+    }
   }
 }

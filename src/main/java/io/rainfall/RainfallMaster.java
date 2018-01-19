@@ -20,7 +20,7 @@ public class RainfallMaster {
   private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
   private final DistributedConfig distributedConfig;
-  private RainfallServer rainfallServer = null;
+  private volatile RainfallServer rainfallServer = null;
 
   public RainfallMaster(final DistributedConfig distributedConfig) {
     this.distributedConfig = distributedConfig;
@@ -64,7 +64,6 @@ public class RainfallMaster {
     if (rainfallServer != null) {
       try {
         rainfallServer.shutdown();
-        rainfallServer.interrupt();
         rainfallServer.join();
       } catch (InterruptedException e) {
         throw new TestException("Rainfall cluster client interrupted", e);
