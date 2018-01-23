@@ -1,13 +1,14 @@
 package io.rainfall.utils;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
-
 /**
  * @author Aurelien Broszniowski
  */
@@ -50,6 +51,42 @@ public class CompressionUtils {
       }
     }
   }
+
+  public synchronized void byteArrayToPath(final File location, byte[] compressedData) throws Exception {
+    System.out.println("******* "+ location.getAbsolutePath());
+    ByteArrayInputStream inputStream = new ByteArrayInputStream(compressedData);
+    ZipInputStream in = new ZipInputStream(inputStream);
+    while (true)
+    {
+      ZipEntry nextEntry = in.getNextEntry();
+      if (nextEntry == null) {
+        break;
+      }
+      if (nextEntry.isDirectory()) {
+        new File(location, nextEntry.getName()).mkdirs();
+      } else {
+        new File(location, nextEntry.getName()).getParentFile().mkdirs();
+        FileOutputStream fileOutputStream = new FileOutputStream(new File(location, nextEntry.getName()));
+        try {
+          extractFile(in, fileOutputStream);
+        } finally {
+          fileOutputStream.close();
+        }
+      }
+    }
+  }
+
+  private void extractFile(final ZipInputStream in, final FileOutputStream fileOutputStream) throws IOException {
+    byte[] buffer = new byte[4096];
+    while (true) {
+      int bytescount = in.read(buffer);
+      if (bytescount == -1) {
+        break;
+      }
+      fileOutputStream.write(buffer, 0, bytescount);
+    }
+  }
+
 
   public synchronized void byteArrayToZip(final File location, byte[] bytesArray) throws Exception {
     FileOutputStream fos = new FileOutputStream(location);

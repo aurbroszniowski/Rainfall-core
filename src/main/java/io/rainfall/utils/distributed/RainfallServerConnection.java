@@ -90,7 +90,7 @@ public class RainfallServerConnection extends Thread {
                 response = readLine();
 
                 try {
-                  compressionUtils.byteArrayToZip(new File("rainfall-" + UUID.randomUUID() + ".zip"), data);
+                  compressionUtils.byteArrayToPath(new File("rainfall-" + UUID.randomUUID().toString().substring(0,3) ), data);
                 } catch (Exception e) {
                   logger.error("Can not write the report file");
                 }
