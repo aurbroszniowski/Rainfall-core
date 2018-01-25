@@ -17,6 +17,8 @@
 package io.rainfall.configuration;
 
 import io.rainfall.Configuration;
+import io.rainfall.reporting.HlogReporter;
+import io.rainfall.reporting.PeriodicHlogReporter;
 import io.rainfall.reporting.Reporter;
 import io.rainfall.reporting.HtmlReporter;
 import io.rainfall.reporting.TextReporter;
@@ -94,6 +96,14 @@ public class ReportingConfig<E extends Enum<E>> extends Configuration {
 
   public static Reporter text() {
     return new TextReporter();
+  }
+
+  public static Reporter hlog(boolean periodic) {
+    return periodic ? new PeriodicHlogReporter() : new HlogReporter();
+  }
+
+  public static Reporter hlog(String outputPath, boolean periodic) {
+    return periodic ? new PeriodicHlogReporter(outputPath) : new HlogReporter(outputPath);
   }
 
   public static Reporter html(String outputPath) {

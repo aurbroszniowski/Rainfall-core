@@ -116,6 +116,6 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> extends StatisticsHolder
 
   public StatisticsPeekHolder<E> peek() {
     return new StatisticsPeekHolder<E>(this.resultsReported, this.statistics, this.statisticsCollectors,
-        this.assertionsErrors);
+        this.assertionsErrors, histograms);
   }
 }

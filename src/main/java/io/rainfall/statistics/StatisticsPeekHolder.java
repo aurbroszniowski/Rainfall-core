@@ -3,6 +3,7 @@ package io.rainfall.statistics;
 import io.rainfall.statistics.collector.StatisticsCollector;
 import io.rainfall.statistics.exporter.Exporter;
 import jsr166e.LongAdder;
+import org.HdrHistogram.Histogram;
 
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ public class StatisticsPeekHolder<E extends Enum<E>> {
   public final static String ALL = "ALL";
   private final Enum<E>[] resultsReported;
   private final ConcurrentHashMap<String, LongAdder> assertionsErrors;
+  private final RainfallHistogramSink<E> histograms;
 
   private Map<String, StatisticsPeek<E>> statisticsPeeks = new ConcurrentHashMap<String, StatisticsPeek<E>>();
   private Map<String, Exporter> extraCollectedStatistics = new ConcurrentHashMap<String, Exporter>();
@@ -24,9 +26,10 @@ public class StatisticsPeekHolder<E extends Enum<E>> {
 
   public StatisticsPeekHolder(final Enum<E>[] resultsReported, final Map<String, Statistics<E>> statisticsMap,
                               final Set<StatisticsCollector> statisticsCollectors,
-                              final ConcurrentHashMap<String, LongAdder> assertionsErrors) {
+                              final ConcurrentHashMap<String, LongAdder> assertionsErrors, RainfallHistogramSink<E> histograms) {
     this.resultsReported = resultsReported;
     this.assertionsErrors = assertionsErrors;
+    this.histograms = histograms;
     this.timestamp = System.currentTimeMillis();
     for (String name : statisticsMap.keySet()) {
       statisticsPeeks.put(name, statisticsMap.get(name).peek(timestamp));
@@ -72,4 +75,9 @@ public class StatisticsPeekHolder<E extends Enum<E>> {
     }
     return totalAssertionsErrorsCount;
   }
+
+  public Histogram fetchHistogram(final Enum<E> result) {
+    return histograms.fetchHistogram(result);
+  }
+
 }
