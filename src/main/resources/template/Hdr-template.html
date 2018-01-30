@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <style>
+
+        body {
+            font: 10px sans-serif;
+        }
+
+        .summary {
+            fill: #DEDEDE;
+            font: 15px sans-serif;
+        }
+
+        .axis path,
+        .axis line {
+            fill: none;
+            stroke: #000;
+            shape-rendering: crispEdges;
+        }
+
+        .bar {
+            fill: steelblue;
+        }
+
+        .line {
+            fill: none;
+            stroke: steelblue;
+            stroke-width: 2px;
+        }
+
+        .border {
+            border-radius: 25px;
+            border: 4px solid #8A87C0;
+            padding: 20px;
+        }
+
+        .grid .tick {
+            stroke: lightgrey;
+            opacity: 0.7;
+        }
+
+        .grid path {
+            stroke-width: 0;
+        }
+    </style>
+
+    <title></title>
+</head>
+<body>
+<div class="border summary"><h1><a name="summary">Performance report summary</a></h1>
+    <div id="summary">//!header!</div><br/>
+    <a href="#tps">TPS</a><br/>
+    <a href="#response-time">Response Time</a><br/>
+    <a href="#percentile">Response time percentiles distribution</a><br/>
+</div>
+<br/>
+
+<div class="border"><h1><a name="tps">TPS</a></h1>
+    <div id="tps-box"></div>
+</div>
+<br/>
+
+<div class="border"><h1><a name="response-time">Response time</a></h1>
+    <div id="response-time-box"></div>
+</div>
+<br/>
+
+<div class="border"><h1><a name="percentile">Response time percentiles distribution</a></h1>
+    <div id="percentiles-box"></div>
+</div>
+<br/>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://hdrhistogram.github.io/HdrHistogramJSDemo/lib/pako.min.js"></script>
+<script src="https://hdrhistogram.github.io/HdrHistogramJSDemo/lib/hdrhistogram.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+<script>
+    function reportTps(filename, title) {
+		$.ajax({
+			mimeType: 'text/plain; charset=x-user-defined',
+			dataType: "text",
+			cache: false,
+			url : filename + ".hlog",
+			success : function(result) {
+				graphTps(result, filename, title);
+			}
+		});
+	}
+
+	function graphTps(histograms, filename, title) {
+		var divId = filename + 'tps';
+        $("#tps-box").append("<div id='" + divId + "' style='height: 550px;width: 1200px;'><div class='title'/><div class='graph'/></div>");
+	    var reader = new hdr.HistogramLogReader(histograms);
+	    var histogram;
+
+		var traces = {
+			x: [],
+			y: [],
+			name: title,
+			type: 'scatter',
+			mode: 'lines+markers',
+			line: {width: '1'}
+		};
+
+	    while ((histogram = reader.nextIntervalHistogram()) != null) {
+			var copy = histogram.copyCorrectedForCoordinatedOmission(100000);
+			var durationInMs = histogram.endTimeStampMsec - histogram.startTimeStampMsec;
+			var tps = 1000 * copy.getTotalCount() / durationInMs;
+
+            traces['x'].push(new Date(histogram.startTimeStampMsec).toISOString());
+            traces['y'].push(tps);
+	    }
+
+		var data = [traces];
+
+        var layout = {
+            title: title,
+            xaxis: {title: 'Time', type: 'date'},
+            yaxis: {title: 'TPS'}
+        };
+
+        Plotly.newPlot(divId, data, layout, {showLink: false});
+    }
+
+    function reportResponseTime(filename, title) {
+		$.ajax({
+			mimeType: 'text/plain; charset=x-user-defined',
+			dataType: "text",
+			cache: false,
+			url : filename + ".hlog",
+			success : function(result) {
+				graphResponseTime(result, filename, title);
+			}
+		});
+	}
+
+	function graphResponseTime(histograms, filename, title) {
+		var divId = filename + 'rt';
+        $("#response-time-box").append("<div id='" + divId + "' style='height: 550px;width: 1200px;'><div class='title'/><div class='graph'/></div>");
+	    var reader = new hdr.HistogramLogReader(histograms);
+	    var histogram;
+
+		var traces = {
+			x: [],
+			y: [],
+			name: title,
+		    error_y: {
+		         type: 'data',
+		         array: [],
+		         visible: true
+		       },
+			type: 'scatter',
+			mode: 'lines+markers',
+			line: {width: '1'}
+		};
+
+	    while ((histogram = reader.nextIntervalHistogram()) != null) {
+			var copy = histogram.copyCorrectedForCoordinatedOmission(100000);
+			var durationInMs = histogram.endTimeStampMsec - histogram.startTimeStampMsec;
+			var mean = copy.getMean() / 1000000;
+
+            traces['x'].push(new Date(histogram.startTimeStampMsec).toISOString());
+            traces['y'].push(mean);
+
+			traces['error_y']['array'].push((histogram.getStdDeviation()/1000000));
+	    }
+
+		var data = [traces];
+
+        var layout = {
+            title: title,
+            xaxis: {title: 'Time', type: 'date'},
+            yaxis: {title: 'Response time (ms)'}
+        };
+
+        Plotly.newPlot(divId, data, layout, {showLink: false});
+    }
+
+    function reportPercentiles(filename, title) {
+//        $("#" + filename + 'pct' + " .title").after("Max Response Time = " + (Math.round((max / 1000000) * 1000) / 1000) + " ms<br/>");
+//        $("#" + filename + 'pct' + " .title").after("Mean Response Time = " + (Math.round((mean / 1000000) * 1000) / 1000) + " ms<br/>");
+		$.ajax({
+			mimeType: 'text/plain; charset=x-user-defined',
+			dataType: "text",
+			cache: false,
+			url : filename + ".hlog",
+			success : function(result) {
+				graphPercentiles(result, filename, title);
+			}
+		});
+    }
+
+	function graphPercentiles(histograms, filename, title) {
+		var divId = filename + 'pct';
+        $("#percentiles-box").append("<div id='" + divId + "' style='height: 550px;width: 1200px;'><div class='title'/><div class='graph'/></div>");
+	    var reader = new hdr.HistogramLogReader(histograms);
+	    var histogram;
+
+		var traces = {
+			x: [],
+			y: [],
+			name: title,
+			type: 'scatter',
+            fill: 'tozeroy',
+			line: {width: '1'}
+		};
+
+		var accumulatedHistogram = hdr.build();
+
+	    while ((histogram = reader.nextIntervalHistogram()) != null) {
+			accumulatedHistogram.add(histogram);
+	    }
+
+		var histoOutput = accumulatedHistogram.outputPercentileDistribution();
+		var lines = histoOutput.split("\n");
+
+		for (var i = 0; i < lines.length; i++) {
+			 var line = lines[i].trim();
+			 var values = line.trim().split(/[ ]+/);
+			 if (line[0] != '#' && values.length == 4) {
+				 var y = parseFloat(values[0]) / 1000000;
+				 var x = parseFloat(values[1]);
+				 console.log(x + ',' + y);
+
+				 if (!isNaN(x) && !isNaN(y)) {
+		            traces['x'].push(x);
+				    traces['y'].push(y);
+				 }
+			 }
+		}
+
+		var data = [traces];
+
+        var layout = {
+            title: title,
+            xaxis: {
+                type: 'linear',
+                autorange: true,
+                title: 'Time',
+                tickmode: 'auto',
+                nticks: 20
+            },
+            yaxis: {title: 'Response Time percentiles distribution (ms)'}
+        };
+
+        Plotly.newPlot(divId, data, layout, {showLink: false});
+    }
+
+
+    $(document).ready(function () {
+//!report!
+//!summary!
+    });
+</script>
+</body>
+</html>

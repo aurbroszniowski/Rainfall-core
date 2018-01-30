@@ -22,6 +22,7 @@ import io.rainfall.statistics.StatisticsPeekHolder;
 import io.rainfall.statistics.collector.StatisticsCollector;
 import io.rainfall.statistics.exporter.Exporter;
 import io.rainfall.statistics.exporter.HtmlExporter;
+import io.rainfall.utils.CompressionUtils;
 import org.HdrHistogram.Histogram;
 
 import java.io.BufferedOutputStream;
@@ -68,6 +69,7 @@ public class HtmlReporter<E extends Enum<E>> extends FileReporter<E> {
   private final static String CRLF = System.getProperty("line.separator");
   private Calendar calendar = GregorianCalendar.getInstance(TimeZone.getDefault());
   private SimpleDateFormat sdf = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
+  private CompressionUtils compressionUtils = new CompressionUtils();
 
   public HtmlReporter() {
     this("target/rainfall-report");
@@ -82,9 +84,9 @@ public class HtmlReporter<E extends Enum<E>> extends FileReporter<E> {
       deleteDirectory(new File(this.basedir));
 
       if (jarFile.isFile()) {  // Run with JAR file
-        extractFromJar("/report", this.basedir);
+        compressionUtils.extractFromJar("/report", this.basedir);
       } else {
-        extractFromPath(new File(HtmlReporter.class.getClass().getResource("/report").toURI()), new File(this.basedir));
+        compressionUtils.extractFromPath(new File(HtmlReporter.class.getClass().getResource("/report").toURI()), new File(this.basedir));
       }
 
       extractReportFile();
@@ -106,34 +108,6 @@ public class HtmlReporter<E extends Enum<E>> extends FileReporter<E> {
       len = in.read(buffer);
     }
     out.close();
-  }
-
-  private void extractFromPath(final File src, final File dst) throws IOException {
-    if (src.isDirectory()) {
-      dst.mkdirs();
-
-      String files[] = src.list();
-
-      for (String file : files) {
-        File srcFile = new File(src, file);
-        File destFile = new File(dst, file);
-        extractFromPath(srcFile, destFile);
-      }
-
-    } else {
-      InputStream in = new FileInputStream(src);
-      OutputStream out = new FileOutputStream(dst);
-
-      byte[] buffer = new byte[1024];
-
-      int length;
-      while ((length = in.read(buffer)) > 0) {
-        out.write(buffer, 0, length);
-      }
-
-      in.close();
-      out.close();
-    }
   }
 
   @Override
@@ -257,64 +231,6 @@ public class HtmlReporter<E extends Enum<E>> extends FileReporter<E> {
 
     averageLatencyOutput.close();
     tpsOutput.close();
-  }
-
-
-  /**
-   * extract the subdirectory from a jar on the classpath to {@code writeDirectory}
-   *
-   * @param sourceDirectory directory (in a jar on the classpath) to extract
-   * @param writeDirectory  the location to extract to
-   * @throws IOException if an IO exception occurs
-   */
-  public void extractFromJar(String sourceDirectory, String writeDirectory) throws IOException {
-    final URL dirURL = getClass().getResource(sourceDirectory);
-    final String path = sourceDirectory.substring(1);
-
-    if ((dirURL != null) && dirURL.getProtocol().equals("jar")) {
-      final JarURLConnection jarConnection = (JarURLConnection)dirURL.openConnection();
-      System.out.println("jarConnection is " + jarConnection);
-
-      final ZipFile jar = jarConnection.getJarFile();
-
-      final Enumeration<? extends ZipEntry> entries = jar.entries(); // gives ALL entries in jar
-
-      while (entries.hasMoreElements()) {
-        final ZipEntry entry = entries.nextElement();
-        final String name = entry.getName();
-        // System.out.println( name );
-        if (!name.startsWith(path)) {
-          // entry in wrong subdir -- don't copy
-          continue;
-        }
-        final String entryTail = name.substring(path.length());
-
-        final File f = new File(writeDirectory + File.separator + entryTail);
-        if (entry.isDirectory()) {
-          // if its a directory, create it -- REVIEW @yzhang and also any intermediate dirs
-          final boolean bMade = f.mkdirs();
-          System.out.println((bMade ? "  creating " : "  unable to create ") + f.getCanonicalPath());
-        } else {
-          System.out.println("  writing  " + f.getCanonicalPath());
-          final InputStream is = jar.getInputStream(entry);
-          final OutputStream os = new BufferedOutputStream(new FileOutputStream(f));
-          final byte buffer[] = new byte[4096];
-          int readCount;
-          // write contents of 'is' to 'os'
-          while ((readCount = is.read(buffer)) > 0) {
-            os.write(buffer, 0, readCount);
-          }
-          os.close();
-          is.close();
-        }
-      }
-
-    } else if (dirURL == null) {
-      throw new IllegalStateException("can't find " + sourceDirectory + " on the classpath");
-    } else {
-      // not a "jar" protocol URL
-      throw new IllegalStateException("don't know how to handle extracting from " + dirURL);
-    }
   }
 
   private String getTpsFilename(String key) {

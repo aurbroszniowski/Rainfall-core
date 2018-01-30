@@ -42,12 +42,14 @@ public class RainfallServerConnection extends Thread {
   private DataOutputStream os = null;
   private Socket socket;
   private MergeableBitSet testRunning;
+  private final File reportPath;
 
   RainfallServerConnection(InetSocketAddress socketAddress, Socket socket, MergeableBitSet testRunning,
-                           final int clientId) {
+                           final int clientId, final File reportPath) {
     this.socketAddress = socketAddress;
     this.socket = socket;
     this.testRunning = testRunning;
+    this.reportPath = reportPath;
     this.currentSessionId = UUID.randomUUID().toString();
     this.clientId = clientId;
   }
@@ -90,7 +92,7 @@ public class RainfallServerConnection extends Thread {
                 response = readLine();
 
                 try {
-                  compressionUtils.byteArrayToPath(new File("rainfall-" + UUID.randomUUID().toString().substring(0,3) ), data);
+                  compressionUtils.byteArrayToPath(reportPath, data);
                 } catch (Exception e) {
                   logger.error("Can not write the report file");
                 }

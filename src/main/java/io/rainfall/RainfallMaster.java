@@ -5,6 +5,7 @@ import io.rainfall.utils.distributed.RainfallServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -20,14 +21,20 @@ public class RainfallMaster {
   private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
   private final DistributedConfig distributedConfig;
+  private final File reportPath;
   private volatile RainfallServer rainfallServer = null;
 
-  public RainfallMaster(final DistributedConfig distributedConfig) {
+  public RainfallMaster(final DistributedConfig distributedConfig, final File reportPath) {
     this.distributedConfig = distributedConfig;
+    this.reportPath = reportPath;
   }
 
   public static RainfallMaster master(final DistributedConfig distributedConfig) {
-    return new RainfallMaster(distributedConfig);
+    return new RainfallMaster(distributedConfig, new File("Rainfall-master-report"));
+  }
+
+  public static RainfallMaster master(final DistributedConfig distributedConfig, final File reportPath) {
+    return new RainfallMaster(distributedConfig, reportPath);
   }
 
   public RainfallMaster start() throws TestException {
@@ -55,7 +62,7 @@ public class RainfallMaster {
     }
 
     logger.debug("[Rainfall server] Current host is the server host, so we start the Rainfall server");
-    rainfallServer = new RainfallServer(distributedConfig, serverSocket);
+    rainfallServer = new RainfallServer(distributedConfig, reportPath, serverSocket);
     rainfallServer.start();
     return this;
   }

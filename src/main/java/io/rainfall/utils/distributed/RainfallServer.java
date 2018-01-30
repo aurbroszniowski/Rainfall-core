@@ -6,6 +6,7 @@ import io.rainfall.utils.MergeableBitSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -21,13 +22,15 @@ public class RainfallServer extends Thread {
 
   private final Logger logger = LoggerFactory.getLogger(this.getClass());
   private final DistributedConfig distributedConfig;
+  private final File reportPath;
   private final ServerSocket serverSocket;
 
   private final AtomicReference<TestException> testException = new AtomicReference<TestException>();
   private volatile boolean running = true;
 
-  public RainfallServer(DistributedConfig distributedConfig, ServerSocket serverSocket) {
+  public RainfallServer(DistributedConfig distributedConfig, final File reportPath, ServerSocket serverSocket) {
     this.distributedConfig = distributedConfig;
+    this.reportPath = reportPath;
     this.serverSocket = serverSocket;
   }
 
@@ -49,7 +52,7 @@ public class RainfallServer extends Thread {
             socket = serverSocket.accept();
             logger.info("[Rainfall server] Connection with Rainfall client {} established", clientId);
             RainfallServerConnection serverConnectionThread =
-                new RainfallServerConnection(distributedConfig.getMasterAddress(), socket, testRunning, clientId);
+                new RainfallServerConnection(distributedConfig.getMasterAddress(), socket, testRunning, clientId, reportPath);
             serverConnectionThread.start();
             serverConnectionThreads.add(serverConnectionThread);
             clientId++;
@@ -77,6 +80,7 @@ public class RainfallServer extends Thread {
             }
           }
           socket.close();
+          aggregateHtmlReport();
         } catch (IOException e) {
           throw new TestException("Cannot close socket", e);
         }
@@ -90,6 +94,11 @@ public class RainfallServer extends Thread {
         logger.debug("[Rainfall server] Issue when shutting down connections", e);
       }
     }
+  }
+
+  private void aggregateHtmlReport() {
+    // for each file
+    // if ends with averageLatencyFile then
   }
 
   public void shutdown() {
