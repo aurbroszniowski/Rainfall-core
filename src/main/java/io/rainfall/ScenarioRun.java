@@ -24,6 +24,7 @@ import io.rainfall.statistics.RuntimeStatisticsHolder;
 import io.rainfall.statistics.StatisticsPeekHolder;
 import io.rainfall.statistics.StatisticsThread;
 import io.rainfall.utils.RangeMap;
+import io.rainfall.utils.TopOfSecondTimer;
 import io.rainfall.utils.distributed.RainfallClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -128,7 +129,7 @@ public class ScenarioRun<E extends Enum<E>> {
         reportingConfig.getStatisticsCollectors());
     initStatistics(this.statisticsHolder);
 
-    Timer timer = new Timer();
+    TopOfSecondTimer topOfSecondTimer = new TopOfSecondTimer();
     StatisticsThread<E> stats = null;
     StatisticsPeekHolder<E> peek = null;
     try {
@@ -137,7 +138,7 @@ public class ScenarioRun<E extends Enum<E>> {
       TimeUnit reportIntervalUnit = reportingConfig.getReportTimeUnit();
       long reportIntervalMillis = reportIntervalUnit.toMillis(reportingConfig.getReportInterval());
 
-      timer.scheduleAtFixedRate(stats, reportIntervalMillis, reportIntervalMillis);
+      topOfSecondTimer.scheduleAtFixedRate(stats, reportIntervalMillis);
 
       for (final Execution execution : executions) {
         execution.execute(statisticsHolder, scenario, configurations, assertions);
@@ -149,8 +150,7 @@ public class ScenarioRun<E extends Enum<E>> {
         peek = stats.stop();
       }
       long end = System.currentTimeMillis();
-      timer.purge();
-      timer.cancel();
+      topOfSecondTimer.cancel();
     }
 
     if (distributedConfig != null) {
