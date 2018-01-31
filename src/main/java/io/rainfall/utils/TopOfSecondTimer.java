@@ -68,7 +68,11 @@ public class TopOfSecondTimer {
             }
           }
 
-          onTimer();
+          try {
+            onTimer();
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
         }
       }
     };
