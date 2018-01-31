@@ -18,6 +18,7 @@ package io.rainfall.statistics;
 
 import io.rainfall.statistics.collector.StatisticsCollector;
 import jsr166e.LongAdder;
+import org.HdrHistogram.ConcurrentHistogram;
 import org.HdrHistogram.Histogram;
 
 import java.util.Set;
@@ -46,7 +47,7 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> extends StatisticsHolder
       public ConcurrentHashMap<Enum, Histogram> createHistograms() {
         ConcurrentHashMap<Enum, Histogram> histograms = new ConcurrentHashMap<Enum, Histogram>();
         for (Enum<E> result : results) {
-          histograms.put(result, new Histogram(3));
+          histograms.put(result, new ConcurrentHistogram(3));
         }
         return histograms;
       }
