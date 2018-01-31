@@ -45,11 +45,12 @@ public class PeriodicHlogReporter<E extends Enum<E>> extends FileReporter<E> {
   private static class Holder {
     Histogram histogram;
     HistogramLogWriter writer;
+    long previousTs;
   }
 
   private final String basedir;
   private String reportFile;
-  private long previousTs;
+  private long startTs;
   private final ConcurrentHashMap<Enum<?>, Holder> previous = new ConcurrentHashMap<Enum<?>, Holder>();
   private final File jarFile = new File(getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
   private CompressionUtils compressionUtils = new CompressionUtils();
@@ -96,7 +97,7 @@ public class PeriodicHlogReporter<E extends Enum<E>> extends FileReporter<E> {
       throw new RuntimeException("Can not report to Html", e);
     }
 
-    this.previousTs = System.currentTimeMillis();
+    this.startTs = System.currentTimeMillis();
   }
 
   @Override
@@ -107,31 +108,33 @@ public class PeriodicHlogReporter<E extends Enum<E>> extends FileReporter<E> {
     for (Enum<E> result : results) {
       Histogram histogram = statisticsHolder.fetchHistogram(result);
       Histogram copy = histogram.copy();
-      histogram.setStartTimeStamp(previousTs);
       histogram.setEndTimeStamp(now);
 
       Holder previous = this.previous.get(result);
       if (previous == null) {
         try {
+          histogram.setStartTimeStamp(startTs);
           previous = new Holder();
+          previous.previousTs = startTs;
           File hlogFile = new File(this.basedir + File.separatorChar + buildHlogFilename(result.name()));
           hlogFile.getParentFile().mkdirs();
           previous.writer = new HistogramLogWriter(new PrintStream(hlogFile));
-          previous.writer.setBaseTime(previousTs);
+          previous.writer.setBaseTime(startTs);
           previous.writer.outputLogFormatVersion();
           previous.writer.outputBaseTime(previous.writer.getBaseTime());
           previous.writer.outputLegend();
+          this.previous.put(result, previous);
         } catch (FileNotFoundException e) {
           throw new RuntimeException(e);
         }
       } else {
+        histogram.setStartTimeStamp(previous.previousTs);
         histogram.subtract(previous.histogram);
       }
 
       previous.histogram = copy;
-      this.previous.put(result, previous);
       previous.writer.outputIntervalHistogram(histogram);
-      previousTs = now;
+      previous.previousTs = now;
     }
   }
 
