@@ -29,6 +29,7 @@ import io.rainfall.statistics.monitor.OSStatisticsCollector;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -61,6 +62,10 @@ public class ReportingConfig<E extends Enum<E>> extends Configuration {
 
   public static <E extends Enum<E>> ReportingConfig<E> report(Class<E> results, Enum<E>[] resultsReported) {
     return new ReportingConfig<E>(results.getEnumConstants(), resultsReported);
+  }
+
+  public static <E extends Enum<E>> ReportingConfig<E> report(Class<E> results, EnumSet<E> resultsReported) {
+    return new ReportingConfig<E>(results.getEnumConstants(), resultsReported.toArray(new Enum[0]));
   }
 
   public static StatisticsCollector gcStatistics( ) {
@@ -98,8 +103,16 @@ public class ReportingConfig<E extends Enum<E>> extends Configuration {
     return new TextReporter();
   }
 
+  public static Reporter hlog() {
+    return hlog(true);
+  }
+
   public static Reporter hlog(boolean periodic) {
     return periodic ? new PeriodicHlogReporter() : new HlogReporter();
+  }
+
+  public static Reporter hlog(String outputPath) {
+    return hlog(outputPath, true);
   }
 
   public static Reporter hlog(String outputPath, boolean periodic) {
