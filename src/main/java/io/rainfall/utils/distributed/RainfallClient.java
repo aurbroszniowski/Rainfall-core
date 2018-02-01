@@ -17,6 +17,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static io.rainfall.utils.distributed.DistributedMessage.FINISHED;
@@ -112,7 +113,7 @@ public class RainfallClient extends Thread {
         writeLine(SENDING_REPORT + "," + currentSessionId);
 
         byte[] zippedReport = compressionUtils.zipAsByteArray(reportLocation);
-        writeLine(SIZE + "," + zippedReport.length);
+        writeLine(SIZE + "," + zippedReport.length + "," + reportLocation.getName());
 
         writeBinary(zippedReport);
       }

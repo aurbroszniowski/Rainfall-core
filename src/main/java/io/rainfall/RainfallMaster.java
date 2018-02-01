@@ -56,9 +56,6 @@ public class RainfallMaster {
       //      if (e.getMessage().startsWith()) {
       logger.debug("[Rainfall server] already started");
       return this;
-      //    } else {
-      //      throw new TestException("Rainfall Server already started");
-      //    }
     }
 
     logger.debug("[Rainfall server] Current host is the server host, so we start the Rainfall server");

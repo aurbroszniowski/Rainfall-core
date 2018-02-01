@@ -86,13 +86,14 @@ public class RainfallServerConnection extends Thread {
               } else {
                 String[] sizes = response.split(",");
                 int zipSize = Integer.parseInt(sizes[1]);
+                String subdir = sizes[2];
 
                 byte[] data = readBinary(zipSize);
 
                 response = readLine();
 
                 try {
-                  compressionUtils.byteArrayToPath(reportPath, data);
+                  compressionUtils.byteArrayToPath(new File(reportPath, subdir), data);
                 } catch (Exception e) {
                   logger.error("Can not write the report file");
                 }
