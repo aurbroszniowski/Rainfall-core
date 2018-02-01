@@ -214,6 +214,11 @@
 			accumulatedHistogram.add(histogram);
 	    }
 
+	    $("#percentiles-box").append("<span style='margin-left: 30px;'>Median : " + accumulatedHistogram.getValueAtPercentile(50) / 1000 + " &micro;s</span>");
+	    $("#percentiles-box").append("<span style='margin-left: 30px;'>99th : " + accumulatedHistogram.getValueAtPercentile(99) / 1000 + " &micro;s</span>");
+	    $("#percentiles-box").append("<span style='margin-left: 30px;'>99.9th : " + accumulatedHistogram.getValueAtPercentile(99.99) / 1000 + " &micro;s</span>");
+	    $("#percentiles-box").append("<span style='margin-left: 30px;'>Max : " + accumulatedHistogram.maxValue / 1000 + " &micro;s</span>");
+
 		var histoOutput = accumulatedHistogram.outputPercentileDistribution();
 		var lines = histoOutput.split("\n");
 
