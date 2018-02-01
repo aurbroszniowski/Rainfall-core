@@ -55,7 +55,7 @@ public class StripedLongSequenceGenerator implements SequenceGenerator {
       if (value <= end) {
         return value;
       }
-      next.compareAndSet(value, begin);
+      next.compareAndSet(value + 1, begin);
     }
   }
 
