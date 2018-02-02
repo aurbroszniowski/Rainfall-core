@@ -50,7 +50,7 @@ public class StringGenerator implements ObjectGenerator<String> {
     return "String (length = " + length + ")";
   }
 
-  public static ObjectGenerator<String> fixedLength(final int length) {
+  public static ObjectGenerator<String> fixedLengthString(final int length) {
     return new StringGenerator(length);
   }
 }

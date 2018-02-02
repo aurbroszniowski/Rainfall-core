@@ -38,7 +38,7 @@ public class RainfallServer extends Thread {
   public void run() {
     Socket socket = null;
     try {
-      logger.debug("We started the Rainfall server. We will create a placehodler for clients reports.");
+      logger.debug("We started the Rainfall server. We will create a placeholder for clients reports.");
 
       while (running) {
         //TODO  create map of reports then waits for reports to be given back

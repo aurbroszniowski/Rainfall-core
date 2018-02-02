@@ -46,7 +46,7 @@ public class ByteArrayGenerator implements ObjectGenerator<byte[]> {
     return "byte[" + length + "]";
   }
 
-  public static ObjectGenerator<byte[]> fixedLength(final int length) {
+  public static ObjectGenerator<byte[]> fixedLengthByteArray(final int length) {
     return new ByteArrayGenerator(length);
   }
 }
