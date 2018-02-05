@@ -106,9 +106,8 @@
 		};
 
 	    while ((histogram = reader.nextIntervalHistogram()) != null) {
-			var copy = histogram.copyCorrectedForCoordinatedOmission(100000);
 			var durationInMs = histogram.endTimeStampMsec - histogram.startTimeStampMsec;
-			var tps = 1000 * copy.getTotalCount() / durationInMs;
+			var tps = 1000 * histogram.getTotalCount() / durationInMs;
 
             traces['x'].push(new Date(histogram.startTimeStampMsec).toISOString());
             traces['y'].push(tps);
@@ -158,9 +157,8 @@
 		};
 
 	    while ((histogram = reader.nextIntervalHistogram()) != null) {
-			var copy = histogram.copyCorrectedForCoordinatedOmission(100000);
 			var durationInMs = histogram.endTimeStampMsec - histogram.startTimeStampMsec;
-			var mean = copy.getMean() / 1000000;
+			var mean = histogram.getMean() / 1000000;
 
             traces['x'].push(new Date(histogram.startTimeStampMsec).toISOString());
             traces['y'].push(mean);
