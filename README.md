@@ -12,13 +12,15 @@ It provides several features:
 - Aimed at allowing performance regression testing in your continuous integration environment. You can embed your regression performance tests in your application test suite, so they run for every build, and if the performance expectations are not met, this will fail the tests. 
 - Customizable : You can do web applications testing, but also database, APIs, virtually anything.
 - Coordinated omission free, thanks to the [HdrHistogram library](https://github.com/HdrHistogram/HdrHistogram).
-- Nice reporting, with eye candy graphs thanks to the [d3.js library](http://d3js.org/). 
+- Nice reporting, with eye candy graphs thanks to [plotly.js](https://plot.ly/javascript/) and [d3.js](http://d3js.org/). 
 
 It has a customisable fluent interface that lets you implement your own DSL when writing tests scenarios, and define your own tests actions and metrics.
 Rainfall is open to extensions, three of which are currently in progress,
 - Rainfall web is a Yet Another Web Application performance testing library
 - Rainfall JCache is a library to test the performance of JSR107 caches solutions
 - Rainfall Ehcache is a library to test the performance of Ehcache 2 and 3
+- Rainfall Redis
+- Rainfall Cassandra
 
 ![Built on DEV@cloud](https://www.cloudbees.com/sites/default/files/styles/large/public/Button-Built-on-CB-1.png?itok=3Tnkun-C)
 
@@ -42,6 +44,9 @@ Components
 
 [Rainfall-ehcache](https://github.com/aurbroszniowski/Rainfall-ehcache) is the Ehcache 2.x/3.x performance testing implementation.
 
+[Rainfall-cassandra](https://github.com/aurbroszniowski/Rainfall-cassandra) for Cassandra
+
+[Rainfall-redis](https://github.com/aurbroszniowski/Rainfall-redis) for Redis
 
 How does it look like?
 ----------------------
@@ -89,7 +94,7 @@ A certain number of those classes are already implemented and available for your
 
 Build the project
 -----------------
-Rainfall is compiled with Java 6, 7 or 8
+Rainfall is supported on Java 7, 8 and 9
 ```maven
   mvn clean install
 ```
