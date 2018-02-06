@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Aurélien Broszniowski
+ * Copyright (c) 2014-2018 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
 
+import static io.rainfall.utils.CompressionUtils.CRLF;
+
 
 /**
  * report the statistics to the text console
@@ -42,7 +44,6 @@ public class TextReporter<E extends Enum<E>> extends Reporter<E> {
   private static final String FORMAT = "%-15s %-15s %12s %10s %10s";
   //  private static final String FORMAT = "%-15s %-7s %12s %10s %10s %10s %10s %10s";
   private static final NumberFormat nf = NumberFormat.getInstance();
-  private String CRLF = System.getProperty("line.separator");
   private Calendar calendar = GregorianCalendar.getInstance(TimeZone.getDefault());
   private SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 

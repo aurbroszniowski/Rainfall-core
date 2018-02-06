@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Aurélien Broszniowski
+ * Copyright (c) 2014-2018 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,9 @@ import java.util.TimeZone;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import static io.rainfall.utils.CompressionUtils.CRLF;
+import static io.rainfall.utils.CompressionUtils.cleanFilename;
+
 
 /**
  * @author Aurelien Broszniowski
@@ -66,7 +69,6 @@ public class HtmlReporter<E extends Enum<E>> extends FileReporter<E> {
   private String percentilesFile = "total-percentiles.csv";
   private String reportFile;
   private final File jarFile = new File(getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
-  private final static String CRLF = System.getProperty("line.separator");
   private Calendar calendar = GregorianCalendar.getInstance(TimeZone.getDefault());
   private SimpleDateFormat sdf = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
   private CompressionUtils compressionUtils = new CompressionUtils();
@@ -81,33 +83,17 @@ public class HtmlReporter<E extends Enum<E>> extends FileReporter<E> {
       this.reportPath = new File(this.basedir);
       this.reportFile = this.basedir + File.separatorChar + "report.html";
 
-      deleteDirectory(new File(this.basedir));
+      compressionUtils.deleteDirectory(new File(this.basedir));
 
-      if (jarFile.isFile()) {  // Run with JAR file
-        compressionUtils.extractFromJar("/report", this.basedir);
-      } else {
-        compressionUtils.extractFromPath(new File(HtmlReporter.class.getClass().getResource("/report").toURI()), new File(this.basedir));
-      }
+      compressionUtils.extractResources("/report", this.basedir);
 
-      extractReportFile();
+      compressionUtils.extractReportTemplateToFile("/template/Tps-template.html", new File(this.reportFile));
 
     } catch (URISyntaxException e) {
       throw new RuntimeException("Can not read report template");
     } catch (IOException e) {
       throw new RuntimeException("Can not copy report template");
     }
-  }
-
-  private void extractReportFile() throws IOException {
-    InputStream in = HtmlReporter.class.getClass().getResourceAsStream("/template/Tps-template.html");
-    OutputStream out = new FileOutputStream(new File(this.reportFile));
-    byte[] buffer = new byte[1024];
-    int len = in.read(buffer);
-    while (len > 0) {
-      out.write(buffer, 0, len);
-      len = in.read(buffer);
-    }
-    out.close();
   }
 
   @Override
@@ -117,7 +103,7 @@ public class HtmlReporter<E extends Enum<E>> extends FileReporter<E> {
       sb.append(desc).append("</br>");
     }
     try {
-      substituteInFile(reportFile, "//!header!", sb);
+      compressionUtils.substituteInFile(reportFile, "//!header!", sb);
     } catch (Exception e) {
       throw new RuntimeException("Can not report to Html", e);
     }
@@ -194,7 +180,7 @@ public class HtmlReporter<E extends Enum<E>> extends FileReporter<E> {
             .append("', '" + mean + "', '" + maxValue)
             .append("');").append(CRLF);
       }
-      substituteInFile(reportFile, "//!summary!", sb);
+      compressionUtils.substituteInFile(reportFile, "//!summary!", sb);
 
     } catch (Exception e) {
       throw new RuntimeException("Can not report to Html", e);
@@ -245,22 +231,6 @@ public class HtmlReporter<E extends Enum<E>> extends FileReporter<E> {
     return cleanFilename(result) + "-" + this.percentilesFile;
   }
 
-  private final static int[] illegalChars = { 34, 60, 62, 124, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
-      17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 58, 42, 63, 92, 47, '@', '.', '\'', '"', '!', '#', '$',
-      '%', '^', '&', '*', '(', ')', '\\' };
-
-  public String cleanFilename(String filename) {
-    Arrays.sort(illegalChars);
-    StringBuilder cleanName = new StringBuilder();
-    for (int i = 0; i < filename.length(); i++) {
-      int c = (int)filename.charAt(i);
-      if (Arrays.binarySearch(illegalChars, c) < 0) {
-        cleanName.append((char)c);
-      }
-    }
-    return cleanName.toString();
-  }
-
   /**
    * Define tps/latencies graph in html
    * TODO : We know what is reported after hand (what domains are reported, e.g. cache1, cache2)
@@ -291,36 +261,7 @@ public class HtmlReporter<E extends Enum<E>> extends FileReporter<E> {
     }
 
 
-    substituteInFile(reportFile, "//!report!", sb);
-  }
-
-  /**
-   * take a StringBuilder and replace a marker inside a file by the content of that StringBuilder.
-   *
-   * @param filename path of the file to change
-   * @param marker   marker String in file to be replace
-   * @param sb       StringBuilder that has the content to put instead of the marker
-   * @throws IOException
-   */
-  private void substituteInFile(final String filename, final String marker, final StringBuilder sb) throws IOException {
-    final InputStream in = new FileInputStream(filename);
-    Scanner scanner = new Scanner(in);
-    StringBuilder fileContents = new StringBuilder();
-    try {
-      while (scanner.hasNextLine()) {
-        fileContents.append(scanner.nextLine()).append(CRLF);
-      }
-    } finally {
-      scanner.close();
-    }
-    in.close();
-
-    // create template
-    byte[] replace = fileContents.toString().replace(marker, sb.toString()).getBytes();
-
-    OutputStream out = new FileOutputStream(new File(filename));
-    out.write(replace, 0, replace.length);
-    out.close();
+    compressionUtils.substituteInFile(reportFile, "//!report!", sb);
   }
 
   public String formatTimestampInNano(final long timestamp) {
@@ -335,21 +276,5 @@ public class HtmlReporter<E extends Enum<E>> extends FileReporter<E> {
       sb.append(",").append(key.name());
     }
     output.append(sb.toString()).append("\n");
-  }
-
-  private void deleteDirectory(File path) {
-    if (path == null)
-      return;
-    if (path.exists()) {
-      for (File f : path.listFiles()) {
-        if (f.isDirectory()) {
-          deleteDirectory(f);
-          f.delete();
-        } else {
-          f.delete();
-        }
-      }
-      path.delete();
-    }
   }
 }

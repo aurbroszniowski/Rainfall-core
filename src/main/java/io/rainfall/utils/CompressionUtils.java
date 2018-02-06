@@ -1,4 +1,23 @@
+/*
+ * Copyright (c) 2014-2018 Aurélien Broszniowski
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.rainfall.utils;
+
+import io.rainfall.reporting.HtmlReporter;
+import io.rainfall.reporting.PeriodicHlogReporter;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -10,8 +29,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.JarURLConnection;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.Scanner;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
@@ -21,6 +43,9 @@ import java.util.zip.ZipOutputStream;
  */
 
 public class CompressionUtils {
+
+  public final static String CRLF = System.getProperty("line.separator");
+  private final File jarFile = new File(getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
 
   public synchronized byte[] zipAsByteArray(final File dirToBeCompressed) throws IOException {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -103,6 +128,14 @@ public class CompressionUtils {
     }
   }
 
+  public void extractResources(final String sources, final String dest) throws IOException, URISyntaxException {
+    if (jarFile.isFile()) {  // Run with JAR file
+      extractFromJar(sources, dest);
+    } else {
+      extractFromPath(new File(HtmlReporter.class.getClass().getResource(sources).toURI()), new File(dest));
+    }
+  }
+
   /**
    * extract the subdirectory from a jar on the classpath to {@code writeDirectory}
    *
@@ -110,7 +143,7 @@ public class CompressionUtils {
    * @param writeDirectory  the location to extract to
    * @throws IOException if an IO exception occurs
    */
-  public void extractFromJar(String sourceDirectory, String writeDirectory) throws IOException {
+  private void extractFromJar(String sourceDirectory, String writeDirectory) throws IOException {
     final URL dirURL = getClass().getResource(sourceDirectory);
     final String path = sourceDirectory.substring(1);
 
@@ -160,7 +193,7 @@ public class CompressionUtils {
     }
   }
 
-  public void extractFromPath(final File src, final File dst) throws IOException {
+  private void extractFromPath(final File src, final File dst) throws IOException {
     if (src.isDirectory()) {
       dst.mkdirs();
 
@@ -187,4 +220,80 @@ public class CompressionUtils {
       out.close();
     }
   }
+
+  public void extractReportTemplateToFile(String inputTemplate, File outputFile) throws IOException {
+    InputStream in = PeriodicHlogReporter.class.getClass().getResourceAsStream(inputTemplate);
+    OutputStream out = new FileOutputStream(outputFile);
+    byte[] buffer = new byte[1024];
+    int len = in.read(buffer);
+    while (len > 0) {
+      out.write(buffer, 0, len);
+      len = in.read(buffer);
+    }
+    out.close();
+  }
+
+  public void deleteDirectory(File path) {
+    if (path == null)
+      return;
+    if (path.exists()) {
+      for (File f : path.listFiles()) {
+        if (f.isDirectory()) {
+          deleteDirectory(f);
+          f.delete();
+        } else {
+          f.delete();
+        }
+      }
+      path.delete();
+    }
+  }
+
+  private final static int[] illegalChars = { 34, 60, 62, 124, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+      17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 58, 42, 63, 92, 47, '@', '.', '\'', '"', '!', '#', '$',
+      '%', '^', '&', '*', '(', ')', '\\' };
+
+  public static String cleanFilename(String filename) {
+    Arrays.sort(illegalChars);
+    StringBuilder cleanName = new StringBuilder();
+    for (int i = 0; i < filename.length(); i++) {
+      int c = (int)filename.charAt(i);
+      if (Arrays.binarySearch(illegalChars, c) < 0) {
+        cleanName.append((char)c);
+      }
+    }
+    return cleanName.toString();
+  }
+
+  /**
+   * take a StringBuilder and replace a marker inside a file by the content of that StringBuilder.
+   *
+   * @param filename path of the file to change
+   * @param marker   marker String in file to be replace
+   * @param sb       StringBuilder that has the content to put instead of the marker
+   * @throws IOException
+   */
+  public void substituteInFile(final String filename, final String marker, final StringBuilder sb) throws IOException {
+    final InputStream in = new FileInputStream(filename);
+    Scanner scanner = new Scanner(in);
+    StringBuilder fileContents = new StringBuilder();
+    try {
+      while (scanner.hasNextLine()) {
+        fileContents.append(scanner.nextLine()).append(CRLF);
+      }
+    } finally {
+      scanner.close();
+    }
+    in.close();
+
+    // create template
+    byte[] replace = fileContents.toString().replace(marker, sb.toString()).getBytes();
+
+    OutputStream out = new FileOutputStream(new File(filename));
+    out.write(replace, 0, replace.length);
+    out.close();
+  }
+
+
+
 }

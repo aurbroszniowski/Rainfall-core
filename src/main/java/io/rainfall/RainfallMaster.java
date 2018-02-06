@@ -1,6 +1,23 @@
+/*
+ * Copyright (c) 2014-2018 Aurélien Broszniowski
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.rainfall;
 
 import io.rainfall.configuration.DistributedConfig;
+import io.rainfall.configuration.ReportingConfig;
 import io.rainfall.utils.distributed.RainfallServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,20 +38,23 @@ public class RainfallMaster {
   private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
   private final DistributedConfig distributedConfig;
+  private final ReportingConfig reportingConfig;
   private final File reportPath;
   private volatile RainfallServer rainfallServer = null;
 
-  public RainfallMaster(final DistributedConfig distributedConfig, final File reportPath) {
+  public RainfallMaster(final DistributedConfig distributedConfig, ReportingConfig reportingConfig, final File reportPath) {
     this.distributedConfig = distributedConfig;
+    this.reportingConfig = reportingConfig;
     this.reportPath = reportPath;
   }
 
-  public static RainfallMaster master(final DistributedConfig distributedConfig) {
-    return new RainfallMaster(distributedConfig, new File("Rainfall-master-report"));
+  public static <E extends Enum<E>> RainfallMaster master(final DistributedConfig distributedConfig, final ReportingConfig<E> reportingConfig) {
+    return new RainfallMaster(distributedConfig, reportingConfig, new File("Rainfall-master-report"));
   }
 
-  public static RainfallMaster master(final DistributedConfig distributedConfig, final File reportPath) {
-    return new RainfallMaster(distributedConfig, reportPath);
+  public static <E extends Enum<E>> RainfallMaster master(final DistributedConfig distributedConfig,
+                                                          final ReportingConfig<E> reportingConfig, final File reportPath) {
+    return new RainfallMaster(distributedConfig, reportingConfig, reportPath);
   }
 
   public RainfallMaster start() throws TestException {
@@ -59,7 +79,7 @@ public class RainfallMaster {
     }
 
     logger.debug("[Rainfall server] Current host is the server host, so we start the Rainfall server");
-    rainfallServer = new RainfallServer(distributedConfig, reportPath, serverSocket);
+    rainfallServer = new RainfallServer(distributedConfig, reportingConfig, reportPath, serverSocket);
     rainfallServer.start();
     return this;
   }
