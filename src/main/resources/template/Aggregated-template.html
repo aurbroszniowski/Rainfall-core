@@ -274,7 +274,7 @@
                                         accumulatedHistogram.add(histograms[key]);
                                     });
 
-                                    var histoOutput = accumulatedHistogram.copyCorrectedForCoordinatedOmission(100000).outputPercentileDistribution();
+                                    var histoOutput = accumulatedHistogram.outputPercentileDistribution();
                                     var lines = histoOutput.split("\n");
 
                                     for (var i = 0; i < lines.length; i++) {
