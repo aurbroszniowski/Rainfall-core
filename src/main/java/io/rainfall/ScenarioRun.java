@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Aurélien Broszniowski
+ * Copyright (c) 2014-2018 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -169,8 +169,12 @@ public class ScenarioRun<E extends Enum<E>> {
       distributedConfig.setCurrentClient(currentClient);
       currentClient.start();
 
-      while (!currentClient.canStart()) {
+      while (!currentClient.canStart() && currentClient.isAlive()) {
         Thread.sleep(250);
+      }
+
+      if (!currentClient.canStart()) {
+        throw new RuntimeException("Rainfal client could not start", currentClient.getTestException().get());
       }
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
