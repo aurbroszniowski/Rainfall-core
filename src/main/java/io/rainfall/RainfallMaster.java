@@ -25,9 +25,10 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.ServerSocket;
-import java.net.UnknownHostException;
-import java.util.Arrays;
+import java.net.SocketException;
+import java.util.Enumeration;
 import java.util.concurrent.CyclicBarrier;
 
 /**
@@ -35,7 +36,7 @@ import java.util.concurrent.CyclicBarrier;
  */
 public class RainfallMaster {
 
-  private final Logger logger = LoggerFactory.getLogger(this.getClass());
+  private static final Logger logger = LoggerFactory.getLogger(RainfallMaster.class);
 
   private final DistributedConfig distributedConfig;
   private final ReportingConfig reportingConfig;
@@ -59,13 +60,10 @@ public class RainfallMaster {
 
   public RainfallMaster start() throws TestException {
     try {
-      logger.debug("[Rainfall server] Check if configuration server hostname is current host.");
-      if (!Arrays.toString(InetAddress.getByName("localhost").getAddress()).equalsIgnoreCase(
-          Arrays.toString(distributedConfig.getMasterAddress().getAddress().getAddress()))) {
-        logger.debug("[Rainfall server] Current host is NOT the server host, so we return to start the client");
+      if (!isCurrentHostMaster()) {
         return this;
       }
-    } catch (UnknownHostException e) {
+    } catch (SocketException e) {
       throw new TestException("Can not run multi-clients test.", e);
     }
 
@@ -73,7 +71,6 @@ public class RainfallMaster {
     try {
       serverSocket = new ServerSocket(distributedConfig.getMasterAddress().getPort());
     } catch (IOException e) {
-      //      if (e.getMessage().startsWith()) {
       logger.debug("[Rainfall server] already started");
       return this;
     }
@@ -82,6 +79,27 @@ public class RainfallMaster {
     rainfallServer = new RainfallServer(distributedConfig, reportingConfig, reportPath, serverSocket);
     rainfallServer.start();
     return this;
+  }
+
+  private boolean isCurrentHostMaster() throws SocketException {
+    InetAddress masterAddress = distributedConfig.getMasterAddress().getAddress();
+
+    Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
+    while (networkInterfaces.hasMoreElements()) {
+      NetworkInterface networkInterface = networkInterfaces.nextElement();
+
+      Enumeration<InetAddress> inetAddresses = networkInterface.getInetAddresses();
+      while (inetAddresses.hasMoreElements()) {
+        InetAddress inetAddress = inetAddresses.nextElement();
+        logger.debug("[Rainfall server] Check if current NIC ({}) has the IP from rainfall master host ({}).",
+            inetAddress, masterAddress);
+        if (inetAddress.equals(masterAddress)) {
+          logger.debug("[Rainfall server] Current NIC IP is the rainfall master IP, we attempt to start the master.");
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   public void stop() throws TestException {
