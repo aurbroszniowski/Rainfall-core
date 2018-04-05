@@ -209,7 +209,10 @@
                                                 var histoTime = roundtime(histogram.startTimeStampMsec);
                                                 if (histoTime >= startTime && histoTime <= endTime) {
                                                     if (typeof histograms[histoTime] !== 'undefined') {
-                                                        histograms[histoTime].add(histogram);
+					                                    var sumHistogram = hdr.build();
+														sumHistogram.add(histograms[histoTime]);
+														sumHistogram.add(histogram);
+														histograms[histoTime] = sumHistogram;
                                                     }
                                                 }
                                             }
