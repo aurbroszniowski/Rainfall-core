@@ -259,9 +259,9 @@
                                     Object.keys(histograms).forEach(function (key) {
 
                                         // TPS
-                                        var copy = histograms[key].copyCorrectedForCoordinatedOmission(100000);
+                                        var copy = histograms[key];
                                         var durationInMs = histograms[key].endTimeStampMsec - histograms[key].startTimeStampMsec;
-                                        var tps = 1000 * copy.getTotalCount() / durationInMs;
+                                        var tps = 1000 * histograms[key].getTotalCount() / durationInMs;
 
                                         tpsTraces['x'].push(new Date(key / 1000).toISOString());
                                         tpsTraces['y'].push(tps);
