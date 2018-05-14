@@ -67,7 +67,7 @@ public class RainfallServer extends Thread {
         logger.info("[Rainfall Server] Ready - Listening for incoming clients");
         List<RainfallServerConnection> serverConnectionThreads = new ArrayList<RainfallServerConnection>();
         MergeableBitSet testRunning = new MergeableBitSet(distributedConfig.getNbClients());
-        int clientId = 0;
+        int clientId = 1;
         while (!testRunning.isTrue()) {
           try {
             socket = serverSocket.accept();

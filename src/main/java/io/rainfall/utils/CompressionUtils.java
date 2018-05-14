@@ -85,6 +85,8 @@ public class CompressionUtils {
   }
 
   public synchronized void byteArrayToPath(final File location, byte[] compressedData) throws Exception {
+    location.mkdirs();
+
     ByteArrayInputStream inputStream = new ByteArrayInputStream(compressedData);
     ZipInputStream in = new ZipInputStream(inputStream);
     while (true)

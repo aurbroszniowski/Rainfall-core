@@ -81,8 +81,8 @@ public class RainfallServerConnection extends Thread {
           response = readLine();
 
           if (READY.equalsIgnoreCase(response)) {
-            logger.info("[Rainfall server] Waiting for all clients to connect : current state is {}", testRunning.toString());
             testRunning.increase();
+            logger.info("[Rainfall server] Waiting for all clients to connect : current state is {}", testRunning.toString());
             while (!testRunning.isTrue()) {
               try {
                 Thread.sleep(500);
@@ -96,12 +96,13 @@ public class RainfallServerConnection extends Thread {
               response = readLine();
 
               if (!response.startsWith(SIZE)) {
-                logger.error("Issue when getting reports. Expected SIZE command and received {}", response);
+                logger.error("[Rainfall server] Issue when getting reports. Expected SIZE command and received {}", response);
                 Thread.sleep(500);
               } else {
                 String[] sizes = response.split(",");
                 int zipSize = Integer.parseInt(sizes[1]);
                 String subdir = sizes[2];
+                logger.info("[Rainfall server] Retrieving subdir [{}] of size [{}]", subdir, zipSize);
 
                 byte[] data = readBinary(zipSize);
 
@@ -111,7 +112,7 @@ public class RainfallServerConnection extends Thread {
                   compressionUtils.byteArrayToPath(new File(reportPath, subdir), data);
                   this.reportSubdir = subdir;
                 } catch (Exception e) {
-                  logger.error("Can not write the report file");
+                  logger.error("Can not write the report file", e);
                 }
               }
             }
