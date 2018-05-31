@@ -19,7 +19,7 @@ package io.rainfall.utils.distributed;
 import io.rainfall.TestException;
 import io.rainfall.configuration.DistributedConfig;
 import io.rainfall.configuration.ReportingConfig;
-import io.rainfall.utils.CompressionUtils;
+import io.rainfall.reporting.HtmlReport;
 import io.rainfall.utils.MergeableBitSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,8 +33,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static io.rainfall.utils.CompressionUtils.CRLF;
-
 /**
  * @author Aurelien Broszniowski
  */
@@ -45,7 +43,6 @@ public class RainfallServer extends Thread {
   private final ReportingConfig reportingConfig;
   private final File reportPath;
   private final ServerSocket serverSocket;
-  private final CompressionUtils compressionUtils = new CompressionUtils();
 
   private final AtomicReference<TestException> testException = new AtomicReference<TestException>();
   private volatile boolean running = true;
@@ -103,7 +100,7 @@ public class RainfallServer extends Thread {
             }
           }
           socket.close();
-          aggregateHtmlReport(reportSubdirs);
+          HtmlReport.aggregateInPlace(reportingConfig.getResultsReported(), reportSubdirs, reportPath);
         } catch (IOException e) {
           throw new TestException("Cannot close socket", e);
         }
@@ -116,40 +113,6 @@ public class RainfallServer extends Thread {
       } catch (IOException e) {
         logger.debug("[Rainfall server] Issue when shutting down connections", e);
       }
-    }
-  }
-
-  private void aggregateHtmlReport(final List<String> reportSubdirs) throws IOException {
-    File reportFile = new File(reportPath, "aggregated-report.html");
-    try {
-      compressionUtils.extractResources("/report/js", reportPath.getAbsolutePath() + File.separator + "js");
-      compressionUtils.extractReportTemplateToFile("/template/Aggregated-template.html", reportFile);
-
-      StringBuilder sb = new StringBuilder();
-      Enum[] results = reportingConfig.getResultsReported();
-
-      sb.append("reportAll([");
-      for (String reportSubdir : reportSubdirs) {
-        if (reportSubdir != null) {
-          sb.append("'").append(reportSubdir).append(File.separator).append("',");
-        } else {
-          logger.error("Rainfall client report missing");
-        }
-      }
-      sb.setLength(sb.length() - 1);
-      sb.append("], [");
-
-      for (Enum result : results) {
-        sb.append("'").append(result.name()).append("',");
-      }
-      sb.setLength(sb.length() - 1);
-
-      sb.append("]);")
-          .append(CRLF);
-
-      compressionUtils.substituteInFile(reportFile.getAbsolutePath(), "//!summary!", sb);
-    } catch (Exception e) {
-      throw new RuntimeException("Can not report to Html", e);
     }
   }
 
