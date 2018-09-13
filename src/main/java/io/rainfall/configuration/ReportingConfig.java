@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Aurélien Broszniowski
+ * Copyright (c) 2014-2018 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,14 @@ package io.rainfall.configuration;
 
 import io.rainfall.Configuration;
 import io.rainfall.reporting.HlogReporter;
+import io.rainfall.reporting.HtmlReporter;
 import io.rainfall.reporting.PeriodicHlogReporter;
 import io.rainfall.reporting.Reporter;
-import io.rainfall.reporting.HtmlReporter;
 import io.rainfall.reporting.TextReporter;
 import io.rainfall.statistics.collector.StatisticsCollector;
+import io.rainfall.statistics.monitor.CpuStatisticsCollector;
 import io.rainfall.statistics.monitor.GcStatisticsCollector;
 import io.rainfall.statistics.monitor.MemStatisticsCollector;
-import io.rainfall.statistics.monitor.OSStatisticsCollector;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -68,14 +68,22 @@ public class ReportingConfig<E extends Enum<E>> extends Configuration {
     return new ReportingConfig<E>(results.getEnumConstants(), resultsReported.toArray(new Enum[0]));
   }
 
+
+  // Disk collector
+
+  // Network collector
+
+  // GC Collector
   public static StatisticsCollector gcStatistics( ) {
     return new GcStatisticsCollector() ;
   }
 
-  public static StatisticsCollector osStatistics() {
-    return new OSStatisticsCollector();
+  // CPU collector
+  public static StatisticsCollector cpuStatistics() {
+    return new CpuStatisticsCollector();
   }
 
+  // Memory collector
   public static StatisticsCollector memStatistics() {
     return new MemStatisticsCollector();
   }

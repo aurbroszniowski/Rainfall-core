@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Aurélien Broszniowski
+ * Copyright (c) 2014-2018 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ public class GcStatisticsCollector implements StatisticsCollector {
 
   private static final String GARBAGE_COLLECTION_NOTIFICATION = "com.sun.management.gc.notification";
 
-  private Writer gcOutput;
+  private Writer output;
   public final static String GC_STATS = "GC_STATS";
 
   public HtmlReporter reporterUtils = new HtmlReporter();
@@ -170,15 +170,15 @@ public class GcStatisticsCollector implements StatisticsCollector {
     public void ouputCsv(final String basedir) throws Exception {
       String gcFilename = basedir + File.separatorChar + this.gcFile;
 
-      gcOutput = new BufferedWriter(new FileWriter(gcFilename, true));
+      output = new BufferedWriter(new FileWriter(gcFilename, true));
       if (new File(gcFilename).length() == 0)
-        reporterUtils.addHeader(gcOutput, GcStatisticsCollector.GcStats.Header.values());
+        reporterUtils.addHeader(output, GcStatisticsCollector.GcStats.Header.values());
 
       for (GcStatisticsCollector.GcStats gcStats : this.gcStatsList) {
-        gcOutput.append(toCsv(gcStats)).append("\n");
+        output.append(toCsv(gcStats)).append("\n");
       }
 
-      gcOutput.close();
+      output.close();
     }
 
     @Override
