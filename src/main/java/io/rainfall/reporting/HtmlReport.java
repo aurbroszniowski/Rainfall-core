@@ -25,6 +25,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 import java.util.List;
 
 import static io.rainfall.utils.CompressionUtils.CRLF;
@@ -35,7 +36,18 @@ public class HtmlReport {
 
   private static final CompressionUtils compressionUtils = new CompressionUtils();
 
-  public static void aggregate(Enum[] resultsReported, List<String> srcReportSubdirs, File destReportPath) throws IOException {
+  public static void aggregate(Enum[] resultsReported, String srcReportSubdir, File destReportPath) throws IOException {
+    List<String> reportSubdirs = new ArrayList<String>();
+    final File[] files = new File(srcReportSubdir).listFiles();
+    for (File file : files) {
+      if (file.isDirectory()) {
+        reportSubdirs.add(file.getAbsolutePath());
+      }
+    }
+    aggregate(resultsReported, reportSubdirs, destReportPath);
+  }
+
+    public static void aggregate(Enum[] resultsReported, List<String> srcReportSubdirs, File destReportPath) throws IOException {
     File reportFile = new File(destReportPath, "aggregated-report.html");
     try {
       compressionUtils.extractResources("/report/js", destReportPath.getAbsolutePath() + File.separator + "js");
