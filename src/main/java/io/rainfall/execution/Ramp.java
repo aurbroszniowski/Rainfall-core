@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Aurélien Broszniowski
+ * Copyright (c) 2014-2018 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,10 +64,10 @@ public class Ramp extends Execution {
                                           final List<AssertionEvaluator> assertions) throws TestException {
     final DistributedConfig distributedConfig = (DistributedConfig)configurations.get(DistributedConfig.class);
     final ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
-    int nbThreads = concurrencyConfig.getThreadsCount();
+    final int threadCount = concurrencyConfig.getThreadCount();
 
     // Use a scheduled thread pool in order to execute concurrent Scenarios
-    ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(concurrencyConfig.getThreadsCount());
+    ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(concurrencyConfig.getThreadCount());
 
     // This is done to collect exceptions because the Runnable doesn't throw
     final List<TestException> exceptions = new ArrayList<TestException>();
@@ -76,7 +76,7 @@ public class Ramp extends Execution {
     final AtomicDouble nb = new AtomicDouble(from.getNb());
     final Double increment = (to.getNb() - from.getNb()) / (over.getNbInMs() / every.getNbInMs());
 
-    for (int threadNb = 0; threadNb < nbThreads; threadNb++) {
+    for (int threadNb = 0; threadNb < threadCount; threadNb++) {
       final int finalThreadNb = threadNb;
       final ScheduledFuture<?> future = scheduler.scheduleAtFixedRate(new Runnable() {
         @Override

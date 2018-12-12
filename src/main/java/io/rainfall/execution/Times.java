@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Aurélien Broszniowski
+ * Copyright (c) 2014-2018 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,12 +54,12 @@ public class Times extends Execution {
 
     DistributedConfig distributedConfig = (DistributedConfig)configurations.get(DistributedConfig.class);
     ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
-    int nbThreads = concurrencyConfig.getThreadsCount();
+    final int threadCount = concurrencyConfig.getThreadCount();
 
-    ExecutorService executor = Executors.newFixedThreadPool(nbThreads);
+    ExecutorService executor = Executors.newFixedThreadPool(threadCount);
     markExecutionState(scenario, ExecutionState.BEGINNING);
 
-    for (int threadNb = 0; threadNb < nbThreads; threadNb++) {
+    for (int threadNb = 0; threadNb < threadCount; threadNb++) {
       final long max = concurrencyConfig.getNbIterationsForThread(distributedConfig, threadNb, occurrences);
       executor.submit(new Callable() {
 
@@ -77,7 +77,7 @@ public class Times extends Execution {
         }
       });
     }
-    concurrencyConfig.clearNbIterationsForThread();
+    concurrencyConfig.clearIterationCountForThread();
     //TODO : it is submitted enough but not everything has finished to run when threads are done -> how to solve Coordinated Omission ?
     markExecutionState(scenario, ExecutionState.ENDING);
     executor.shutdown();

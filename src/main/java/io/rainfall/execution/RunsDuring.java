@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Aurélien Broszniowski
+ * Copyright (c) 2014-2018 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,15 +59,15 @@ public class RunsDuring extends Execution {
                                           final Map<Class<? extends Configuration>, Configuration> configurations,
                                           final List<AssertionEvaluator> assertions) throws TestException {
     ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
-    int nbThreads = concurrencyConfig.getThreadsCount();
+    final int threadCount = concurrencyConfig.getThreadCount();
 
-    final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(concurrencyConfig.getThreadsCount());
-    final ExecutorService executor = Executors.newFixedThreadPool(nbThreads);
+    final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(concurrencyConfig.getThreadCount());
+    final ExecutorService executor = Executors.newFixedThreadPool(threadCount);
     markExecutionState(scenario, ExecutionState.BEGINNING);
     final AtomicBoolean doneFlag = new AtomicBoolean(false);
 
     List<Future<Void>> futures = new ArrayList<Future<Void>>();
-    for (int threadNb = 0; threadNb < nbThreads; threadNb++) {
+    for (int threadNb = 0; threadNb < threadCount; threadNb++) {
       Future<Void> future = executor.submit(new Callable<Void>() {
 
         @Override
