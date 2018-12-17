@@ -64,7 +64,7 @@ public class Once extends Execution {
     markExecutionState(scenario, ExecutionState.BEGINNING);
 
     for (int threadNb = 0; threadNb < nbThreads; threadNb++) {
-      final long max = concurrencyConfig.getNbIterationsForThread(distributedConfig, threadNb, nb);
+      final long max = concurrencyConfig.getIterationCountForThread(distributedConfig, threadNb, nb);
       for (long i = 0; i < max; i++) {
         executor.submit(new Callable() {
 

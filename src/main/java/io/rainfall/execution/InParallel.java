@@ -77,7 +77,7 @@ public class InParallel extends Execution {
 
     // Schedule the scenario every second, until
     for (int threadNb = 0; threadNb < nbThreads; threadNb++) {
-      final long max = concurrencyConfig.getNbIterationsForThread(distributedConfig, threadNb, nb);
+      final long max = concurrencyConfig.getIterationCountForThread(distributedConfig, threadNb, nb);
 
       final ScheduledFuture<?> future = scheduler.scheduleAtFixedRate(new Runnable() {
         @Override

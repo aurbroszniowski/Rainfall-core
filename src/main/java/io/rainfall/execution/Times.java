@@ -60,7 +60,7 @@ public class Times extends Execution {
     markExecutionState(scenario, ExecutionState.BEGINNING);
 
     for (int threadNb = 0; threadNb < threadCount; threadNb++) {
-      final long max = concurrencyConfig.getNbIterationsForThread(distributedConfig, threadNb, occurrences);
+      final long max = concurrencyConfig.getIterationCountForThread(distributedConfig, threadNb, occurrences);
       executor.submit(new Callable() {
 
         @Override

@@ -61,7 +61,7 @@ public class ConcurrencyConfig extends Configuration {
     return timeoutInSeconds;
   }
 
-  public long getNbIterationsForThread(final DistributedConfig distributedConfig, final int threadNb, final long iterationsCount) {
+  public long getIterationCountForThread(final DistributedConfig distributedConfig, final int threadNb, final long iterationsCount) {
     synchronized (iterationCountPerThread) {
       int clientsCount = 1;
       if (distributedConfig != null) {

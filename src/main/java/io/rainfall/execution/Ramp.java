@@ -25,12 +25,13 @@ import io.rainfall.WeightedOperation;
 import io.rainfall.configuration.ConcurrencyConfig;
 import io.rainfall.configuration.DistributedConfig;
 import io.rainfall.statistics.StatisticsHolder;
-import io.rainfall.unit.Every;
 import io.rainfall.unit.From;
 import io.rainfall.unit.Over;
 import io.rainfall.unit.To;
 import io.rainfall.utils.RangeMap;
 import jsr166e.extra.AtomicDouble;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,21 +41,22 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Aurelien Broszniowski
  */
 public class Ramp extends Execution {
 
+  private final static Logger logger = LoggerFactory.getLogger(Ramp.class);
+
   private final From from;
   private final To to;
-  private final Every every;
   private final Over over;
 
-  public Ramp(final From from, final To to, final Every every, final Over over) {
+  public Ramp(From from, To to, Over over) {
     this.from = from;
     this.to = to;
-    this.every = every;
     this.over = over;
   }
 
@@ -64,7 +66,7 @@ public class Ramp extends Execution {
                                           final List<AssertionEvaluator> assertions) throws TestException {
     final DistributedConfig distributedConfig = (DistributedConfig)configurations.get(DistributedConfig.class);
     final ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
-    final int threadCount = concurrencyConfig.getThreadCount();
+    final int totalThreadCount = concurrencyConfig.getThreadCount();
 
     // Use a scheduled thread pool in order to execute concurrent Scenarios
     ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(concurrencyConfig.getThreadCount());
@@ -73,18 +75,18 @@ public class Ramp extends Execution {
     final List<TestException> exceptions = new ArrayList<TestException>();
     markExecutionState(scenario, ExecutionState.BEGINNING);
 
-    final AtomicDouble nb = new AtomicDouble(from.getNb());
-    final Double increment = (to.getNb() - from.getNb()) / (over.getNbInMs() / every.getNbInMs());
+    final AtomicDouble currentThreadCount = new AtomicDouble(from.getNb());
+    final Double threadCountIncrement = 1000 * (to.getNb() - from.getNb()) / (over.getNbInMs());
 
-    for (int threadNb = 0; threadNb < threadCount; threadNb++) {
+    for (int threadNb = 0; threadNb < totalThreadCount; threadNb++) {
       final int finalThreadNb = threadNb;
       final ScheduledFuture<?> future = scheduler.scheduleAtFixedRate(new Runnable() {
         @Override
         public void run() {
           Thread.currentThread().setName("Rainfall-core Operations Thread");
-          System.out.println(" ramping users = " + nb.longValue() + " /" + nb.get());
-          long max = concurrencyConfig.getNbIterationsForThread(distributedConfig, finalThreadNb, nb.longValue());
-          nb.addAndGet(increment);
+          logger.info(" ramping users = " + currentThreadCount.longValue() + " /" + currentThreadCount.get());
+          long max = concurrencyConfig.getIterationCountForThread(distributedConfig, finalThreadNb, currentThreadCount.longValue());
+          currentThreadCount.addAndGet(threadCountIncrement);
 
           try {
             for (long i = 0; i < max; i++) {
@@ -95,11 +97,10 @@ public class Ramp extends Execution {
               }
             }
           } catch (TestException e) {
-            e.printStackTrace();
             exceptions.add(new TestException(e));
           }
         }
-      }, 0, every.getNb(), every.getTimeDivision().getTimeUnit());
+      }, 0, 1 , TimeUnit.SECONDS);
 
       // Schedule the end of the execution after the time entered as parameter
       scheduler.schedule(new Runnable() {
@@ -131,6 +132,6 @@ public class Ramp extends Execution {
   @Override
   public String getDescription() {
     return "Ramp " + from.getDescription() + " "
-           + to.getDescription() + " " + every.getDescription() + " " + over.getDescription();
+           + to.getDescription() + " " + over.getDescription();
   }
 }
