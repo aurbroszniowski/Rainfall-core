@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -58,9 +57,10 @@ public class Once extends Execution {
                                           final List<AssertionEvaluator> assertions) throws TestException {
 
     final DistributedConfig distributedConfig = (DistributedConfig)configurations.get(DistributedConfig.class);
-    ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
-    int nbThreads = concurrencyConfig.getThreadCount();
-    ExecutorService executor = Executors.newFixedThreadPool(nbThreads);
+    final ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
+    final int nbThreads = concurrencyConfig.getThreadCount();
+
+    ExecutorService executor = concurrencyConfig.getFixedExecutorService();
     markExecutionState(scenario, ExecutionState.BEGINNING);
 
     for (int threadNb = 0; threadNb < nbThreads; threadNb++) {
