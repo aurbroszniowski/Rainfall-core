@@ -64,6 +64,10 @@ public class Ramp extends Execution {
                                           final Map<Class<? extends Configuration>, Configuration> configurations,
                                           final List<AssertionEvaluator> assertions) throws TestException {
     ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
+    if (concurrencyConfig.getThreadCount() < from.getCount() || concurrencyConfig.getThreadCount() < to.getCount()) {
+      throw new TestException(
+          "Concurrency config thread count is lower than the RampUp parameters. [From = " + from.getCount() + ", To = " + to.getCount() + "]");
+    }
 
     final ScheduledExecutorService endScheduler = Executors.newScheduledThreadPool(1);
     final ScheduledExecutorService execScheduler = concurrencyConfig.getScheduledExecutorService();
@@ -107,9 +111,9 @@ public class Ramp extends Execution {
   }
 
   void scheduleThreads(final StatisticsHolder statisticsHolder, final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions, final AtomicBoolean doneFlag, ScheduledExecutorService execScheduler) {
-    final Double delayBetweenAddingThread = over.getNbInMs() / (to.getNb() - from.getNb()) ;
+    final Double delayBetweenAddingThread = over.getNbInMs() / (to.getCount() - from.getCount()) ;
     long threadsCounter = 0;
-    for (int threadNb = from.getNb(); threadNb < to.getNb(); threadNb++) {
+    for (int threadNb = from.getCount(); threadNb < to.getCount(); threadNb++) {
       execScheduler.schedule(new Callable<Void>() {
 
         @Override
