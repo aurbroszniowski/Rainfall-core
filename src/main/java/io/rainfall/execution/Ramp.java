@@ -70,7 +70,7 @@ public class Ramp extends Execution {
     }
 
     final ScheduledExecutorService endScheduler = Executors.newScheduledThreadPool(1);
-    final ScheduledExecutorService execScheduler = concurrencyConfig.getScheduledExecutorService();
+    final ScheduledExecutorService execScheduler = concurrencyConfig.createScheduledExecutorService();
     markExecutionState(scenario, ExecutionState.BEGINNING);
     final AtomicBoolean doneFlag = new AtomicBoolean(false);
 
@@ -83,7 +83,7 @@ public class Ramp extends Execution {
         markExecutionState(scenario, ExecutionState.ENDING);
         shutdownNicely(doneFlag, execScheduler, endScheduler);
       }
-    }, over.getNb(), over.getTimeDivision().getTimeUnit());
+    }, over.getCount(), over.getTimeDivision().getTimeUnit());
 
     try {
       boolean executorSuccess = execScheduler.awaitTermination(60, SECONDS);

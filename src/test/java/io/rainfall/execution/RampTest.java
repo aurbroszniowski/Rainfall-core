@@ -64,7 +64,7 @@ public class RampTest {
     Map<Class<? extends Configuration>, Configuration> configurations = new HashMap<Class<? extends Configuration>, Configuration>();
     ConcurrencyConfig concurrencyConfig = mock(ConcurrencyConfig.class);
     ScheduledExecutorService scheduler = mock(ScheduledExecutorService.class);
-    when(concurrencyConfig.getScheduledExecutorService()).thenReturn(scheduler);
+    when(concurrencyConfig.createScheduledExecutorService()).thenReturn(scheduler);
     configurations.put(ConcurrencyConfig.class, concurrencyConfig);
 
     List<AssertionEvaluator> assertions = new ArrayList<AssertionEvaluator>();

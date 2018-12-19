@@ -60,8 +60,8 @@ public class RunsDuring extends Execution {
     ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
     final int threadCount = concurrencyConfig.getThreadCount();
 
-    final ScheduledExecutorService scheduler = concurrencyConfig.getScheduledExecutorService();
-    final ExecutorService executor = concurrencyConfig.getFixedExecutorService();
+    final ScheduledExecutorService scheduler = concurrencyConfig.createScheduledExecutorService();
+    final ExecutorService executor = concurrencyConfig.createFixedExecutorService();
     markExecutionState(scenario, ExecutionState.BEGINNING);
     final AtomicBoolean doneFlag = new AtomicBoolean(false);
 
@@ -92,7 +92,7 @@ public class RunsDuring extends Execution {
         markExecutionState(scenario, ExecutionState.ENDING);
         shutdownNicely(doneFlag, executor, scheduler);
       }
-    }, during.getNb(), during.getTimeDivision().getTimeUnit());
+    }, during.getCount(), during.getTimeDivision().getTimeUnit());
 
     try {
       for (Future<Void> future : futures) {

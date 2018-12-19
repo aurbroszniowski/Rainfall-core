@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Aurélien Broszniowski
+ * Copyright (c) 2014-2018 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ public class TimeDivision extends Unit {
 
   public static final TimeDivision minutes = new TimeDivision(TimeUnit.MINUTES);
 
-  public TimeDivision(final TimeUnit timeUnit) {
+  public TimeDivision( TimeUnit timeUnit) {
     this.timeUnit = timeUnit;
   }
 

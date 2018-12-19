@@ -68,7 +68,7 @@ public class InParallel extends Execution {
     final int nbThreads = concurrencyConfig.getThreadCount();
 
     // Use a scheduled thread pool in order to execute concurrent Scenarios
-    final ScheduledExecutorService scheduler = concurrencyConfig.getScheduledExecutorService();
+    final ScheduledExecutorService scheduler = concurrencyConfig.createScheduledExecutorService();
 
     // This is done to collect exceptions because the Runnable doesn't throw
     final List<TestException> exceptions = new ArrayList<TestException>();
@@ -96,7 +96,7 @@ public class InParallel extends Execution {
             exceptions.add(new TestException(e));
           }
         }
-      }, 0, every.getNb(), every.getTimeDivision().getTimeUnit());
+      }, 0, every.getCount(), every.getTimeDivision().getTimeUnit());
       // Schedule the end of the execution after the time entered as parameter
       scheduler.schedule(new Runnable() {
         @Override
@@ -104,7 +104,7 @@ public class InParallel extends Execution {
           markExecutionState(scenario, ExecutionState.ENDING);
           future.cancel(true);
         }
-      }, during.getNb(), during.getTimeDivision().getTimeUnit());
+      }, during.getCount(), during.getTimeDivision().getTimeUnit());
 
       try {
         future.get();

@@ -60,11 +60,11 @@ public class ConcurrencyConfig extends Configuration {
     return threadCount;
   }
 
-  public ScheduledExecutorService getScheduledExecutorService() {
+  public ScheduledExecutorService createScheduledExecutorService() {
     return Executors.newScheduledThreadPool(threadCount);
   }
 
-  public ExecutorService getFixedExecutorService() {
+  public ExecutorService createFixedExecutorService() {
     return Executors.newFixedThreadPool(threadCount);
   }
 

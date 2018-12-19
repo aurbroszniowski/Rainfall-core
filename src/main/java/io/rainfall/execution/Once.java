@@ -60,7 +60,7 @@ public class Once extends Execution {
     final ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
     final int nbThreads = concurrencyConfig.getThreadCount();
 
-    ExecutorService executor = concurrencyConfig.getFixedExecutorService();
+    ExecutorService executor = concurrencyConfig.createFixedExecutorService();
     markExecutionState(scenario, ExecutionState.BEGINNING);
 
     for (int threadNb = 0; threadNb < nbThreads; threadNb++) {
