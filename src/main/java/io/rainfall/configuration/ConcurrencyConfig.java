@@ -24,6 +24,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -57,11 +60,19 @@ public class ConcurrencyConfig extends Configuration {
     return threadCount;
   }
 
+  public ScheduledExecutorService createScheduledExecutorService() {
+    return Executors.newScheduledThreadPool(threadCount);
+  }
+
+  public ExecutorService createFixedExecutorService() {
+    return Executors.newFixedThreadPool(threadCount);
+  }
+
   public long getTimeoutInSeconds() {
     return timeoutInSeconds;
   }
 
-  public long getNbIterationsForThread(final DistributedConfig distributedConfig, final int threadNb, final long iterationsCount) {
+  public long getIterationCountForThread(final DistributedConfig distributedConfig, final int threadNb, final long iterationsCount) {
     synchronized (iterationCountPerThread) {
       int clientsCount = 1;
       if (distributedConfig != null) {

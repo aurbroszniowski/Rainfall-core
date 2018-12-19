@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Aurélien Broszniowski
+ * Copyright (c) 2014-2018 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ public class Every extends TimeMeasurement {
     return new Every(nb, timeDivision);
   }
 
-  public Every(final int nb, final TimeDivision timeDivision) {
-    super(nb, timeDivision);
+  public Every(int count, TimeDivision timeDivision) {
+    super(count, timeDivision);
   }
 
   @Override

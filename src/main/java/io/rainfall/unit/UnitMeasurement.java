@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Aurélien Broszniowski
+ * Copyright (c) 2014-2018 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,20 +23,20 @@ import io.rainfall.Unit;
  */
 public class UnitMeasurement extends Unit {
 
-  protected final int nb;
+  protected final int count;
   private final Unit unit;
 
-  public UnitMeasurement(int nb, Unit unit) {
-    this.nb = nb;
+  public UnitMeasurement(int count, Unit unit) {
+    this.count = count;
     this.unit = unit;
   }
 
-  public int getNb() {
-    return nb;
+  public int getCount() {
+    return count;
   }
 
   @Override
   public String getDescription() {
-    return nb + " " + unit.getDescription();
+    return count + " " + unit.getDescription();
   }
 }

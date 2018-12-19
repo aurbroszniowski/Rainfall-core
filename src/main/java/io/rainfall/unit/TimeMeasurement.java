@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Aurélien Broszniowski
+ * Copyright (c) 2014-2018 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,20 +24,20 @@ import io.rainfall.Unit;
 
 public class TimeMeasurement extends Unit {
 
-  private final int nb;
+  private final int count;
   private final TimeDivision timeDivision;
 
-  public TimeMeasurement(final int nb, final TimeDivision timeDivision) {
-    this.nb = nb;
+  public TimeMeasurement( int count, TimeDivision timeDivision) {
+    this.count = count;
     this.timeDivision = timeDivision;
   }
 
   public double getNbInMs() {
-    return timeDivision.getTimeUnit().toMillis(nb);
+    return timeDivision.getTimeUnit().toMillis(count);
   }
 
-  public int getNb() {
-    return nb;
+  public int getCount() {
+    return count;
   }
 
   public TimeDivision getTimeDivision() {
@@ -46,6 +46,6 @@ public class TimeMeasurement extends Unit {
 
   @Override
   public String getDescription() {
-    return nb + " " + timeDivision.getDescription();
+    return count + " " + timeDivision.getDescription();
   }
 }

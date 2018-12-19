@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Aurélien Broszniowski
+ * Copyright (c) 2014-2018 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@
 package io.rainfall.execution;
 
 import io.rainfall.Unit;
-import io.rainfall.unit.Over;
 import io.rainfall.unit.Every;
 import io.rainfall.unit.From;
+import io.rainfall.unit.Over;
 import io.rainfall.unit.TimeDivision;
 import io.rainfall.unit.To;
 
@@ -45,8 +45,8 @@ public class Executions {
     return new NothingFor(nb, timeDivision);
   }
 
-  public static Ramp ramp(From from, To to, Every every, Over over) {
-    return new Ramp(from, to, every, over);
+  public static Ramp ramp(From from, To to, Over over) {
+    return new Ramp(from, to, over);
   }
 
   public static RunsDuring during(int nb, TimeDivision timeDivision) {
