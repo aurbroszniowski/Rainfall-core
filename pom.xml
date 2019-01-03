@@ -23,7 +23,7 @@
   <groupId>io.rainfall</groupId>
   <artifactId>rainfall-core</artifactId>
   <name>Rainfall-core</name>
-  <version>1.4.8-SNAPSHOT</version>
+  <version>1.4.9-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <properties>
