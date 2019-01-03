@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2014-2018 Aurélien Broszniowski
+  ~ Copyright (c) 2014-2019 Aurélien Broszniowski
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -105,8 +105,8 @@
         <version>3.2</version>
         <configuration>
           <showDeprecation>true</showDeprecation>
-          <source>1.6</source>
-          <target>1.6</target>
+          <source>1.7</source>
+          <target>1.7</target>
         </configuration>
       </plugin>
 
