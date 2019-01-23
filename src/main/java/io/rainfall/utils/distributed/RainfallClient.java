@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 Aurélien Broszniowski
+ * Copyright (c) 2014-2019 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static io.rainfall.utils.distributed.DistributedMessage.FINISHED;
 import static io.rainfall.utils.distributed.DistributedMessage.GO;
 import static io.rainfall.utils.distributed.DistributedMessage.READY;
+import static io.rainfall.utils.distributed.DistributedMessage.RUN_DONE;
 import static io.rainfall.utils.distributed.DistributedMessage.SENDING_REPORT;
 import static io.rainfall.utils.distributed.DistributedMessage.SHUTDOWN;
 import static io.rainfall.utils.distributed.DistributedMessage.SIZE;
@@ -140,6 +141,8 @@ public class RainfallClient extends Thread {
         writeLine(SIZE + "," + zippedReport.length + "," + reportLocation.getName());
 
         writeBinary(zippedReport);
+      } else {
+        writeLine(RUN_DONE + "," + currentSessionId);
       }
     }
     logger.info("[Rainfall client {}] done sending zipped report", currentSessionId);

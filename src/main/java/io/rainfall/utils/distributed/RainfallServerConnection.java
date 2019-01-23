@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 Aurélien Broszniowski
+ * Copyright (c) 2014-2019 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static io.rainfall.utils.distributed.DistributedMessage.FINISHED;
 import static io.rainfall.utils.distributed.DistributedMessage.GO;
 import static io.rainfall.utils.distributed.DistributedMessage.READY;
+import static io.rainfall.utils.distributed.DistributedMessage.RUN_DONE;
 import static io.rainfall.utils.distributed.DistributedMessage.SENDING_REPORT;
 import static io.rainfall.utils.distributed.DistributedMessage.SHUTDOWN;
 import static io.rainfall.utils.distributed.DistributedMessage.SIZE;
@@ -118,7 +119,11 @@ public class RainfallServerConnection extends Thread {
             }
 
             stopClient();
-            logger.info("[Rainfall server] exiting session {}", this.currentSessionId);
+            logger.info("[Rainfall server] exiting session with report {}", this.currentSessionId);
+            this.running = false;
+          } else if ((RUN_DONE + "," + currentSessionId).equalsIgnoreCase(response)) {
+            stopClient();
+            logger.info("[Rainfall server] exiting session without report {}", this.currentSessionId);
             this.running = false;
           } else {
             Thread.sleep(1000);
