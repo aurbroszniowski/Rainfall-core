@@ -1,10 +1,21 @@
 /*
- * Written by Doug Lea with assistance from members of JCP JSR-166
- * Expert Group and released to the public domain, as explained at
- * http://creativecommons.org/publicdomain/zero/1.0/
+ * Copyright (c) 2014-2019 Aurélien Broszniowski
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
-package jsr166e;
+package io.rainfall.statistics;
+
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -39,6 +50,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @since 1.8
  * @author Doug Lea
  */
+
 public class LongAdder extends Striped64 implements Serializable {
   private static final long serialVersionUID = 7249069246863182397L;
 
@@ -59,7 +71,7 @@ public class LongAdder extends Striped64 implements Serializable {
    * @param x the value to add
    */
   public void add(long x) {
-    Cell[] as; long b, v; int[] hc; Cell a; int n;
+    Striped64.Cell[] as; long b, v; int[] hc; Striped64.Cell a; int n;
     if ((as = cells) != null || !casBase(b = base, b + x)) {
       boolean uncontended = true;
       if ((hc = threadHashCode.get()) == null ||
@@ -95,11 +107,11 @@ public class LongAdder extends Striped64 implements Serializable {
    */
   public long sum() {
     long sum = base;
-    Cell[] as = cells;
+    Striped64.Cell[] as = cells;
     if (as != null) {
       int n = as.length;
       for (int i = 0; i < n; ++i) {
-        Cell a = as[i];
+        Striped64.Cell a = as[i];
         if (a != null)
           sum += a.value;
       }
@@ -130,12 +142,12 @@ public class LongAdder extends Striped64 implements Serializable {
    */
   public long sumThenReset() {
     long sum = base;
-    Cell[] as = cells;
+    Striped64.Cell[] as = cells;
     base = 0L;
     if (as != null) {
       int n = as.length;
       for (int i = 0; i < n; ++i) {
-        Cell a = as[i];
+        Striped64.Cell a = as[i];
         if (a != null) {
           sum += a.value;
           a.value = 0L;
@@ -198,5 +210,4 @@ public class LongAdder extends Striped64 implements Serializable {
     cells = null;
     base = s.readLong();
   }
-
 }

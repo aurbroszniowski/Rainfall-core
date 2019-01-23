@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 Aurélien Broszniowski
+ * Copyright (c) 2014-2019 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,12 +31,17 @@ import io.rainfall.utils.RangeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -66,7 +71,8 @@ public class Ramp extends Execution {
     ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
     if (concurrencyConfig.getThreadCount() < from.getCount() || concurrencyConfig.getThreadCount() < to.getCount()) {
       throw new TestException(
-          "Concurrency config thread count is lower than the RampUp parameters. [From = " + from.getCount() + ", To = " + to.getCount() + "]");
+          "Concurrency config thread count is lower than the RampUp parameters. [From = " + from.getCount() + ", To = " + to
+              .getCount() + "]");
     }
 
     final ScheduledExecutorService endScheduler = Executors.newScheduledThreadPool(1);
@@ -74,10 +80,10 @@ public class Ramp extends Execution {
     markExecutionState(scenario, ExecutionState.BEGINNING);
     final AtomicBoolean doneFlag = new AtomicBoolean(false);
 
-    scheduleThreads(statisticsHolder, scenario, configurations, assertions, doneFlag, execScheduler);
+    final List<ScheduledFuture<Void>> futures = scheduleThreads(statisticsHolder, scenario, configurations, assertions, doneFlag, execScheduler);
 
     // Schedule the end of the execution after the time entered as parameter
-    endScheduler.schedule(new Runnable() {
+    final ScheduledFuture<?> endFuture = endScheduler.schedule(new Runnable() {
       @Override
       public void run() {
         markExecutionState(scenario, ExecutionState.ENDING);
@@ -85,6 +91,20 @@ public class Ramp extends Execution {
       }
     }, over.getCount(), over.getTimeDivision().getTimeUnit());
 
+    try {
+      for (Future<Void> future : futures) {
+        future.get();
+      }
+      endFuture.get();
+    } catch (InterruptedException e) {
+      markExecutionState(scenario, ExecutionState.ENDING);
+      shutdownNicely(doneFlag, execScheduler, endScheduler);
+      throw new TestException("Thread execution Interruption", e);
+    } catch (ExecutionException e) {
+      markExecutionState(scenario, ExecutionState.ENDING);
+      shutdownNicely(doneFlag, execScheduler, endScheduler);
+      throw new TestException("Thread execution error", e);
+    }
     try {
       boolean executorSuccess = execScheduler.awaitTermination(60, SECONDS);
       if (!executorSuccess) {
@@ -110,15 +130,18 @@ public class Ramp extends Execution {
     }
   }
 
-  void scheduleThreads(final StatisticsHolder statisticsHolder, final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions, final AtomicBoolean doneFlag, ScheduledExecutorService execScheduler) {
-    final Double delayBetweenAddingThread = over.getNbInMs() / (to.getCount() - from.getCount()) ;
+  List<ScheduledFuture<Void>> scheduleThreads(final StatisticsHolder statisticsHolder, final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions, final AtomicBoolean doneFlag, ScheduledExecutorService execScheduler) {
+    final Double delayBetweenAddingThread = over.getNbInMs() / (to.getCount() - from.getCount());
     long threadsCounter = 0;
+    List<ScheduledFuture<Void>> futures = new ArrayList<>();
     for (int threadNb = from.getCount(); threadNb < to.getCount(); threadNb++) {
-      execScheduler.schedule(new Callable<Void>() {
+      final int finalThreadNb = threadNb;
+      futures.add(execScheduler.schedule(new Callable<Void>() {
 
         @Override
         public Void call() throws Exception {
-          Thread.currentThread().setName("Rainfall-core Operations Thread");
+          logger.info("Rainfall Rampu up - Adding thread " + finalThreadNb + " at " + new Date());
+          Thread.currentThread().setName("Rainfall-core Operations Thread n" + finalThreadNb);
           List<RangeMap<WeightedOperation>> operations = scenario.getOperations();
           while (!Thread.currentThread().isInterrupted() && !doneFlag.get()) {
             for (RangeMap<WeightedOperation> operation : operations) {
@@ -128,10 +151,10 @@ public class Ramp extends Execution {
           }
           return null;
         }
-      }, threadsCounter * delayBetweenAddingThread.longValue(), MILLISECONDS);
+      }, threadsCounter * delayBetweenAddingThread.longValue(), MILLISECONDS));
       threadsCounter++;
     }
-
+    return futures;
   }
 
   @Override
