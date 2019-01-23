@@ -26,8 +26,8 @@ import java.util.List;
 public class CharSequenceGenerator implements ObjectGenerator<CharSequence> {
 
   @Override
-  public CharSequence generate(final Long l) {
-    return l.toString();
+  public CharSequence generate(long l) {
+    return Long.toString(l);
   }
 
   @Override

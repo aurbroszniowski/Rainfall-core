@@ -26,8 +26,8 @@ public class FloatGenerator implements ObjectGenerator<Float> {
   public FloatGenerator() {}
 
   @Override
-  public Float generate(final Long l) {
-    return l.floatValue();
+  public Float generate(long l) {
+    return (float) l;
   }
 
   @Override
