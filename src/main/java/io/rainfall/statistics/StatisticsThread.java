@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Aurélien Broszniowski
+ * Copyright (c) 2014-2019 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import java.util.TimerTask;
  * @author Aurelien Broszniowski
  */
 
-public class StatisticsThread<E extends Enum<E>> extends TimerTask {
+public class StatisticsThread<E extends Enum<E>> extends Thread {
 
   private RuntimeStatisticsHolder<E> statisticsHolder;
   private ReportingConfig<E> reportingConfig;
@@ -37,8 +37,8 @@ public class StatisticsThread<E extends Enum<E>> extends TimerTask {
 
   public StatisticsThread(final RuntimeStatisticsHolder<E> statisticsHolder, final ReportingConfig<E> reportingConfig,
                           final List<String> description, final Set<StatisticsCollector> statisticsCollectors) {
+    setName("Rainfall-core Statistics Thread");
     this.description = description;
-    Thread.currentThread().setName("Rainfall-core Statistics Thread");
     this.statisticsHolder = statisticsHolder;
     this.reportingConfig = reportingConfig;
 
@@ -62,7 +62,7 @@ public class StatisticsThread<E extends Enum<E>> extends TimerTask {
     }
   }
 
-  public StatisticsPeekHolder<E> stop() {
+  public StatisticsPeekHolder<E> shutdown() {
     StatisticsPeekHolder<E> peek = statisticsHolder.peek();
 
     for (StatisticsCollector statisticsCollector : reportingConfig.getStatisticsCollectors()) {
@@ -73,7 +73,6 @@ public class StatisticsThread<E extends Enum<E>> extends TimerTask {
     for (Reporter<E> reporter : reporters) {
       reporter.summarize(statisticsHolder);
     }
-    super.cancel();
     return peek;
   }
 }

@@ -34,7 +34,7 @@ public class ByteArrayGenerator implements ObjectGenerator<byte[]> {
   }
 
   @Override
-  public byte[] generate(final long seed) {
+  public byte[] generate(Long seed) {
     byte[] object = new byte[length];
     Arrays.fill(object, (byte)ThreadLocalRandom.current().nextInt());
     return object;

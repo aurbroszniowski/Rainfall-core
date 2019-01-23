@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Aurélien Broszniowski
+ * Copyright (c) 2014-2019 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import io.rainfall.ObjectGenerator;
 public class LongGenerator implements ObjectGenerator<Long> {
 
   @Override
-  public Long generate(final long seed) {
+  public Long generate(Long seed) {
     return seed;
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 Aurélien Broszniowski
+ * Copyright (c) 2014-2019 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,16 +21,20 @@ import io.rainfall.statistics.RuntimeStatisticsHolder;
 import io.rainfall.statistics.Statistics;
 import io.rainfall.statistics.StatisticsThread;
 import io.rainfall.utils.SystemTest;
-import io.rainfall.utils.TopOfSecondTimer;
 import org.HdrHistogram.Histogram;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static io.rainfall.configuration.ReportingConfig.text;
@@ -46,7 +50,7 @@ public class StatsTest {
   @Test
   @Ignore
   public void testStatsHolderOnly() {
-    TopOfSecondTimer topOfSecondTimer = new TopOfSecondTimer();
+    ScheduledExecutorService topOfSecondExecutor = Executors.newSingleThreadScheduledExecutor();
     StatisticsThread<StatsTestResult> stats = null;
 
     ReportingConfig reportingConfig = ReportingConfig.report(StatsTestResult.class).log(text());
@@ -57,7 +61,7 @@ public class StatsTest {
     );
 
     String name = "MY_TEST";
-    statisticsHolder.addStatistics(name, new Statistics<StatsTestResult>(name, statisticsHolder.getResults() ));
+    statisticsHolder.addStatistics(name, new Statistics<StatsTestResult>(name, statisticsHolder.getResults()));
 
 
     stats = new StatisticsThread<StatsTestResult>(statisticsHolder, reportingConfig, Arrays.asList("Example Test"),
@@ -65,8 +69,12 @@ public class StatsTest {
     TimeUnit reportIntervalUnit = reportingConfig.getReportTimeUnit();
     long reportIntervalMillis = reportIntervalUnit.toMillis(reportingConfig.getReportInterval());
 
-    topOfSecondTimer.scheduleAtFixedRate(stats, reportIntervalMillis);
-
+    Calendar myDate = Calendar.getInstance();
+    myDate.add(Calendar.SECOND, 1);
+    myDate.set(Calendar.MILLISECOND, 0);
+    Date afterOneSecond = myDate.getTime();
+    long delay = afterOneSecond.getTime() - System.currentTimeMillis() - 4;
+    topOfSecondExecutor.scheduleAtFixedRate(stats, delay, reportIntervalMillis, TimeUnit.MILLISECONDS);
 
     Map<Long, String> pseudoCache = new HashMap<Long, String>();
     for (long i = 0; i < 3000000; i++) {
@@ -77,7 +85,7 @@ public class StatsTest {
       statisticsHolder.record(name, end - start, RESULT);
     }
 
-    topOfSecondTimer.cancel();
+    topOfSecondExecutor.shutdown();
 
     Histogram histogram = statisticsHolder.fetchHistogram(RESULT);
     histogram.outputPercentileDistribution(System.out, 1.0);
@@ -85,5 +93,28 @@ public class StatsTest {
 
   enum StatsTestResult {
     RESULT
+  }
+
+  @Test
+  @Ignore
+  public void testTopOfSecondExecutor() throws InterruptedException {
+    final SimpleDateFormat sdfDate = new SimpleDateFormat(" HH:mm:ss.SSS");
+    Thread t = new Thread() {
+      @Override
+      public void run() {
+        System.out.println(sdfDate.format(new Date()));
+      }
+    };
+
+    ScheduledExecutorService topOfSecondExecutor = Executors.newSingleThreadScheduledExecutor();
+    Calendar myDate = Calendar.getInstance();
+    myDate.add(Calendar.SECOND, 1);
+    myDate.set(Calendar.MILLISECOND, 0);
+    Date afterOneSecond = myDate.getTime();
+    long delay = afterOneSecond.getTime() - System.currentTimeMillis() - 4;
+    System.out.println(delay);
+    topOfSecondExecutor.scheduleAtFixedRate(t, delay, 1000, TimeUnit.MILLISECONDS);
+    Thread.sleep(10000);
+    topOfSecondExecutor.shutdown();
   }
 }

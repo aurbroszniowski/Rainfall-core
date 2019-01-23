@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 Aurélien Broszniowski
+ * Copyright (c) 2014-2019 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import io.rainfall.statistics.RuntimeStatisticsHolder;
 import io.rainfall.statistics.StatisticsPeekHolder;
 import io.rainfall.statistics.StatisticsThread;
 import io.rainfall.utils.RangeMap;
-import io.rainfall.utils.TopOfSecondTimer;
 import io.rainfall.utils.distributed.RainfallClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,11 +31,14 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -129,8 +131,8 @@ public class ScenarioRun<E extends Enum<E>> {
         reportingConfig.getStatisticsCollectors());
     initStatistics(this.statisticsHolder);
 
-    TopOfSecondTimer topOfSecondTimer = new TopOfSecondTimer();
-    StatisticsThread<E> stats = null;
+    ScheduledExecutorService topOfSecondExecutor = Executors.newSingleThreadScheduledExecutor();
+    StatisticsThread<E>  stats = null;
     StatisticsPeekHolder<E> peek = null;
     try {
       stats = new StatisticsThread<E>(statisticsHolder, reportingConfig, getDescription(),
@@ -138,7 +140,12 @@ public class ScenarioRun<E extends Enum<E>> {
       TimeUnit reportIntervalUnit = reportingConfig.getReportTimeUnit();
       long reportIntervalMillis = reportIntervalUnit.toMillis(reportingConfig.getReportInterval());
 
-      topOfSecondTimer.scheduleAtFixedRate(stats, reportIntervalMillis);
+      Calendar myDate = Calendar.getInstance();
+      myDate.add(Calendar.SECOND, 1);
+      myDate.set(Calendar.MILLISECOND, 0);
+      Date afterOneSecond = myDate.getTime();
+      long delay = afterOneSecond.getTime() - System.currentTimeMillis() - 4;
+      topOfSecondExecutor.scheduleAtFixedRate(stats, delay, reportIntervalMillis, TimeUnit.MILLISECONDS);
 
       for (final Execution execution : executions) {
         execution.execute(statisticsHolder, scenario, configurations, assertions);
@@ -147,10 +154,17 @@ public class ScenarioRun<E extends Enum<E>> {
       throw new RuntimeException(e);
     } finally {
       if (stats != null) {
-        peek = stats.stop();
+        peek = stats.shutdown();
       }
       long end = System.currentTimeMillis();
-      topOfSecondTimer.cancel();
+      topOfSecondExecutor.shutdown();
+      try {
+        if (!topOfSecondExecutor.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
+          topOfSecondExecutor.shutdownNow();
+        }
+      } catch (InterruptedException e) {
+        topOfSecondExecutor.shutdownNow();
+      }
     }
 
     if (distributedConfig != null) {
