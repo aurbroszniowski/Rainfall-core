@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2014-2018 Aurélien Broszniowski
+  ~ Copyright (c) 2014-2019 Aurélien Broszniowski
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@
   <groupId>io.rainfall</groupId>
   <artifactId>rainfall-core</artifactId>
   <name>Rainfall-core</name>
-  <version>1.4.7-SNAPSHOT</version>
+  <version>1.4.9-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <properties>
