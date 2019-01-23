@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicLong;
@@ -66,10 +65,10 @@ public class InParallel extends Execution {
                                           final List<AssertionEvaluator> assertions) throws TestException {
     final DistributedConfig distributedConfig = (DistributedConfig)configurations.get(DistributedConfig.class);
     final ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
-    int nbThreads = concurrencyConfig.getThreadCount();
+    final int nbThreads = concurrencyConfig.getThreadCount();
 
     // Use a scheduled thread pool in order to execute concurrent Scenarios
-    ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(concurrencyConfig.getThreadCount());
+    final ScheduledExecutorService scheduler = concurrencyConfig.createScheduledExecutorService();
 
     // This is done to collect exceptions because the Runnable doesn't throw
     final List<TestException> exceptions = new ArrayList<TestException>();
@@ -97,7 +96,7 @@ public class InParallel extends Execution {
             exceptions.add(new TestException(e));
           }
         }
-      }, 0, every.getNb(), every.getTimeDivision().getTimeUnit());
+      }, 0, every.getCount(), every.getTimeDivision().getTimeUnit());
       // Schedule the end of the execution after the time entered as parameter
       scheduler.schedule(new Runnable() {
         @Override
@@ -105,7 +104,7 @@ public class InParallel extends Execution {
           markExecutionState(scenario, ExecutionState.ENDING);
           future.cancel(true);
         }
-      }, during.getNb(), during.getTimeDivision().getTimeUnit());
+      }, during.getCount(), during.getTimeDivision().getTimeUnit());
 
       try {
         future.get();

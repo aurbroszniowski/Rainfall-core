@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 Aurélien Broszniowski
+ * Copyright (c) 2014-2019 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,9 +34,9 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -61,8 +61,8 @@ public class RunsDuring extends Execution {
     ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
     final int threadCount = concurrencyConfig.getThreadCount();
 
-    final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(concurrencyConfig.getThreadCount());
-    final ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+    final ScheduledExecutorService scheduler = concurrencyConfig.createScheduledExecutorService();
+    final ExecutorService executor = concurrencyConfig.createFixedExecutorService();
     markExecutionState(scenario, ExecutionState.BEGINNING);
     final AtomicBoolean doneFlag = new AtomicBoolean(false);
 
@@ -87,18 +87,19 @@ public class RunsDuring extends Execution {
     }
 
     // Schedule the end of the execution after the time entered as parameter
-    scheduler.schedule(new Runnable() {
+    final ScheduledFuture<?> endFuture = scheduler.schedule(new Runnable() {
       @Override
       public void run() {
         markExecutionState(scenario, ExecutionState.ENDING);
         shutdownNicely(doneFlag, executor, scheduler);
       }
-    }, during.getNb(), during.getTimeDivision().getTimeUnit());
+    }, during.getCount(), during.getTimeDivision().getTimeUnit());
 
     try {
       for (Future<Void> future : futures) {
         future.get();
       }
+      endFuture.get();
     } catch (InterruptedException e) {
       markExecutionState(scenario, ExecutionState.ENDING);
       shutdownNicely(doneFlag, executor, scheduler);

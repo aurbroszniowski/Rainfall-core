@@ -40,7 +40,7 @@ public class StringGenerator implements ObjectGenerator<String> {
   }
 
   @Override
-  public String generate(final Long seed) {
+  public String generate(final long seed) {
     String s = padding + seed;
     return s.substring(s.length() - length);
   }

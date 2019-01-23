@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Aurélien Broszniowski
+ * Copyright (c) 2014-2018 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,12 @@ package io.rainfall.unit;
  */
 public class Over extends TimeMeasurement {
 
-  public static Over over(int nb, TimeDivision timeDivision) {
-    return new Over(nb, timeDivision);
+  public static Over over(int count, TimeDivision timeDivision) {
+    return new Over(count, timeDivision);
   }
 
-  public Over(final int nb, final TimeDivision timeDivision) {
-    super(nb, timeDivision);
+  public Over(int count, TimeDivision timeDivision) {
+    super(count, timeDivision);
   }
 
   @Override

@@ -42,8 +42,8 @@ public class RandomStringGenerator implements ObjectGenerator<String> {
   }
 
   @Override
-  public String generate(final Long seed) {
-    return (seed.toString() + this.randomString).substring(0, length);   // return a new instance
+  public String generate(final long seed) {
+    return (Long.toString(seed) + this.randomString).substring(0, length);   // return a new instance
   }
 
   @Override

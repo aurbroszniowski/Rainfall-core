@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Aurélien Broszniowski
+ * Copyright (c) 2014-2018 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,12 +23,12 @@ import io.rainfall.Unit;
  */
 public class From extends UnitMeasurement {
 
-  public static From from(int nb, Unit unit) {
-    return new From(nb, unit);
+  public static From from(int count, Unit unit) {
+    return new From(count, unit);
   }
 
-  public From(final int nb, final Unit unit) {
-    super(nb, unit);
+  public From(final int count, final Unit unit) {
+    super(count, unit);
   }
 
   @Override

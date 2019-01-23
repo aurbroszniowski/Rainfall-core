@@ -14,7 +14,7 @@ public class VerifiedValueGenerator<K> implements ObjectGenerator<VerifiedValueG
   }
 
   @Override
-  public VerifiedValue generate(final Long seed) {
+  public VerifiedValue generate(long seed) {
     return new VerifiedValue<K>(seed, keyGenerator.generate(seed));
   }
 
