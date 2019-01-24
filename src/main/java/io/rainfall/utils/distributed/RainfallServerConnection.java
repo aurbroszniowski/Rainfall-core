@@ -59,6 +59,7 @@ public class RainfallServerConnection extends Thread {
   private MergeableBitSet testRunning;
   private final File reportPath;
   private String  reportSubdir;
+  private volatile boolean isReportAvailable;
 
   RainfallServerConnection(InetSocketAddress socketAddress, Socket socket, MergeableBitSet testRunning,
                            final int clientId, final File reportPath) {
@@ -119,10 +120,16 @@ public class RainfallServerConnection extends Thread {
             }
 
             stopClient();
+
+            isReportAvailable = true;
+
             logger.info("[Rainfall server] exiting session with report {}", this.currentSessionId);
             this.running = false;
           } else if ((RUN_DONE + "," + currentSessionId).equalsIgnoreCase(response)) {
             stopClient();
+
+            isReportAvailable = false;
+
             logger.info("[Rainfall server] exiting session without report {}", this.currentSessionId);
             this.running = false;
           } else {
@@ -197,5 +204,9 @@ public class RainfallServerConnection extends Thread {
 
   public String getReportSubdir() {
     return this.reportSubdir;
+  }
+
+  public boolean isReportAvailable() {
+    return isReportAvailable;
   }
 }

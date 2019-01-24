@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 Aurélien Broszniowski
+ * Copyright (c) 2014-2019 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,6 +85,7 @@ public class RainfallServer extends Thread {
           }
         }
 
+        boolean isReportAvailable = false;
         List<String> reportSubdirs = new ArrayList<String>();
         try {
           for (RainfallServerConnection serverThread : serverConnectionThreads) {
@@ -94,13 +95,18 @@ public class RainfallServer extends Thread {
           for (RainfallServerConnection serverThread : serverConnectionThreads) {
             try {
               serverThread.join();
-              reportSubdirs.add(serverThread.getReportSubdir());
+              isReportAvailable = serverThread.isReportAvailable();
+              if (isReportAvailable ) {
+                reportSubdirs.add(serverThread.getReportSubdir());
+              }
             } catch (InterruptedException e) {
               Thread.currentThread().interrupt();
             }
           }
           socket.close();
-          HtmlReport.aggregateInPlace(reportingConfig.getResultsReported(), reportSubdirs, reportPath);
+          if (isReportAvailable ) {
+            HtmlReport.aggregateInPlace(reportingConfig.getResultsReported(), reportSubdirs, reportPath);
+          }
         } catch (IOException e) {
           throw new TestException("Cannot close socket", e);
         }
