@@ -188,7 +188,7 @@ public class ScenarioRun<E extends Enum<E>> {
       }
 
       if (!currentClient.canStart()) {
-        throw new RuntimeException("Rainfal client could not start", currentClient.getTestException().get());
+        throw new RuntimeException("Rainfall client could not start", currentClient.getTestException().get());
       }
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
@@ -200,6 +200,7 @@ public class ScenarioRun<E extends Enum<E>> {
     try {
       currentClient.sendReport(reportingConfig);
       currentClient.join();
+      logger.debug("[Rainfall client {}] Test sent reports.", currentClient.getClientId());
       TestException testException = currentClient.getTestException().get();
       if (testException != null) {
         throw testException;

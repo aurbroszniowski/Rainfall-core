@@ -66,6 +66,8 @@ public class RainfallClient extends Thread {
   @Override
   public void run() {
     try {
+      logger.debug("[Rainfall client] Start and attempt to connect to master [{}]", this.socketAddress.getHostName());
+
       for (int i = 0; i < 15; i++) {
         try {
           setupConnection();
@@ -78,17 +80,17 @@ public class RainfallClient extends Thread {
         }
       }
 
-      logger.info("[Rainfall client {}] Ready for commands", currentSessionId);
+      logger.debug("[Rainfall client {}] Ready for commands", currentSessionId);
       writeLine(READY);
 
       String response;
       while (running) {
+        logger.debug("[Rainfall client {}] Wait for response from master.", currentSessionId);
         response = readLine();
-
-        logger.debug("[Rainfall client {}] Received command {} from Rainfall server", currentSessionId, response);
+        logger.debug("[Rainfall client {}] Received command {} from master.", currentSessionId, response);
 
         if (response.startsWith(GO)) {
-          logger.debug("[Rainfall client] Received GO from Rainfall server. Test can start");
+          logger.debug("[Rainfall client] Received GO from master. Test can start.");
           String[] uuidResponse = response.split(",");
           this.currentSessionId = uuidResponse[1];
           this.clientId = Integer.parseInt(uuidResponse[2]);
@@ -97,9 +99,10 @@ public class RainfallClient extends Thread {
         } else if (response.startsWith(SHUTDOWN)) {
           String[] uuidResponse = response.split(",");
           if (this.currentSessionId.equalsIgnoreCase(uuidResponse[1])) {
+            logger.debug("[Rainfall client] Received SHHUTDOWN from master.");
             this.running = false;
           } else {
-            logger.info("Received command from wrong test session (expected: {}, received: {}, " +
+            logger.debug("Received command from wrong test session (expected: {}, received: {}, " +
                         "possible multiple tests running in parallel)", currentSessionId, uuidResponse[1]);
           }
         } else {
@@ -123,18 +126,19 @@ public class RainfallClient extends Thread {
       is = new DataInputStream(socket.getInputStream());
       os = new DataOutputStream(socket.getOutputStream());
       running = true;
-      logger.info("[Rainfall client] Connection successfull to Server");
+      logger.debug("[Rainfall client {}] Connection successfull to master.", this.currentSessionId);
     } catch (IOException e) {
-      throw new TestException("Rainfall server is not started on " + socketAddress.toString(), e);
+      throw new TestException("Rainfall master is not started on " + socketAddress.toString(), e);
     }
   }
 
   public void sendReport(final ReportingConfig reportingConfig) throws IOException {
+    logger.debug("[Rainfall client] Send reports to master.");
     Set<Reporter> reporters = reportingConfig.getLogReporters();
     for (Reporter reporter : reporters) {
       if (reporter instanceof FileReporter) {
         File reportLocation = ((FileReporter)reporter).getReportPath();
-        logger.info("Rainfall client {} sending zipped report {}", currentSessionId, reportLocation.getAbsolutePath());
+        logger.debug("[Rainfall client {}] Send zipped report {}.", this.currentSessionId, reportLocation.getAbsolutePath());
         writeLine(SENDING_REPORT + "," + currentSessionId);
 
         byte[] zippedReport = compressionUtils.zipAsByteArray(reportLocation);
@@ -142,10 +146,11 @@ public class RainfallClient extends Thread {
 
         writeBinary(zippedReport);
       } else {
+        logger.debug("[Rainfall client {}] No file report to send.", this.currentSessionId);
         writeLine(RUN_DONE + "," + currentSessionId);
       }
     }
-    logger.info("[Rainfall client {}] done sending zipped report", currentSessionId);
+    logger.debug("[Rainfall client {}] done sending reports.", currentSessionId);
     writeLine(FINISHED + "," + currentSessionId);
   }
 
@@ -164,7 +169,7 @@ public class RainfallClient extends Thread {
     if (socket != null) {
       socket.close();
     }
-    logger.info("[Rainfall Client {}] Connection Closed", currentSessionId);
+    logger.debug("[Rainfall Client {}] Connection Closed", currentSessionId);
   }
 
   private String readLine() throws IOException {

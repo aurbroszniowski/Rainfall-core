@@ -58,17 +58,17 @@ public class RainfallServer extends Thread {
   public void run() {
     Socket socket = null;
     try {
-      logger.debug("We started the Rainfall server. We will create a placeholder for clients reports.");
+      logger.debug("[Rainfall master] Master process started.");
 
       while (running) {
-        logger.info("[Rainfall Server] Ready - Listening for incoming clients");
-        List<RainfallServerConnection> serverConnectionThreads = new ArrayList<RainfallServerConnection>();
+        logger.debug("[Rainfall master] Listening for all incoming clients.");
+        List<RainfallServerConnection> serverConnectionThreads = new ArrayList<>();
         MergeableBitSet testRunning = new MergeableBitSet(distributedConfig.getNbClients());
         int clientId = 0;
         while (!testRunning.isTrue()) {
           try {
             socket = serverSocket.accept();
-            logger.info("[Rainfall server] Connection with Rainfall client {} established", clientId);
+            logger.debug("[Rainfall master] Connection with Rainfall client {} established.", clientId);
             RainfallServerConnection serverConnectionThread =
                 new RainfallServerConnection(distributedConfig.getMasterAddress(), socket, testRunning, clientId, reportPath);
             serverConnectionThread.start();
@@ -78,12 +78,14 @@ public class RainfallServer extends Thread {
             Thread.sleep(500);
           } catch (SocketException e) {
             // serverSocket.accept() was interrupted by a serverSocket.close() call
-            logger.info("[Rainfall Server] Shutting down");
+            logger.debug("[Rainfall master] Closing connection with client {}.", clientId, e);
             return;
           } catch (Exception e) {
-            throw new TestException("Connection Error with Rainfall client", e);
+            throw new TestException("[Rainfall master] Connection Error with Rainfall client " + clientId, e);
           }
         }
+
+        logger.debug("[Rainfall master] All clients connected.");
 
         boolean isReportAvailable = false;
         List<String> reportSubdirs = new ArrayList<String>();
@@ -96,19 +98,24 @@ public class RainfallServer extends Thread {
             try {
               serverThread.join();
               isReportAvailable = serverThread.isReportAvailable();
-              if (isReportAvailable ) {
+              logger.debug("[Rainfall master] Connection [{}] to client has a file-based report to fetch.", serverThread
+                  .toString());
+              if (isReportAvailable) {
                 reportSubdirs.add(serverThread.getReportSubdir());
               }
             } catch (InterruptedException e) {
               Thread.currentThread().interrupt();
             }
           }
-          socket.close();
-          if (isReportAvailable ) {
+          if (socket != null) {
+            socket.close();
+          }
+          if (isReportAvailable) {
+            logger.debug("[Rainfall master] Aggregation of file reports");
             HtmlReport.aggregateInPlace(reportingConfig.getResultsReported(), reportSubdirs, reportPath);
           }
         } catch (IOException e) {
-          throw new TestException("Cannot close socket", e);
+          throw new TestException("[Rainfall master] Cannot close master socket that was listening to clients", e);
         }
       }
     } catch (TestException e) {
@@ -117,9 +124,10 @@ public class RainfallServer extends Thread {
       try {
         closeConnections(socket);
       } catch (IOException e) {
-        logger.debug("[Rainfall server] Issue when shutting down connections", e);
+        logger.debug("[Rainfall master] Issue when shutting down connections", e);
       }
     }
+    logger.debug("[Rainfall master] Master process ended.");
   }
 
   public void shutdown() {

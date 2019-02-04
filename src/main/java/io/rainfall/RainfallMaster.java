@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 Aurélien Broszniowski
+ * Copyright (c) 2014-2019 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,37 +64,39 @@ public class RainfallMaster {
         return this;
       }
     } catch (SocketException e) {
-      throw new TestException("Can not run multi-clients test.", e);
+      throw new TestException("[Rainfall master] Can not run multi-clients test.", e);
     }
 
     ServerSocket serverSocket;
     try {
       serverSocket = new ServerSocket(distributedConfig.getMasterAddress().getPort());
     } catch (IOException e) {
-      logger.debug("[Rainfall server] already started");
+      logger.debug("[Rainfall master] already started.");
       return this;
     }
 
-    logger.debug("[Rainfall server] Current host is the server host, so we start the Rainfall server");
+    logger.debug("[Rainfall master] Start the Rainfall master.");
     rainfallServer = new RainfallServer(distributedConfig, reportingConfig, reportPath, serverSocket);
     rainfallServer.start();
     return this;
   }
 
   private boolean isCurrentHostMaster() throws SocketException {
+    logger.debug("[Rainfall master] Check if the current host should start the master.");
     InetAddress masterAddress = distributedConfig.getMasterAddress().getAddress();
 
     Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
     while (networkInterfaces.hasMoreElements()) {
       NetworkInterface networkInterface = networkInterfaces.nextElement();
 
+      logger.debug("[Rainfall naster] Check NIC list.");
       Enumeration<InetAddress> inetAddresses = networkInterface.getInetAddresses();
       while (inetAddresses.hasMoreElements()) {
         InetAddress inetAddress = inetAddresses.nextElement();
-        logger.debug("[Rainfall server] Check if current NIC ({}) has the IP from rainfall master host ({}).",
+        logger.debug("[Rainfall master] Check if current NIC ({}) has the IP from rainfall master host ({}).",
             inetAddress, masterAddress);
         if (inetAddress.equals(masterAddress)) {
-          logger.debug("[Rainfall server] Current NIC IP is the rainfall master IP, we attempt to start the master.");
+          logger.debug("[Rainfall master] Current NIC IP is the one from the DistributedConfiguration, attempt to start the master process.");
           return true;
         }
       }
