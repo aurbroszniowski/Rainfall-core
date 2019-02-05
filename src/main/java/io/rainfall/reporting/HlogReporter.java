@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 Aurélien Broszniowski
+ * Copyright (c) 2014-2019 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import org.HdrHistogram.HistogramLogWriter;
 import java.io.File;
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
-import java.util.Arrays;
 import java.util.List;
 
 import static io.rainfall.utils.CompressionUtils.cleanFilename;
@@ -87,4 +86,8 @@ public class HlogReporter<E extends Enum<E>> extends FileReporter<E> {
     return cleanFilename(result) + ".hlog";
   }
 
+  @Override
+  public String toString() {
+    return "Hlog reporter (recording to " + this.reportPath + ")";
+  }
 }

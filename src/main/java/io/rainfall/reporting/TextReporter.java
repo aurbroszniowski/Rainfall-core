@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 Aurélien Broszniowski
+ * Copyright (c) 2014-2019 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ import static io.rainfall.utils.CompressionUtils.CRLF;
  * @author Aurelien Broszniowski
  */
 
-public class TextReporter<E extends Enum<E>> extends Reporter<E> {
+public class TextReporter<E extends Enum<E>> implements Reporter<E> {
 
   private static final String FORMAT = "%-15s %-15s %12s %10s %10s";
   //  private static final String FORMAT = "%-15s %-7s %12s %10s %10s %10s %10s %10s";
@@ -163,5 +163,10 @@ public class TextReporter<E extends Enum<E>> extends Reporter<E> {
   private String formatTimestampInMs(final long timestamp) {
     calendar.setTime(new Date(timestamp));
     return sdf.format(calendar.getTime());
+  }
+
+  @Override
+  public String toString() {
+    return "Text reporter";
   }
 }

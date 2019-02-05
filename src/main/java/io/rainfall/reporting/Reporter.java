@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Aurélien Broszniowski
+ * Copyright (c) 2014-2019 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,12 @@ import java.util.List;
  * @author Aurelien Broszniowski
  */
 
-public abstract class Reporter<E extends Enum<E>> {
+public interface Reporter<E extends Enum<E>> {
 
-  public abstract void header(final List<String> description);
+  void header(final List<String> description);
 
-  public abstract void report(final StatisticsPeekHolder<E> statisticsHolder);
+  void report(final StatisticsPeekHolder<E> statisticsHolder);
 
-  public abstract void summarize(final StatisticsHolder<E> statisticsHolder);
+  void summarize(final StatisticsHolder<E> statisticsHolder);
 
 }

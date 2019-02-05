@@ -138,7 +138,7 @@ public class RainfallClient extends Thread {
     for (Reporter reporter : reporters) {
       if (reporter instanceof FileReporter) {
         File reportLocation = ((FileReporter)reporter).getReportPath();
-        logger.debug("[Rainfall client {}] Send zipped report {}.", this.currentSessionId, reportLocation.getAbsolutePath());
+        logger.debug("[Rainfall client {}] {} - Send zipped report {}.", this.currentSessionId, reporter.toString(), reportLocation.getAbsolutePath());
         writeLine(SENDING_REPORT + "," + currentSessionId);
 
         byte[] zippedReport = compressionUtils.zipAsByteArray(reportLocation);
@@ -146,7 +146,7 @@ public class RainfallClient extends Thread {
 
         writeBinary(zippedReport);
       } else {
-        logger.debug("[Rainfall client {}] No file report to send.", this.currentSessionId);
+        logger.debug("[Rainfall client {}] {} - No file report to send.", this.currentSessionId, reporter.toString());
         writeLine(RUN_DONE + "," + currentSessionId);
       }
     }
