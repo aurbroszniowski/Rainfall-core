@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Aurélien Broszniowski
+ * Copyright (c) 2014-2019 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import java.util.List;
 public class Scenario {
 
   private String name;
-  private final List<RangeMap<WeightedOperation>> operations = new ArrayList<RangeMap<WeightedOperation>>();
+  private final List<RangeMap<WeightedOperation>> operations = new ArrayList<>();
 
   public Scenario(final String name) {
     this.name = name;

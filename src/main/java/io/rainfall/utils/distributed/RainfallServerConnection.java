@@ -170,10 +170,13 @@ public class RainfallServerConnection extends Thread {
   }
 
   private String readLine() throws IOException {
-    return is.readUTF();
+    String line = is.readUTF();
+    logger.debug("[rainfall msg master {}] received message {}", this.clientId, line);
+    return line;
   }
 
   private void writeLine(String str) throws IOException {
+    logger.debug("[rainfall msg master {}] sent message {}", this.clientId, str);
     os.writeUTF(str);
     os.flush();
   }
@@ -208,7 +211,7 @@ public class RainfallServerConnection extends Thread {
   }
 
   public void stopClient() throws IOException {
-    logger.debug("[Rainfall master {}] Send SHUTDOWN request to client {}.", this.currentSessionId, clientId);
+    logger.debug("[Rainfall master {}] Sent SHUTDOWN request to client {}.", this.currentSessionId, clientId);
     writeLine(SHUTDOWN + "," + currentSessionId);
   }
 

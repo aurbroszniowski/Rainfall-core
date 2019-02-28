@@ -99,7 +99,7 @@ public class RainfallClient extends Thread {
         } else if (response.startsWith(SHUTDOWN)) {
           String[] uuidResponse = response.split(",");
           if (this.currentSessionId.equalsIgnoreCase(uuidResponse[1])) {
-            logger.debug("[Rainfall client] Received SHHUTDOWN from master.");
+            logger.debug("[Rainfall client] Received SHUTDOWN from master.");
             this.running = false;
           } else {
             logger.debug("Received command from wrong test session (expected: {}, received: {}, " +
@@ -173,10 +173,13 @@ public class RainfallClient extends Thread {
   }
 
   private String readLine() throws IOException {
-    return is.readUTF();
+    String line = is.readUTF();
+    logger.debug("[Rainfall msg client {}] received message {}", this.clientId, line);
+    return line;
   }
 
   private void writeLine(String str) throws IOException {
+    logger.debug("[Rainfall msg client {}] sent message {}", this.clientId, str);
     os.writeUTF(str);
     os.flush();
   }

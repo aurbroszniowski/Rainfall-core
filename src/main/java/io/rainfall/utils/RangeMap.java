@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Aurélien Broszniowski
+ * Copyright (c) 2014-2019 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,11 +51,12 @@ public class RangeMap<E> {
   private Float higherBound = 0.0f;
   private final ConcurrentPseudoRandom rnd = new ConcurrentPseudoRandom();
 
-  public synchronized E put(final Float key, final E value) {
-    E put = values.put(higherBound, value);
-    keys.add(new Range(higherBound, higherBound + key, higherBound));
-    higherBound += key;
-    return put;
+  public synchronized void put(final Float weight, final E value) {
+    if (weight > 0) {
+      values.put(higherBound, value);
+      keys.add(new Range(higherBound, higherBound + weight, higherBound));
+      higherBound += weight;
+    }
   }
 
   public E get(final float key) {
