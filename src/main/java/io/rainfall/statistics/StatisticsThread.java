@@ -16,33 +16,27 @@
 
 package io.rainfall.statistics;
 
-import io.rainfall.reporting.Reporter;
 import io.rainfall.configuration.ReportingConfig;
+import io.rainfall.reporting.Reporter;
 import io.rainfall.statistics.collector.StatisticsCollector;
 
 import java.util.List;
 import java.util.Set;
-import java.util.TimerTask;
 
 /**
  * @author Aurelien Broszniowski
  */
 
-public class StatisticsThread<E extends Enum<E>> extends Thread {
+public class StatisticsThread<E extends Enum<E>> {
 
   private RuntimeStatisticsHolder<E> statisticsHolder;
   private ReportingConfig<E> reportingConfig;
-  private final Set<StatisticsCollector> statisticsCollectors;
-  private List<String> description;
 
   public StatisticsThread(final RuntimeStatisticsHolder<E> statisticsHolder, final ReportingConfig<E> reportingConfig,
                           final List<String> description, final Set<StatisticsCollector> statisticsCollectors) {
-    setName("Rainfall-core Statistics Thread");
-    this.description = description;
     this.statisticsHolder = statisticsHolder;
     this.reportingConfig = reportingConfig;
 
-    this.statisticsCollectors = statisticsCollectors;
     for (StatisticsCollector statisticsCollector : statisticsCollectors) {
       statisticsCollector.initialize();
     }
@@ -50,15 +44,6 @@ public class StatisticsThread<E extends Enum<E>> extends Thread {
     Set<Reporter<E>> reporters = reportingConfig.getLogReporters();
     for (Reporter<E> reporter : reporters) {
       reporter.header(description);
-    }
-  }
-
-  @Override
-  public void run() {
-    StatisticsPeekHolder<E> peek = statisticsHolder.peek();
-    Set<Reporter<E>> reporters = reportingConfig.getLogReporters();
-    for (Reporter<E> reporter : reporters) {
-      reporter.report(peek);
     }
   }
 

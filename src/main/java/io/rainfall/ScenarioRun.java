@@ -19,6 +19,8 @@ package io.rainfall;
 import io.rainfall.configuration.ConcurrencyConfig;
 import io.rainfall.configuration.DistributedConfig;
 import io.rainfall.configuration.ReportingConfig;
+import io.rainfall.reporting.Reporter;
+import io.rainfall.reporting.PeriodicReporter;
 import io.rainfall.statistics.InitStatisticsHolder;
 import io.rainfall.statistics.RuntimeStatisticsHolder;
 import io.rainfall.statistics.StatisticsPeekHolder;
@@ -36,6 +38,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -131,7 +134,8 @@ public class ScenarioRun<E extends Enum<E>> {
         reportingConfig.getStatisticsCollectors());
     initStatistics(this.statisticsHolder);
 
-    ScheduledExecutorService topOfSecondExecutor = Executors.newSingleThreadScheduledExecutor();
+    final Set<Reporter<E>> logReporters = reportingConfig.getLogReporters();
+    ScheduledExecutorService topOfSecondExecutor = Executors.newScheduledThreadPool(logReporters.size());
     StatisticsThread<E>  stats = null;
     StatisticsPeekHolder<E> peek = null;
     try {
@@ -145,7 +149,24 @@ public class ScenarioRun<E extends Enum<E>> {
       myDate.set(Calendar.MILLISECOND, 0);
       Date afterOneSecond = myDate.getTime();
       long delay = afterOneSecond.getTime() - System.currentTimeMillis() - 4;
-      topOfSecondExecutor.scheduleAtFixedRate(stats, delay, reportIntervalMillis, TimeUnit.MILLISECONDS);
+
+      for (final Reporter<E> logReporter : logReporters) {
+        if (logReporter instanceof PeriodicReporter) {
+          topOfSecondExecutor.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+              logReporter.report(statisticsHolder.peek());
+            }
+          }, delay, ((PeriodicReporter)logReporter).getReportingIntervalInMillis(), TimeUnit.MILLISECONDS);
+        } else {
+          topOfSecondExecutor.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+              logReporter.report(statisticsHolder.peek());
+            }
+          }, delay, reportIntervalMillis, TimeUnit.MILLISECONDS);
+        }
+      }
 
       for (final Execution execution : executions) {
         execution.execute(statisticsHolder, scenario, configurations, assertions);
