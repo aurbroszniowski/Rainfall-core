@@ -135,7 +135,7 @@ public class ScenarioRun<E extends Enum<E>> {
     initStatistics(this.statisticsHolder);
 
     final Set<Reporter<E>> logReporters = reportingConfig.getLogReporters();
-    ScheduledExecutorService topOfSecondExecutor = Executors.newScheduledThreadPool(logReporters.size());
+    ScheduledExecutorService topOfSecondExecutor = Executors.newScheduledThreadPool(logReporters.size(), new CustomThreadFactory());
     StatisticsThread<E>  stats = null;
     StatisticsPeekHolder<E> peek = null;
     try {
