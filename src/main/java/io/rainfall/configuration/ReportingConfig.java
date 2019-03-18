@@ -22,6 +22,7 @@ import io.rainfall.reporting.HtmlReporter;
 import io.rainfall.reporting.PeriodicHlogReporter;
 import io.rainfall.reporting.Reporter;
 import io.rainfall.reporting.TextReporter;
+import io.rainfall.reporting.PeriodicReporter;
 import io.rainfall.statistics.collector.StatisticsCollector;
 import io.rainfall.statistics.monitor.CpuStatisticsCollector;
 import io.rainfall.statistics.monitor.GcStatisticsCollector;
@@ -45,7 +46,7 @@ public class ReportingConfig<E extends Enum<E>> extends Configuration {
 
   private Enum<E>[] results;
   private Enum<E>[] resultsReported;
-  private long reportInterval = 1000;
+  private long commonReportingInterval = 1000;
   private TimeUnit reportIntervalUnit = TimeUnit.MILLISECONDS;
 
   private final Set<Reporter<E>> logReporters = new HashSet<Reporter<E>>();
@@ -88,10 +89,15 @@ public class ReportingConfig<E extends Enum<E>> extends Configuration {
     return new MemStatisticsCollector();
   }
 
+  @Deprecated
   public ReportingConfig every(final long amount, final TimeUnit unit) {
-    this.reportInterval = amount;
+    this.commonReportingInterval = amount;
     this.reportIntervalUnit = unit;
     return this;
+  }
+
+  public Reporter every(Reporter<E> reporter, final long amount, final TimeUnit unit) {
+    return new PeriodicReporter<>(reporter, unit.toMillis(amount));
   }
 
   @SuppressWarnings("unchecked")
@@ -147,10 +153,12 @@ public class ReportingConfig<E extends Enum<E>> extends Configuration {
     return logReporters;
   }
 
+  @Deprecated
   public long getReportInterval() {
-    return reportInterval;
+    return commonReportingInterval;
   }
 
+  @Deprecated
   public TimeUnit getReportTimeUnit() {
     return reportIntervalUnit;
   }
@@ -168,7 +176,7 @@ public class ReportingConfig<E extends Enum<E>> extends Configuration {
     }
     sb.append("].");
     desc.add(sb.toString());
-    desc.add("Report interval = " + reportInterval + " " + reportIntervalUnit.name());
+    desc.add("Common report interval = " + commonReportingInterval + " " + reportIntervalUnit.name());
     return desc;
   }
 }

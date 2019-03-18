@@ -17,9 +17,9 @@
 package io.rainfall.integration;
 
 import io.rainfall.configuration.ReportingConfig;
+import io.rainfall.reporting.Reporter;
 import io.rainfall.statistics.RuntimeStatisticsHolder;
 import io.rainfall.statistics.Statistics;
-import io.rainfall.statistics.StatisticsThread;
 import io.rainfall.utils.SystemTest;
 import org.HdrHistogram.Histogram;
 import org.junit.Ignore;
@@ -27,7 +27,6 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -51,11 +50,11 @@ public class StatsTest {
   @Ignore
   public void testStatsHolderOnly() {
     ScheduledExecutorService topOfSecondExecutor = Executors.newSingleThreadScheduledExecutor();
-    StatisticsThread<StatsTestResult> stats = null;
 
-    ReportingConfig reportingConfig = ReportingConfig.report(StatsTestResult.class).log(text());
+    final Reporter reporter = text();
+    final ReportingConfig reportingConfig = ReportingConfig.report(StatsTestResult.class).log(reporter);
 
-    RuntimeStatisticsHolder<StatsTestResult> statisticsHolder = new RuntimeStatisticsHolder<StatsTestResult>(
+    final RuntimeStatisticsHolder<StatsTestResult> statisticsHolder = new RuntimeStatisticsHolder<StatsTestResult>(
         reportingConfig.getResults(), reportingConfig.getResultsReported(),
         reportingConfig.getStatisticsCollectors()
     );
@@ -63,9 +62,6 @@ public class StatsTest {
     String name = "MY_TEST";
     statisticsHolder.addStatistics(name, new Statistics<StatsTestResult>(name, statisticsHolder.getResults()));
 
-
-    stats = new StatisticsThread<StatsTestResult>(statisticsHolder, reportingConfig, Arrays.asList("Example Test"),
-        reportingConfig.getStatisticsCollectors());
     TimeUnit reportIntervalUnit = reportingConfig.getReportTimeUnit();
     long reportIntervalMillis = reportIntervalUnit.toMillis(reportingConfig.getReportInterval());
 
@@ -74,7 +70,12 @@ public class StatsTest {
     myDate.set(Calendar.MILLISECOND, 0);
     Date afterOneSecond = myDate.getTime();
     long delay = afterOneSecond.getTime() - System.currentTimeMillis() - 4;
-    topOfSecondExecutor.scheduleAtFixedRate(stats, delay, reportIntervalMillis, TimeUnit.MILLISECONDS);
+    topOfSecondExecutor.scheduleAtFixedRate(new Runnable() {
+      @Override
+      public void run() {
+        reporter.report(statisticsHolder.peek());
+      }
+    }, delay, reportIntervalMillis, TimeUnit.MILLISECONDS);
 
     Map<Long, String> pseudoCache = new HashMap<Long, String>();
     for (long i = 0; i < 3000000; i++) {
