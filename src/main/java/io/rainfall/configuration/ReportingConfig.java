@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 Aurélien Broszniowski
+ * Copyright (c) 2014-2019 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,16 +96,16 @@ public class ReportingConfig<E extends Enum<E>> extends Configuration {
     return this;
   }
 
-  public Reporter every(Reporter<E> reporter, final long amount, final TimeUnit unit) {
-    return new PeriodicReporter<>(reporter, unit.toMillis(amount));
-  }
-
   @SuppressWarnings("unchecked")
   public ReportingConfig log(final Reporter... reporters) {
     for (Reporter reporter : reporters) {
       logReporters.add(reporter);
     }
     return this;
+  }
+
+  public static <E extends Enum<E>> Reporter every(Reporter<E> reporter, final long amount, final TimeUnit unit) {
+    return new PeriodicReporter<>(reporter, unit.toMillis(amount));
   }
 
   public ReportingConfig collect(StatisticsCollector... statisticsCollectors) {
