@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Aurélien Broszniowski
+ * Copyright (c) 2014-2019 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,18 @@
 
 package io.rainfall;
 
-import io.rainfall.execution.Once;
+import io.rainfall.execution.InParallel;
 
 /**
  * This is a Unit for the parameter given to a {@link Execution} instance.
- * E.g. an execution like {@link Once} will have as parameters a number of
+ * E.g. an execution like {@link InParallel} will have as parameters a number of
  * {@link Unit}
  *
  * @author Aurelien Broszniowski
  */
 
-public abstract class Unit {
+public interface Unit {
 
-  public abstract String getDescription();
+  String getDescription();
 
 }

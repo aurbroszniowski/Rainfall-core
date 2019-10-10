@@ -262,8 +262,7 @@ public class ScenarioRun<E extends Enum<E>> {
 
   private void initStatistics(RuntimeStatisticsHolder<E> statisticsHolder) {
     try {
-      List<RangeMap<WeightedOperation>> operations = scenario.getOperations();
-      for (RangeMap<WeightedOperation> operation : operations) {
+      for (RangeMap<WeightedOperation> operation : scenario.getOperations().values()) {
         Collection<WeightedOperation> allOperations = operation.getAll();
         for (WeightedOperation allOperation : allOperations) {
           allOperation.getOperation()

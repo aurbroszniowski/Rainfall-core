@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 Aurélien Broszniowski
+ * Copyright (c) 2014-2019 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,11 +33,15 @@ import io.rainfall.utils.RangeMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * Execute scenario a number of times concurrently, repeat it every time measurement, during a time period
@@ -65,59 +69,88 @@ public class InParallel extends Execution {
                                           final List<AssertionEvaluator> assertions) throws TestException {
     final DistributedConfig distributedConfig = (DistributedConfig)configurations.get(DistributedConfig.class);
     final ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
-    final int nbThreads = concurrencyConfig.getThreadCount();
-
-    // Use a scheduled thread pool in order to execute concurrent Scenarios
-    final ScheduledExecutorService scheduler = concurrencyConfig.createScheduledExecutorService();
 
     // This is done to collect exceptions because the Runnable doesn't throw
     final List<TestException> exceptions = new ArrayList<TestException>();
     markExecutionState(scenario, ExecutionState.BEGINNING);
+    final AtomicBoolean doneFlag = new AtomicBoolean(false);
 
-    // Schedule the scenario every second, until
-    for (int threadNb = 0; threadNb < nbThreads; threadNb++) {
-      final long max = concurrencyConfig.getIterationCountForThread(distributedConfig, threadNb, nb);
+    final Map<String, ScheduledExecutorService> executors = concurrencyConfig.createScheduledExecutorService();
+    for (final String threadpoolName : executors.keySet()) {
+      final int threadCount = concurrencyConfig.getThreadCount(threadpoolName);
+      final ScheduledExecutorService scheduler = executors.get(threadpoolName);
 
-      final ScheduledFuture<?> future = scheduler.scheduleAtFixedRate(new Runnable() {
-        @Override
-        public void run() {
-          Thread.currentThread().setName(
-              "Rainfall-core Operations Thread - " + THREAD_NUMBER_GENERATOR.getAndIncrement());
-          try {
-            for (long i = 0; i < max; i++) {
-              List<RangeMap<WeightedOperation>> operations = scenario.getOperations();
-              for (RangeMap<WeightedOperation> operation : operations) {
-                operation.get(weightRnd.nextFloat(operation.getHigherBound()))
+      final RangeMap<WeightedOperation> operations = scenario.getOperations().get(threadpoolName);
+      List<ScheduledFuture> futures = new ArrayList<>();
+
+      // Schedule the scenario every second, until
+      for (int threadNb = 0; threadNb < threadCount; threadNb++) {
+        final long max = concurrencyConfig.getIterationCountForThread(threadpoolName, distributedConfig, threadNb, nb);
+
+        final ScheduledFuture<?> future = scheduler.scheduleAtFixedRate(new Runnable() {
+          @Override
+          public void run() {
+            Thread.currentThread().setName(
+                "Rainfall-core Operations Thread - " + THREAD_NUMBER_GENERATOR.getAndIncrement());
+            try {
+              for (long i = 0; i < max; i++) {
+                operations.getNextRandom(weightRnd)
                     .getOperation().exec(statisticsHolder, configurations, assertions);
               }
+            } catch (TestException e) {
+              e.printStackTrace();
+              exceptions.add(new TestException(e));
             }
-          } catch (TestException e) {
-            e.printStackTrace();
-            exceptions.add(new TestException(e));
           }
-        }
-      }, 0, every.getCount(), every.getTimeDivision().getTimeUnit());
-      // Schedule the end of the execution after the time entered as parameter
-      scheduler.schedule(new Runnable() {
-        @Override
-        public void run() {
-          markExecutionState(scenario, ExecutionState.ENDING);
-          future.cancel(true);
-        }
-      }, during.getCount(), during.getTimeDivision().getTimeUnit());
+        }, 0, every.getCount(), every.getTimeDivision().getTimeUnit());
+        // Schedule the end of the execution after the time entered as parameter
+        scheduler.schedule(new Runnable() {
+          @Override
+          public void run() {
+            markExecutionState(scenario, ExecutionState.ENDING);
+            future.cancel(true);
+          }
+        }, during.getCount(), during.getTimeDivision().getTimeUnit());
+
+        futures.add(future);
+      }
 
       try {
-        future.get();
-      } catch (CancellationException e) {
-        // expected
+        for (Future<Void> future : futures) {
+          future.get();
+        }
       } catch (InterruptedException e) {
-        throw new TestException(e);
+        markExecutionState(scenario, ExecutionState.ENDING);
+        shutdownNicely(doneFlag, executors);
+        throw new TestException("Thread execution Interruption", e);
       } catch (ExecutionException e) {
-        throw new TestException(e);
+        markExecutionState(scenario, ExecutionState.ENDING);
+        shutdownNicely(doneFlag, executors);
+        throw new TestException("Thread execution error", e);
       }
+
     }
     markExecutionState(scenario, ExecutionState.ENDING);
-    scheduler.shutdown();
+    try {
+      boolean success = true;
+      for (ExecutorService executor : executors.values()) {
+        boolean executorSuccess = executor.awaitTermination(60, SECONDS);
+        if (!executorSuccess) {
+          executor.shutdownNow();
+          success &= executor.awaitTermination(60, SECONDS);
+        }
+      }
+
+      if (!success) {
+        throw new TestException("Execution of Scenario timed out.");
+      }
+    } catch (InterruptedException e) {
+      for (ExecutorService executor : executors.values()) {
+        executor.shutdownNow();
+      }
+      Thread.currentThread().interrupt();
+      throw new TestException("Execution of Scenario didn't stop correctly.", e);
+    }
 
     if (exceptions.size() > 0) {
       throw exceptions.get(0);
@@ -129,4 +162,12 @@ public class InParallel extends Execution {
     return nb + " " + unit.getDescription()
            + " every " + every.getDescription() + " during " + during.getDescription();
   }
+
+  private void shutdownNicely(AtomicBoolean doneFlag, Map<String, ScheduledExecutorService> executors) {
+    doneFlag.set(true);
+    for (ExecutorService executor : executors.values()) {
+      executor.shutdown();
+    }
+  }
+
 }

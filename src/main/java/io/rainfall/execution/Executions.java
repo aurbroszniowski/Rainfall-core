@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 Aurélien Broszniowski
+ * Copyright (c) 2014-2019 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package io.rainfall.execution;
 
+import io.rainfall.Execution;
 import io.rainfall.Unit;
 import io.rainfall.unit.Every;
 import io.rainfall.unit.From;
@@ -29,8 +30,8 @@ import io.rainfall.unit.To;
 
 public class Executions {
 
-  public static Once once(int nb, Unit unit) {
-    return new Once(nb, unit);
+  public static Execution once(int nb, Unit unit) {
+    return new Times(nb);
   }
 
   public static Times times(long occurrences) {

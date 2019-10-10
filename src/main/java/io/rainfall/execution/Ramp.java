@@ -69,25 +69,28 @@ public class Ramp extends Execution {
                                           final Map<Class<? extends Configuration>, Configuration> configurations,
                                           final List<AssertionEvaluator> assertions) throws TestException {
     ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
-    if (concurrencyConfig.getThreadCount() < from.getCount() || concurrencyConfig.getThreadCount() < to.getCount()) {
-      throw new TestException(
-          "Concurrency config thread count is lower than the RampUp parameters. [From = " + from.getCount() + ", To = " + to
-              .getCount() + "]");
+    for (String threadpoolName : concurrencyConfig.getThreadCountMap().keySet()) {
+      if (concurrencyConfig.getThreadCountMap().get(threadpoolName) < from.getCount()
+          || concurrencyConfig.getThreadCountMap().get(threadpoolName) < to.getCount()) {
+        throw new TestException(
+            "Concurrency config thread count for threadpool " + threadpoolName + " is lower than the RampUp parameters. [From = "
+            + from.getCount() + ", To = " + to.getCount() + "]");
+      }
     }
 
     final ScheduledExecutorService endScheduler = Executors.newScheduledThreadPool(1);
-    final ScheduledExecutorService execScheduler = concurrencyConfig.createScheduledExecutorService();
+    final Map<String, ScheduledExecutorService> execSchedulers = concurrencyConfig.createScheduledExecutorService();
     markExecutionState(scenario, ExecutionState.BEGINNING);
     final AtomicBoolean doneFlag = new AtomicBoolean(false);
 
-    final List<ScheduledFuture<Void>> futures = scheduleThreads(statisticsHolder, scenario, configurations, assertions, doneFlag, execScheduler);
+    final List<ScheduledFuture<Void>> futures = scheduleThreads(statisticsHolder, scenario, configurations, assertions, doneFlag, execSchedulers);
 
     // Schedule the end of the execution after the time entered as parameter
     final ScheduledFuture<?> endFuture = endScheduler.schedule(new Runnable() {
       @Override
       public void run() {
         markExecutionState(scenario, ExecutionState.ENDING);
-        shutdownNicely(doneFlag, execScheduler, endScheduler);
+        shutdownNicely(doneFlag, execSchedulers, endScheduler);
       }
     }, over.getCount(), over.getTimeDivision().getTimeUnit());
 
@@ -98,62 +101,69 @@ public class Ramp extends Execution {
       endFuture.get();
     } catch (InterruptedException e) {
       markExecutionState(scenario, ExecutionState.ENDING);
-      shutdownNicely(doneFlag, execScheduler, endScheduler);
+      shutdownNicely(doneFlag, execSchedulers, endScheduler);
       throw new TestException("Thread execution Interruption", e);
     } catch (ExecutionException e) {
       markExecutionState(scenario, ExecutionState.ENDING);
-      shutdownNicely(doneFlag, execScheduler, endScheduler);
+      shutdownNicely(doneFlag, execSchedulers, endScheduler);
       throw new TestException("Thread execution error", e);
     }
     try {
-      boolean executorSuccess = execScheduler.awaitTermination(60, SECONDS);
-      if (!executorSuccess) {
-        execScheduler.shutdownNow();
-        executorSuccess = execScheduler.awaitTermination(60, SECONDS);
+      boolean success = true;
+      for (ExecutorService executor : execSchedulers.values()) {
+        boolean executorSuccess = executor.awaitTermination(60, SECONDS);
+        if (!executorSuccess) {
+          executor.shutdownNow();
+          success &= executor.awaitTermination(60, SECONDS);
+        }
       }
 
       boolean schedulerSuccess = endScheduler.awaitTermination(60, SECONDS);
       if (!schedulerSuccess) {
         endScheduler.shutdownNow();
-        schedulerSuccess = endScheduler.awaitTermination(60, SECONDS);
+        success &= endScheduler.awaitTermination(60, SECONDS);
       }
 
-      boolean success = schedulerSuccess & executorSuccess;
       if (!success) {
         throw new TestException("Execution of Scenario timed out.");
       }
     } catch (InterruptedException e) {
-      execScheduler.shutdownNow();
+      for (ExecutorService executor : execSchedulers.values()) {
+        executor.shutdownNow();
+      }
       endScheduler.shutdownNow();
       Thread.currentThread().interrupt();
       throw new TestException("Execution of Scenario didn't stop correctly.", e);
     }
   }
 
-  List<ScheduledFuture<Void>> scheduleThreads(final StatisticsHolder statisticsHolder, final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions, final AtomicBoolean doneFlag, ScheduledExecutorService execScheduler) {
+  List<ScheduledFuture<Void>> scheduleThreads(final StatisticsHolder statisticsHolder, final Scenario scenario, final Map<Class<? extends Configuration>, Configuration> configurations, final List<AssertionEvaluator> assertions, final AtomicBoolean doneFlag, Map<String, ScheduledExecutorService> executors) {
     final Double delayBetweenAddingThread = over.getNbInMs() / (to.getCount() - from.getCount());
     long threadsCounter = 0;
     List<ScheduledFuture<Void>> futures = new ArrayList<>();
-    for (int threadNb = from.getCount(); threadNb < to.getCount(); threadNb++) {
-      final int finalThreadNb = threadNb;
-      futures.add(execScheduler.schedule(new Callable<Void>() {
+    for (int threadCount = from.getCount(); threadCount < to.getCount(); threadCount++) {
+      final int finalThreadCount = threadCount;
 
-        @Override
-        public Void call() throws Exception {
-          logger.info("Rainfall Rampu up - Adding thread " + finalThreadNb + " at " + new Date());
-          Thread.currentThread().setName("Rainfall-core Operations Thread n" + finalThreadNb);
-          List<RangeMap<WeightedOperation>> operations = scenario.getOperations();
-          while (!Thread.currentThread().isInterrupted() && !doneFlag.get()) {
-            for (RangeMap<WeightedOperation> operation : operations) {
-              operation.get(weightRnd.nextFloat(operation.getHigherBound()))
+      for (final String threadpoolName : executors.keySet()) {
+        final RangeMap<WeightedOperation> operations = scenario.getOperations().get(threadpoolName);
+
+        futures.add(executors.get(threadpoolName).schedule(new Callable<Void>() {
+
+          @Override
+          public Void call() throws Exception {
+            logger.info("Rainfall Rampu up - Adding thread " + finalThreadCount + " at " + new Date());
+            Thread.currentThread().setName("Rainfall-core Operations Thread n" + finalThreadCount);
+            while (!Thread.currentThread().isInterrupted() && !doneFlag.get()) {
+              operations.getNextRandom(weightRnd)
                   .getOperation().exec(statisticsHolder, configurations, assertions);
             }
+            return null;
           }
-          return null;
-        }
-      }, threadsCounter * delayBetweenAddingThread.longValue(), MILLISECONDS));
-      threadsCounter++;
+        }, threadsCounter * delayBetweenAddingThread.longValue(), MILLISECONDS));
+        threadsCounter++;
+      }
     }
+
     return futures;
   }
 
@@ -163,9 +173,11 @@ public class Ramp extends Execution {
            + to.getDescription() + " " + over.getDescription();
   }
 
-  private void shutdownNicely(AtomicBoolean doneFlag, ExecutorService executor, ExecutorService scheduler) {
+  private void shutdownNicely(AtomicBoolean doneFlag, Map<String, ScheduledExecutorService> executors, ExecutorService scheduler) {
     doneFlag.set(true);
-    executor.shutdown();
+    for (ExecutorService executor : executors.values()) {
+      executor.shutdown();
+    }
     scheduler.shutdown();
   }
 }

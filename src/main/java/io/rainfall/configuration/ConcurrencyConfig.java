@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 Aurélien Broszniowski
+ * Copyright (c) 2014-2019 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import io.rainfall.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,16 +38,27 @@ public class ConcurrencyConfig extends Configuration {
 
   private final static Logger logger = LoggerFactory.getLogger(ConcurrencyConfig.class);
 
-  private int threadCount = 1;
+  private Map<String, Integer> threadpoolCount = new HashMap<>();
   private final Map<Integer, AtomicLong> iterationCountPerThread = new HashMap<Integer, AtomicLong>();
   private long timeoutInSeconds = 600L;
+  public static final String defaultThreadpoolname = "DEFAULT";;
 
   public static ConcurrencyConfig concurrencyConfig() {
     return new ConcurrencyConfig();
   }
 
+  public ConcurrencyConfig() {
+    threads(1);
+  }
+
   public ConcurrencyConfig threads(int threadCount) {
-    this.threadCount = threadCount;
+    this.threadpoolCount.put(defaultThreadpoolname, threadCount);
+    return this;
+  }
+
+  public ConcurrencyConfig threads(String threadpoolName, int threadCount) {
+    this.threadpoolCount.remove(defaultThreadpoolname);
+    this.threadpoolCount.put(threadpoolName, threadCount);
     return this;
   }
 
@@ -56,23 +67,35 @@ public class ConcurrencyConfig extends Configuration {
     return this;
   }
 
-  public int getThreadCount() {
-    return threadCount;
+  public int getThreadCount(String threadpoolName) {
+    return threadpoolCount.get(threadpoolName);
   }
 
-  public ScheduledExecutorService createScheduledExecutorService() {
-    return Executors.newScheduledThreadPool(threadCount);
+  public Map<String, Integer> getThreadCountMap() {
+    return this.threadpoolCount;
   }
 
-  public ExecutorService createFixedExecutorService() {
-    return Executors.newFixedThreadPool(threadCount);
+  public Map<String, ScheduledExecutorService> createScheduledExecutorService() {
+    Map<String, ScheduledExecutorService> executorServices = new HashMap<>();
+    for (String threadpoolName : threadpoolCount.keySet()) {
+      executorServices.put(threadpoolName, Executors.newScheduledThreadPool(threadpoolCount.get(threadpoolName)));
+    }
+    return executorServices;
+  }
+
+  public Map<String, ExecutorService> createFixedExecutorService() {
+    Map<String, ExecutorService> executorServices = new HashMap<>();
+    for (String threadpoolName : threadpoolCount.keySet()) {
+      executorServices.put(threadpoolName, Executors.newFixedThreadPool(threadpoolCount.get(threadpoolName)));
+    }
+    return executorServices;
   }
 
   public long getTimeoutInSeconds() {
     return timeoutInSeconds;
   }
 
-  public long getIterationCountForThread(final DistributedConfig distributedConfig, final int threadNb, final long iterationsCount) {
+  public long getIterationCountForThread(final String threadPoolname, final DistributedConfig distributedConfig, final int threadNb, final long iterationsCount) {
     synchronized (iterationCountPerThread) {
       int clientsCount = 1;
       if (distributedConfig != null) {
@@ -85,19 +108,19 @@ public class ConcurrencyConfig extends Configuration {
 
       long iterationCountForClient = iterationsCount / clientsCount;
       if (iterationCountPerThread.size() == 0) {
-        for (int i = 0; i < threadCount; i++) {
+        for (int i = 0; i < threadpoolCount.get(threadPoolname); i++) {
           iterationCountPerThread.put(i, new AtomicLong());
         }
 
-        long roundedValue = new Double(Math.floor(iterationCountForClient / threadCount)).longValue();
-        for (int i = 0; i < threadCount; i++) {
+        long roundedValue = new Double(Math.floor(iterationCountForClient / threadpoolCount.get(threadPoolname))).longValue();
+        for (int i = 0; i < threadpoolCount.get(threadPoolname); i++) {
           iterationCountPerThread.get(i).addAndGet(roundedValue);
           iterationCountForClient -= roundedValue;
         }
 
         int i = 0;
         while (iterationCountForClient > 0) {
-          iterationCountPerThread.get(i % threadCount).incrementAndGet();
+          iterationCountPerThread.get(i % threadpoolCount.get(threadPoolname)).incrementAndGet();
           i++;
           iterationCountForClient--;
         }
@@ -108,7 +131,12 @@ public class ConcurrencyConfig extends Configuration {
 
   @Override
   public List<String> getDescription() {
-    return Arrays.asList("Threadpool size : " + threadCount);
+    List<String> descriptions = new ArrayList<>();
+    descriptions.add("Threadpool size : ");
+    for (String threadpoolName : threadpoolCount.keySet()) {
+      descriptions.add(" - " + threadpoolName + " - Size of " + threadpoolCount.get(threadpoolName));
+    }
+    return descriptions;
   }
 
   public void clearIterationCountForThread() {

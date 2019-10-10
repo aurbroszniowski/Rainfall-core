@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 Aurélien Broszniowski
+ * Copyright (c) 2014-2019 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
  * @author Aurelien Broszniowski
  */
 
-public class TimeDivision extends Unit {
+public class TimeDivision implements Unit {
 
   private TimeUnit timeUnit;
 
@@ -32,7 +32,7 @@ public class TimeDivision extends Unit {
 
   public static final TimeDivision minutes = new TimeDivision(TimeUnit.MINUTES);
 
-  public TimeDivision( TimeUnit timeUnit) {
+  public TimeDivision(TimeUnit timeUnit) {
     this.timeUnit = timeUnit;
   }
 
