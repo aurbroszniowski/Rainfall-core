@@ -16,6 +16,8 @@
 
 package io.rainfall.utils;
 
+import io.rainfall.WeightedOperation;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -73,6 +75,10 @@ public class RangeMap<E> {
 
   public Collection<E> getAll() {
     return values.values();
+  }
+
+  public E getNextRandom(ConcurrentPseudoRandom concurrentPseudoRandom) {
+    return get(concurrentPseudoRandom.nextFloat(higherBound));
   }
 
   public class Range {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 Aurélien Broszniowski
+ * Copyright (c) 2014-2019 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,13 +63,15 @@ public class RampTest {
     Scenario scenario = mock(Scenario.class);
     Map<Class<? extends Configuration>, Configuration> configurations = new HashMap<Class<? extends Configuration>, Configuration>();
     ConcurrencyConfig concurrencyConfig = mock(ConcurrencyConfig.class);
+    Map<String, ScheduledExecutorService> schedulers = new HashMap<>();
     ScheduledExecutorService scheduler = mock(ScheduledExecutorService.class);
-    when(concurrencyConfig.createScheduledExecutorService()).thenReturn(scheduler);
+    schedulers.put(ConcurrencyConfig.defaultThreadpoolname, scheduler);
+    when(concurrencyConfig.createScheduledExecutorService()).thenReturn(schedulers);
     configurations.put(ConcurrencyConfig.class, concurrencyConfig);
 
     List<AssertionEvaluator> assertions = new ArrayList<AssertionEvaluator>();
 
-    ramp.scheduleThreads(statisticsHolder, scenario, configurations, assertions, new AtomicBoolean(), scheduler);
+    ramp.scheduleThreads(statisticsHolder, scenario, configurations, assertions, new AtomicBoolean(), schedulers);
 
     verify(scheduler).schedule(any(Callable.class), eq(0L), eq(TimeUnit.MILLISECONDS));
     verify(scheduler).schedule(any(Callable.class), eq(2000L), eq(TimeUnit.MILLISECONDS));

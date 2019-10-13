@@ -21,12 +21,10 @@ import io.rainfall.Configuration;
 import io.rainfall.Execution;
 import io.rainfall.Scenario;
 import io.rainfall.TestException;
-import io.rainfall.WeightedOperation;
 import io.rainfall.configuration.ConcurrencyConfig;
 import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.unit.Over;
 import io.rainfall.unit.TimeDivision;
-import io.rainfall.utils.RangeMap;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +32,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -42,7 +41,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
- * Execute the {@link io.rainfall.Scenario} for a length
+ * Execute the {@link io.rainfall.Scenario} for a period of time
  *
  * @author Aurelien Broszniowski
  */
@@ -59,31 +58,33 @@ public class RunsDuring extends Execution {
                                           final Map<Class<? extends Configuration>, Configuration> configurations,
                                           final List<AssertionEvaluator> assertions) throws TestException {
     ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
-    final int threadCount = concurrencyConfig.getThreadCount();
 
-    final ScheduledExecutorService scheduler = concurrencyConfig.createScheduledExecutorService();
-    final ExecutorService executor = concurrencyConfig.createFixedExecutorService();
+    final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     markExecutionState(scenario, ExecutionState.BEGINNING);
     final AtomicBoolean doneFlag = new AtomicBoolean(false);
 
     List<Future<Void>> futures = new ArrayList<Future<Void>>();
-    for (int threadNb = 0; threadNb < threadCount; threadNb++) {
-      Future<Void> future = executor.submit(new Callable<Void>() {
 
-        @Override
-        public Void call() throws Exception {
-          Thread.currentThread().setName("Rainfall-core Operations Thread");
-          List<RangeMap<WeightedOperation>> operations = scenario.getOperations();
-          while (!Thread.currentThread().isInterrupted() && !doneFlag.get()) {
-            for (RangeMap<WeightedOperation> operation : operations) {
-              operation.get(weightRnd.nextFloat(operation.getHigherBound()))
+    final Map<String, ExecutorService> executors = concurrencyConfig.createFixedExecutorService();
+    for (final String threadpoolName : executors.keySet()) {
+      final int threadCount = concurrencyConfig.getThreadCount(threadpoolName);
+
+      for (int threadNb = 0; threadNb < threadCount; threadNb++) {
+        Future<Void> future = executors.get(threadpoolName).submit(new Callable<Void>() {
+
+          @Override
+          public Void call() throws Exception {
+            Thread.currentThread().setName("Rainfall-core Operations Thread");
+
+            while (!Thread.currentThread().isInterrupted() && !doneFlag.get()) {
+              scenario.getOperations().get(threadpoolName).getNextRandom(weightRnd)
                   .getOperation().exec(statisticsHolder, configurations, assertions);
             }
+            return null;
           }
-          return null;
-        }
-      });
-      futures.add(future);
+        });
+        futures.add(future);
+      }
     }
 
     // Schedule the end of the execution after the time entered as parameter
@@ -91,7 +92,7 @@ public class RunsDuring extends Execution {
       @Override
       public void run() {
         markExecutionState(scenario, ExecutionState.ENDING);
-        shutdownNicely(doneFlag, executor, scheduler);
+        shutdownNicely(doneFlag, executors, scheduler);
       }
     }, during.getCount(), during.getTimeDivision().getTimeUnit());
 
@@ -102,32 +103,36 @@ public class RunsDuring extends Execution {
       endFuture.get();
     } catch (InterruptedException e) {
       markExecutionState(scenario, ExecutionState.ENDING);
-      shutdownNicely(doneFlag, executor, scheduler);
+      shutdownNicely(doneFlag, executors, scheduler);
       throw new TestException("Thread execution Interruption", e);
     } catch (ExecutionException e) {
       markExecutionState(scenario, ExecutionState.ENDING);
-      shutdownNicely(doneFlag, executor, scheduler);
+      shutdownNicely(doneFlag, executors, scheduler);
       throw new TestException("Thread execution error", e);
     }
     try {
-      boolean executorSuccess = executor.awaitTermination(60, SECONDS);
-      if (!executorSuccess) {
-        executor.shutdownNow();
-        executorSuccess = executor.awaitTermination(60, SECONDS);
+      boolean success = true;
+      for (ExecutorService executor : executors.values()) {
+        boolean executorSuccess = executor.awaitTermination(60, SECONDS);
+        if (!executorSuccess) {
+          executor.shutdownNow();
+          success &= executor.awaitTermination(60, SECONDS);
+        }
       }
 
       boolean schedulerSuccess = scheduler.awaitTermination(60, SECONDS);
       if (!schedulerSuccess) {
         scheduler.shutdownNow();
-        schedulerSuccess = scheduler.awaitTermination(60, SECONDS);
+        success &= scheduler.awaitTermination(60, SECONDS);
       }
 
-      boolean success = schedulerSuccess & executorSuccess;
       if (!success) {
         throw new TestException("Execution of Scenario timed out.");
       }
     } catch (InterruptedException e) {
-      executor.shutdownNow();
+      for (ExecutorService executor : executors.values()) {
+        executor.shutdownNow();
+      }
       scheduler.shutdownNow();
       Thread.currentThread().interrupt();
       throw new TestException("Execution of Scenario didn't stop correctly.", e);
@@ -139,9 +144,11 @@ public class RunsDuring extends Execution {
     return "" + during.getDescription();
   }
 
-  private void shutdownNicely(AtomicBoolean doneFlag, ExecutorService executor, ExecutorService scheduler) {
+  private void shutdownNicely(AtomicBoolean doneFlag, Map<String, ExecutorService> executors, ExecutorService scheduler) {
     doneFlag.set(true);
-    executor.shutdown();
+    for (ExecutorService executor : executors.values()) {
+      executor.shutdown();
+    }
     scheduler.shutdown();
   }
 }

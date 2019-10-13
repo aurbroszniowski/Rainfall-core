@@ -20,7 +20,11 @@ import io.rainfall.utils.RangeMap;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import static io.rainfall.configuration.ConcurrencyConfig.defaultThreadpoolname;
 
 /**
  * This is the main class, defining the DSL of the test scenario
@@ -31,28 +35,44 @@ import java.util.List;
 public class Scenario {
 
   private String name;
-  private final List<RangeMap<WeightedOperation>> operations = new ArrayList<>();
+  private final Map<String, RangeMap<WeightedOperation>> operations = new HashMap<>();
 
   public Scenario(final String name) {
     this.name = name;
   }
 
   public Scenario exec(final WeightedOperation... operations) {
-    RangeMap<WeightedOperation> operationRangeMap = new RangeMap<WeightedOperation>();
+    return exec(defaultThreadpoolname, operations);
+  }
+
+  public Scenario exec(final String threadpoolName, final WeightedOperation... operations) {
+    if (this.operations.containsKey(threadpoolName)) {
+      throw new IllegalArgumentException("The threadpool " + threadpoolName + " has already been defined for a scenario execution.");
+    }
+
+    RangeMap<WeightedOperation> operationRangeMap = new RangeMap<>();
     for (WeightedOperation operation : operations) {
       operationRangeMap.put(operation.getWeight(), operation);
     }
-    this.operations.add(operationRangeMap);
+    this.operations.put(threadpoolName, operationRangeMap);
     return this;
   }
 
   public Scenario exec(final Operation... operations) {
+    return exec(defaultThreadpoolname, operations);
+  }
+
+  public Scenario exec(final String threadpoolName, final Operation... operations) {
+    if (this.operations.containsKey(threadpoolName)) {
+      throw new IllegalArgumentException("The threadpool " + threadpoolName + " has already been defined for a scenario execution.");
+    }
+
     RangeMap<WeightedOperation> operationRangeMap = new RangeMap<WeightedOperation>();
     for (Operation operation : operations) {
       float percent = 1.0f / operations.length;
       operationRangeMap.put(percent, new WeightedOperation((double)percent, operation));
     }
-    this.operations.add(operationRangeMap);
+    this.operations.put(threadpoolName, operationRangeMap);
     return this;
   }
 
@@ -60,21 +80,20 @@ public class Scenario {
     return new Scenario(name);
   }
 
-  public List<RangeMap<WeightedOperation>> getOperations() {
+  public Map<String, RangeMap<WeightedOperation>> getOperations() {
     return this.operations;
   }
 
   public List<String> getDescription() {
     List<String> desc = new ArrayList<String>();
     desc.add("Scenario : " + name);
-    int step = 1;
-    for (RangeMap<WeightedOperation> operationMap : operations) {
-      desc.add("Step " + step + ")");
+    for (String threadpoolName : operations.keySet()) {
+      RangeMap<WeightedOperation> operationMap = this.operations.get(threadpoolName);
+      desc.add("Threadpool [" + threadpoolName + "]");
       Collection<WeightedOperation> parallelOperations = operationMap.getAll();
       for (WeightedOperation operation : parallelOperations) {
         desc.addAll(operation.getDescription());
       }
-      step++;
     }
     return desc;
   }
@@ -82,10 +101,4 @@ public class Scenario {
   public static WeightedOperation weighted(Double weight, Operation operation) {
     return new WeightedOperation(weight, operation);
   }
-
-  public static WeightedOperation fixed(Operation operation) {
-    return new WeightedOperation(operation); //TODO : fixed thread
-  }
-
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 Aurélien Broszniowski
+ * Copyright (c) 2014-2019 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,8 @@ import java.util.concurrent.Executors;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
+ * executes the operations an amount of times
+ *
  * @author Aurelien Broszniowski
  */
 
@@ -43,6 +45,10 @@ public class Times extends Execution {
 
   private final long occurrences;
 
+  /*
+   * @param occurrences amount of times that the operations will be executed
+   *
+   */
   public Times(final long occurrences) {
     this.occurrences = occurrences;
   }
@@ -54,38 +60,52 @@ public class Times extends Execution {
 
     DistributedConfig distributedConfig = (DistributedConfig)configurations.get(DistributedConfig.class);
     ConcurrencyConfig concurrencyConfig = (ConcurrencyConfig)configurations.get(ConcurrencyConfig.class);
-    final int threadCount = concurrencyConfig.getThreadCount();
 
-    ExecutorService executor = Executors.newFixedThreadPool(threadCount);
     markExecutionState(scenario, ExecutionState.BEGINNING);
 
+    final Map<String, ExecutorService> executors = concurrencyConfig.createFixedExecutorService();
+    for (final String threadpoolName : executors.keySet()) {
+      final int threadCount = concurrencyConfig.getThreadCount(threadpoolName);
+      final ExecutorService executor = executors.get(threadpoolName);
+
     for (int threadNb = 0; threadNb < threadCount; threadNb++) {
-      final long max = concurrencyConfig.getIterationCountForThread(distributedConfig, threadNb, occurrences);
+      final long max = concurrencyConfig.getIterationCountForThread(threadpoolName, distributedConfig, threadNb, occurrences);
       executor.submit(new Callable() {
 
         @Override
         public Object call() throws Exception {
           Thread.currentThread().setName("Rainfall-core Operations Thread");
-          List<RangeMap<WeightedOperation>> operations = scenario.getOperations();
+          RangeMap<WeightedOperation> operations = scenario.getOperations().get(threadpoolName);
           for (long i = 0; i < max; i++) {
-            for (RangeMap<WeightedOperation> operation : operations) {
-              operation.get(weightRnd.nextFloat(operation.getHigherBound()))
+              operations.getNextRandom(weightRnd)
                   .getOperation().exec(statisticsHolder, configurations, assertions);
-            }
           }
           return null;
         }
       });
     }
+    }
+
+
     concurrencyConfig.clearIterationCountForThread();
     //TODO : it is submitted enough but not everything has finished to run when threads are done -> how to solve Coordinated Omission ?
     markExecutionState(scenario, ExecutionState.ENDING);
-    executor.shutdown();
+    for (ExecutorService executor : executors.values()) {
+      executor.shutdown();
+    }
+
     try {
-      long timeoutInSeconds = ((ConcurrencyConfig)configurations.get(ConcurrencyConfig.class)).getTimeoutInSeconds();
-      boolean success = executor.awaitTermination(timeoutInSeconds, SECONDS);
+      boolean success = true;
+      for (ExecutorService executor : executors.values()) {
+        boolean executorSuccess = executor.awaitTermination(60, SECONDS);
+        if (!executorSuccess) {
+          executor.shutdownNow();
+          success &= executor.awaitTermination(60, SECONDS);
+        }
+      }
+
       if (!success) {
-        throw new TestException("Execution of Scenario timed out after " + timeoutInSeconds + " seconds.");
+        throw new TestException("Execution of Scenario timed out.");
       }
     } catch (InterruptedException e) {
       throw new TestException("Execution of Scenario didn't stop correctly.", e);
