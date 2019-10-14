@@ -81,11 +81,6 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> extends StatisticsHolder
     return this.histograms.fetchHistogram(result);
   }
 
-  public void addStatistics(String name, Statistics<E> statistics) {
-    this.statistics.put(name, statistics);
-    this.assertionsErrors.put(name, new LongAdder());
-  }
-
   @Override
   public synchronized void reset() {
     for (Statistics<E> statistics : this.statistics.values()) {
@@ -105,7 +100,15 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> extends StatisticsHolder
 
   @Override
   public void record(final String name, final long responseTimeInNs, final Enum result) {
-    this.statistics.get(name).increaseCounterAndSetLatencyInNs(result, responseTimeInNs);
+    Statistics<E> eStatistics = this.statistics.get(name);
+    if (eStatistics == null) {
+      final Statistics<E> statistics = new Statistics<>(name, results);
+      eStatistics = this.statistics.putIfAbsent(name, statistics);
+      if (eStatistics == null) {
+        eStatistics = statistics;
+      }
+    }
+    eStatistics.increaseCounterAndSetLatencyInNs(result, responseTimeInNs);
     histograms.recordValue(result, responseTimeInNs);
   }
 

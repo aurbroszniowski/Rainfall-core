@@ -19,13 +19,11 @@ package io.rainfall;
 import io.rainfall.configuration.ConcurrencyConfig;
 import io.rainfall.configuration.DistributedConfig;
 import io.rainfall.configuration.ReportingConfig;
-import io.rainfall.reporting.Reporter;
 import io.rainfall.reporting.PeriodicReporter;
-import io.rainfall.statistics.InitStatisticsHolder;
+import io.rainfall.reporting.Reporter;
 import io.rainfall.statistics.RuntimeStatisticsHolder;
 import io.rainfall.statistics.StatisticsPeekHolder;
 import io.rainfall.statistics.StatisticsThread;
-import io.rainfall.utils.RangeMap;
 import io.rainfall.utils.distributed.RainfallClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +32,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -113,16 +110,11 @@ public class ScenarioRun<E extends Enum<E>> {
     //TODO : add generics ? cast?
     ReportingConfig<E> reportingConfig = (ReportingConfig<E>)configurations.get(ReportingConfig.class);
 
-    //TODO change this, this is ugly
-    // we need to call all operations to init the 'names', measured, should the 'name' be the key of the maps or instead
-    // be inside of the Statistics, and the key would be operation result
-    // besides, we end up having to initialize two stats holder, one real, and one blank for warmup phase, it's ugly
-    RuntimeStatisticsHolder<E> blankStatisticsHolder = new RuntimeStatisticsHolder<E>(reportingConfig.getResults(), reportingConfig
-        .getResultsReported(), reportingConfig.getStatisticsCollectors());
-    initStatistics(blankStatisticsHolder);
 
     try {
       if (warmup != null) {
+        RuntimeStatisticsHolder<E> blankStatisticsHolder = new RuntimeStatisticsHolder<E>(reportingConfig.getResults(), reportingConfig
+            .getResultsReported(), reportingConfig.getStatisticsCollectors());
         System.out.println("Executing warmup phase, please wait.");
         warmup.execute(blankStatisticsHolder, scenario, configurations, assertions);
       }
@@ -132,11 +124,10 @@ public class ScenarioRun<E extends Enum<E>> {
 
     this.statisticsHolder = new RuntimeStatisticsHolder<E>(reportingConfig.getResults(), reportingConfig.getResultsReported(),
         reportingConfig.getStatisticsCollectors());
-    initStatistics(this.statisticsHolder);
 
     final Set<Reporter<E>> logReporters = reportingConfig.getLogReporters();
     ScheduledExecutorService topOfSecondExecutor = Executors.newScheduledThreadPool(logReporters.size(), new CustomThreadFactory());
-    StatisticsThread<E>  stats = null;
+    StatisticsThread<E> stats = null;
     StatisticsPeekHolder<E> peek = null;
     try {
       stats = new StatisticsThread<E>(statisticsHolder, reportingConfig, getDescription(),
@@ -258,20 +249,6 @@ public class ScenarioRun<E extends Enum<E>> {
       }
     }
     return description;
-  }
-
-  private void initStatistics(RuntimeStatisticsHolder<E> statisticsHolder) {
-    try {
-      for (RangeMap<WeightedOperation> operation : scenario.getOperations().values()) {
-        Collection<WeightedOperation> allOperations = operation.getAll();
-        for (WeightedOperation allOperation : allOperations) {
-          allOperation.getOperation()
-              .exec(new InitStatisticsHolder<E>(statisticsHolder), this.configurations, this.assertions);
-        }
-      }
-    } catch (TestException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   public Scenario getScenario() {

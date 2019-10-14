@@ -19,7 +19,6 @@ package io.rainfall.integration;
 import io.rainfall.configuration.ReportingConfig;
 import io.rainfall.reporting.Reporter;
 import io.rainfall.statistics.RuntimeStatisticsHolder;
-import io.rainfall.statistics.Statistics;
 import io.rainfall.utils.SystemTest;
 import org.HdrHistogram.Histogram;
 import org.junit.Ignore;
@@ -60,7 +59,6 @@ public class StatsTest {
     );
 
     String name = "MY_TEST";
-    statisticsHolder.addStatistics(name, new Statistics<StatsTestResult>(name, statisticsHolder.getResults()));
 
     TimeUnit reportIntervalUnit = reportingConfig.getReportTimeUnit();
     long reportIntervalMillis = reportIntervalUnit.toMillis(reportingConfig.getReportInterval());
