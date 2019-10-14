@@ -50,7 +50,7 @@ public class ReportingConfig<E extends Enum<E>> extends Configuration {
   private TimeUnit reportIntervalUnit = TimeUnit.MILLISECONDS;
 
   private final Set<Reporter<E>> logReporters = new HashSet<Reporter<E>>();
-  private final Set<StatisticsCollector> statisticsCollectors = new HashSet<StatisticsCollector>();
+  private final Set<StatisticsCollector> statisticsCollectors = new HashSet<>();
 
   public ReportingConfig(Enum<E>[] results, Enum<E>[] resultsReported) {
     this.results = results;
