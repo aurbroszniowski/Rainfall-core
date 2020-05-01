@@ -28,6 +28,7 @@ import io.rainfall.utils.distributed.RainfallClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -186,6 +187,17 @@ public class ScenarioRun<E extends Enum<E>> {
         throw new RuntimeException(e);
       }
     }
+
+    for (Configuration configuration : configurations.values()) {
+      if (configuration instanceof Closeable) {
+        try {
+          ((Closeable)configuration).close();
+        } catch (IOException e) {
+          logger.warn("Error closing configuration {}", configuration, e);
+        }
+      }
+    }
+
     return peek;
   }
 
