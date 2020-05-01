@@ -134,7 +134,7 @@ public class CompressionUtils {
     if (jarFile.isFile()) {  // Run with JAR file
       extractFromJar(sources, dest);
     } else {
-      extractFromPath(new File(HtmlReporter.class.getClass().getResource(sources).toURI()), new File(dest));
+      extractFromPath(new File(HtmlReporter.class.getResource(sources).toURI()), new File(dest));
     }
   }
 
@@ -224,7 +224,7 @@ public class CompressionUtils {
   }
 
   public void extractReportTemplateToFile(String inputTemplate, File outputFile) throws IOException {
-    InputStream in = PeriodicHlogReporter.class.getClass().getResourceAsStream(inputTemplate);
+    InputStream in = PeriodicHlogReporter.class.getResourceAsStream(inputTemplate);
     OutputStream out = new FileOutputStream(outputFile);
     byte[] buffer = new byte[1024];
     int len = in.read(buffer);
