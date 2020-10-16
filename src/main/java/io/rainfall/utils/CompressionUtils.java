@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 Aurélien Broszniowski
+ * Copyright (c) 2014-2020 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -273,7 +273,7 @@ public class CompressionUtils {
    * @param filename path of the file to change
    * @param marker   marker String in file to be replace
    * @param sb       StringBuilder that has the content to put instead of the marker
-   * @throws IOException
+   * @throws IOException in case of IO file issue
    */
   public void substituteInFile(final String filename, final String marker, final StringBuilder sb) throws IOException {
     final InputStream in = new FileInputStream(filename);

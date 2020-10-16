@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019 Aurélien Broszniowski
+ * Copyright (c) 2014-2020 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,21 +24,21 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A peek at the {@link io.rainfall.statistics.Statistics}, used for statistics inspection.
- * <p/>
+ *
  * Holds the:
- * <p/>
+ *
  * - timestamp
- * <p/>
+ *
  * - periodic average latency (periodic average latency for one observed domain)
  * - cumulative average latency (cumulative average latency for one observed domain)
  * - total periodic average latency (periodic average latency for all observed domains)
  * - total cumulative average latency (cumulative average latency for one observed domain)
- * <p/>
+ *
  * - periodic counter (periodic nb of operations for one observed domain)
  * - cumulative counter (cumulative nb of operations for one observed domain)
  * - total periodic counter (periodic nb of operations for all observed domains)
  * - total cumulative counter (cumulative nb of operations for one observed domain)
- * <p/>
+ *
  * - periodic TPS (periodic TPS for one observed domain)
  * - cumulative TPS (cumulative TPS for one observed domain)
  * - total periodic TPS (periodic TPS for all observed domains)
@@ -138,13 +138,13 @@ public class StatisticsPeek<E extends Enum<E>> {
 
   /**
    * Add all statisticPeeks values:
-   *   periodic TPS
-   *   periodic Response time
-   *   Histograms
+   * periodic TPS
+   * periodic Response time
+   * Histograms
+   * <p>
+   * TODO : remove cumulative counter, since it is useless now
    *
-   *   TODO : remove cumulative counter, since it is useless now
-   *
-   * @param statisticsPeeks
+   * @param statisticsPeeks snapshot of the statistics at reporting interval
    */
 
   public void addAll(final Map<String, StatisticsPeek<E>> statisticsPeeks) {

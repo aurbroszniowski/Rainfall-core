@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019 Aurélien Broszniowski
+ * Copyright (c) 2014-2020 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package io.rainfall.utils;
 
-import io.rainfall.WeightedOperation;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -30,17 +28,17 @@ import java.util.Map;
  * map.put(0.10, "value1");
  * map.put(0.20, "value2");
  * map.put(0.15, "value3");
- * <p/>
+ *
  * The value1 can be fetched for a value between 0.0 (inclusive) and 0.10 (exclusive)
- * <p/>
+ *
  * Next, the lower value of the range is the higher value of the previous key (0.10), and the higher range will be the
  * lower range value + the key value (0.10 + 0.20)
  * the value2 can be fetched for a key between 0.10 (inclusive) and 0.30 (exclusive).
- * <p/>
+ *
  * Next, the lower value of the range is the higher value of the previous key (0.30), and the higher range will be the
  * lower range value + the key value (0.30 + 0.15)
  * the value3 can be fetched for a key between 0.30 (inclusive) and 0.45 (exclusive).
- * <p/>
+ *
  * Fetching a value for a key higher than 0.45 will return null
  *
  * @author Aurelien Broszniowski

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019 Aurélien Broszniowski
+ * Copyright (c) 2014-2020 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * TODO : changer le weight system -> on a soit -1 = 1 thread, ou calculler weights  -> public Scenario exec(final WeightedOperation... operations) {
- * TODO : RuntimestatisticsHolder -> virer l'interface et ne pas faire de pre-run
+ * TODO : changer le weight system: on a soit -1 = 1 thread, ou calculler weights:  public Scenario exec(final WeightedOperation... operations) {
+ * TODO : RuntimestatisticsHolder: virer l'interface et ne pas faire de pre-run
  *
  * @author Aurelien Broszniowski
  */

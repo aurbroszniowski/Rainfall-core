@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019 Aurélien Broszniowski
+ * Copyright (c) 2014-2020 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,9 @@ public abstract class Execution {
 
   /**
    * Provide an easy way to mark all operations as underway.
+   *
+   * @param scenario the test scenario
+   * @param state    phase of execution of the scenario
    */
   public void markExecutionState(Scenario scenario, ExecutionState state) {
     final Map<String, RangeMap<WeightedOperation>> scenarioOperations = scenario.getOperations();
