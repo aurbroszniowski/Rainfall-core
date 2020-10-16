@@ -1,7 +1,7 @@
 Rainfall
 ========
 
-Rainfall is an extensible java framework to implement custom DSL based stress and performance tests in your application.
+Rainfall is an extensible java 1.8+ framework to implement custom DSL based stress and performance tests in your application.
 
 The goal is to provide all best practices of performance testing within a library so you do not need to reimplement them. 
 
@@ -94,7 +94,7 @@ A certain number of those classes are already implemented and available for your
 
 Build the project
 -----------------
-Rainfall is supported on Java 7, 8 and 9
+Rainfall is supported on Java 8 and higher
 ```maven
   mvn clean install
 ```
