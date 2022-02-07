@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 Aurélien Broszniowski
+ * Copyright (c) 2014-2022 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ public class To extends UnitMeasurement {
   }
 
   @Override
-  public String getDescription() {
-    return "to " + super.getDescription();
+  public String toString() {
+    return "to " + super.toString();
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019 Aurélien Broszniowski
+ * Copyright (c) 2014-2022 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -158,9 +158,9 @@ public class InParallel extends Execution {
   }
 
   @Override
-  public String getDescription() {
-    return nb + " " + unit.getDescription()
-           + " every " + every.getDescription() + " during " + during.getDescription();
+  public String toString() {
+    return nb + " " + unit.toString()
+           + " every " + every.toString() + " during " + during.toString();
   }
 
   private void shutdownNicely(AtomicBoolean doneFlag, Map<String, ScheduledExecutorService> executors) {

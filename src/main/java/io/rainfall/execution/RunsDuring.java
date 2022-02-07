@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019 Aurélien Broszniowski
+ * Copyright (c) 2014-2022 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import io.rainfall.unit.TimeDivision;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -70,18 +69,14 @@ public class RunsDuring extends Execution {
       final int threadCount = concurrencyConfig.getThreadCount(threadpoolName);
 
       for (int threadNb = 0; threadNb < threadCount; threadNb++) {
-        Future<Void> future = executors.get(threadpoolName).submit(new Callable<Void>() {
+        Future<Void> future = executors.get(threadpoolName).submit(() -> {
+          Thread.currentThread().setName("Rainfall-core Operations Thread");
 
-          @Override
-          public Void call() throws Exception {
-            Thread.currentThread().setName("Rainfall-core Operations Thread");
-
-            while (!Thread.currentThread().isInterrupted() && !doneFlag.get()) {
-              scenario.getOperations().get(threadpoolName).getNextRandom(weightRnd)
-                  .getOperation().exec(statisticsHolder, configurations, assertions);
-            }
-            return null;
+          while (!Thread.currentThread().isInterrupted() && !doneFlag.get()) {
+            scenario.getOperations().get(threadpoolName).getNextRandom(weightRnd)
+                .getOperation().exec(statisticsHolder, configurations, assertions);
           }
+          return null;
         });
         futures.add(future);
       }
@@ -140,8 +135,8 @@ public class RunsDuring extends Execution {
   }
 
   @Override
-  public String getDescription() {
-    return "" + during.getDescription();
+  public String toString() {
+    return "" + during.toString();
   }
 
   private void shutdownNicely(AtomicBoolean doneFlag, Map<String, ExecutorService> executors, ExecutorService scheduler) {

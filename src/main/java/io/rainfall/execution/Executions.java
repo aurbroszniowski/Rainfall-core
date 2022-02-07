@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019 Aurélien Broszniowski
+ * Copyright (c) 2014-2022 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import io.rainfall.unit.Over;
 import io.rainfall.unit.TimeDivision;
 import io.rainfall.unit.To;
 
+import java.util.function.Function;
+
 /**
  * @author Aurelien Broszniowski
  */
@@ -38,8 +40,8 @@ public class Executions {
     return new Times(occurrences);
   }
 
-  public static InParallel inParallel(int nb, Unit unit, Every every, Over over) {
-    return new InParallel(nb, unit, every, over);
+  public static InParallel inParallel(int count, Unit unit, Every every, Over over) {
+    return new InParallel(count, unit, every, over);
   }
 
   public static NothingFor nothingFor(int nb, TimeDivision timeDivision) {
@@ -50,7 +52,19 @@ public class Executions {
     return new Ramp(from, to, over);
   }
 
+  public static SineRamp sineRamp(From from, To to, Over over) {
+    return new SineRamp(from, to, over);
+  }
+
   public static RunsDuring during(int nb, TimeDivision timeDivision) {
     return new RunsDuring(nb, timeDivision);
+  }
+
+  public static Repeat repeat(int executionCount, Execution... executions) {
+    return new Repeat(executionCount, executions);
+  }
+
+  public static Pattern pattern(From from, To to, Over over, Function<Integer, Long> function) {
+    return new Pattern(from, to, over, function);
   }
 }

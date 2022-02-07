@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019 Aurélien Broszniowski
+ * Copyright (c) 2014-2022 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ public class TimeMeasurement implements Unit {
   }
 
   @Override
-  public String getDescription() {
-    return count + " " + timeDivision.getDescription();
+  public String toString() {
+    return count + " " + timeDivision.toString();
   }
 }

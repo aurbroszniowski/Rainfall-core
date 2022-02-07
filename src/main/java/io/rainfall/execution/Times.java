@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019 Aurélien Broszniowski
+ * Copyright (c) 2014-2022 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -113,7 +112,7 @@ public class Times extends Execution {
   }
 
   @Override
-  public String getDescription() {
+  public String toString() {
     return occurrences + " occurences";
   }
 }

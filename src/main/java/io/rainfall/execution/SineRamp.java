@@ -14,23 +14,28 @@
  * limitations under the License.
  */
 
-package io.rainfall.unit;
+package io.rainfall.execution;
+
+import io.rainfall.unit.From;
+import io.rainfall.unit.Over;
+import io.rainfall.unit.To;
 
 /**
  * @author Aurelien Broszniowski
  */
-public class Over extends TimeMeasurement {
+public class SineRamp extends Pattern {
 
-  public static Over over(int count, TimeDivision timeDivision) {
-    return new Over(count, timeDivision);
-  }
-
-  public Over(int count, TimeDivision timeDivision) {
-    super(count, timeDivision);
+  public SineRamp(From from, To to, Over over) {
+    super(from, to, over, (it) -> {
+      Double delayBetweenAddingThread = over.getNbInMs() / Math.abs(to.getCount() - from.getCount());
+      return new Double((Math.sin(it) / 2 + 0.5) * delayBetweenAddingThread).longValue();
+    });
   }
 
   @Override
   public String toString() {
-    return "over " + super.toString();
+    return "Sine Ramp from " + from.toString() + " to "
+           + to.toString() + " over " + over.toString();
   }
+
 }

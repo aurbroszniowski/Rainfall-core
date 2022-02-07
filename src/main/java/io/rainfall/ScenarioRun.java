@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019 Aurélien Broszniowski
+ * Copyright (c) 2014-2022 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -231,13 +231,13 @@ public class ScenarioRun<E extends Enum<E>> {
     description.add("");
 
     if (warmup != null) {
-      description.add("Warmup phase " + this.warmup.getDescription());
+      description.add("Warmup phase " + this.warmup.toString());
     }
 
     description.add("Execution of the scenario : ");
     int step = 1;
     for (Execution execution : executions) {
-      description.add(step + ") " + execution.getDescription());
+      description.add(step + ") " + execution.toString());
     }
 
     description.add("");

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019 Aurélien Broszniowski
+ * Copyright (c) 2014-2022 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package io.rainfall.execution;
 import io.rainfall.AssertionEvaluator;
 import io.rainfall.Configuration;
 import io.rainfall.Scenario;
-import io.rainfall.TestException;
 import io.rainfall.configuration.ConcurrencyConfig;
 import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.unit.From;
@@ -51,7 +50,36 @@ import static org.mockito.Mockito.when;
 public class RampTest {
 
   @Test
-  public void testNormalRampup() throws TestException {
+  public void testRampDown() {
+    int startThreadCount = 8;
+    int maxThreadCount = startThreadCount - 4;
+    int executionLength = 8;
+
+    final Ramp ramp = new Ramp(From.from(startThreadCount, Instance.instances), To.to(maxThreadCount, Instance.instances), Over
+        .over(executionLength, TimeDivision.seconds));
+
+    StatisticsHolder statisticsHolder = mock(StatisticsHolder.class);
+    Scenario scenario = mock(Scenario.class);
+    Map<Class<? extends Configuration>, Configuration> configurations = new HashMap<>();
+    ConcurrencyConfig concurrencyConfig = mock(ConcurrencyConfig.class);
+    Map<String, ScheduledExecutorService> schedulers = new HashMap<>();
+    ScheduledExecutorService scheduler = mock(ScheduledExecutorService.class);
+    schedulers.put(ConcurrencyConfig.defaultThreadpoolname, scheduler);
+    when(concurrencyConfig.createScheduledExecutorService()).thenReturn(schedulers);
+    configurations.put(ConcurrencyConfig.class, concurrencyConfig);
+
+    List<AssertionEvaluator> assertions = new ArrayList<>();
+
+    ramp.scheduleThreads(statisticsHolder, scenario, configurations, assertions, new AtomicBoolean(), schedulers);
+
+    verify(scheduler).schedule(any(Callable.class), eq(8000L), eq(TimeUnit.MILLISECONDS));
+    verify(scheduler).schedule(any(Callable.class), eq(6000L), eq(TimeUnit.MILLISECONDS));
+    verify(scheduler).schedule(any(Callable.class), eq(4000L), eq(TimeUnit.MILLISECONDS));
+    verify(scheduler).schedule(any(Callable.class), eq(2000L), eq(TimeUnit.MILLISECONDS));
+  }
+
+  @Test
+  public void testRampUp() {
     int startThreadCount = 2;
     int maxThreadCount = startThreadCount + 4;
     int executionLength = 8;
@@ -77,8 +105,6 @@ public class RampTest {
     verify(scheduler).schedule(any(Callable.class), eq(2000L), eq(TimeUnit.MILLISECONDS));
     verify(scheduler).schedule(any(Callable.class), eq(4000L), eq(TimeUnit.MILLISECONDS));
     verify(scheduler).schedule(any(Callable.class), eq(6000L), eq(TimeUnit.MILLISECONDS));
-
   }
-
 
 }
