@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019 Aurélien Broszniowski
+ * Copyright (c) 2014-2022 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,33 +25,21 @@ import io.rainfall.statistics.exporter.HtmlExporter;
 import io.rainfall.utils.CompressionUtils;
 import org.HdrHistogram.Histogram;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Writer;
-import java.net.JarURLConnection;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import static io.rainfall.utils.CompressionUtils.CRLF;
 import static io.rainfall.utils.CompressionUtils.cleanFilename;
@@ -236,7 +224,7 @@ public class HtmlReporter<E extends Enum<E>> extends FileReporter<E> {
    * TODO : We know what is reported after hand (what domains are reported, e.g. cache1, cache2)
    * TODO : We should define this during the constructor, we should be able to know what domain is going to be reported
    */
-  private void copyReportTemplate(final StatisticsHolder<E> peek) throws IOException, URISyntaxException {
+  private void copyReportTemplate(final StatisticsHolder<E> peek) throws IOException {
     Set<String> names = peek.getStatisticsKeys();
     StringBuilder sb = new StringBuilder();
     // Periodic

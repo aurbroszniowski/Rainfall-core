@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019 Aurélien Broszniowski
+ * Copyright (c) 2014-2022 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,17 +23,11 @@ import org.HdrHistogram.Histogram;
 import org.HdrHistogram.HistogramLogWriter;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static io.rainfall.utils.CompressionUtils.CRLF;
@@ -97,19 +91,19 @@ public class PeriodicHlogReporter<E extends Enum<E>> extends FileReporter<E> {
   }
 
   @Override
-  public void report(final StatisticsPeekHolder<E> statisticsHolder) {
+  public void report(final StatisticsPeekHolder<E> statisticsPeekHolder) {
     long now = System.currentTimeMillis();
 
-    Enum<E>[] results = statisticsHolder.getResultsReported();
+    Enum<E>[] results = statisticsPeekHolder.getResultsReported();
     for (Enum<E> result : results) {
-      Histogram histogram = statisticsHolder.fetchHistogram(result);
+      Histogram histogram = statisticsPeekHolder.fetchHistogram(result);
       Histogram copy = histogram.copy();
       histogram.setEndTimeStamp(now);
 
       Holder previous = this.previous.get(result);
       if (previous == null) {
         try {
-          histogram.setStartTimeStamp(startTs);
+          histogram.setStartTimeStamp(statisticsPeekHolder.getStartTime());
           previous = new Holder();
           previous.previousTs = startTs;
           File hlogFile = new File(this.basedir + File.separatorChar + buildHlogFilename(result.name()));

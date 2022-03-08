@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019 Aurélien Broszniowski
+ * Copyright (c) 2014-2022 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import io.rainfall.statistics.collector.StatisticsCollector;
 import io.rainfall.statistics.exporter.Exporter;
 import org.HdrHistogram.Histogram;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,6 +32,7 @@ public class StatisticsPeekHolder<E extends Enum<E>> {
   private final Enum<E>[] resultsReported;
   private final ConcurrentHashMap<String, LongAdder> assertionsErrors;
   private final RainfallHistogramSink<E> histograms;
+  private final long startTime;
 
   private Map<String, StatisticsPeek<E>> statisticsPeeks = new ConcurrentHashMap<String, StatisticsPeek<E>>();
   private Map<String, Exporter> extraCollectedStatistics = new ConcurrentHashMap<String, Exporter>();
@@ -41,10 +41,12 @@ public class StatisticsPeekHolder<E extends Enum<E>> {
 
   public StatisticsPeekHolder(final Enum<E>[] resultsReported, final Map<String, Statistics<E>> statisticsMap,
                               final Set<StatisticsCollector> statisticsCollectors,
-                              final ConcurrentHashMap<String, LongAdder> assertionsErrors, RainfallHistogramSink<E> histograms) {
+                              final ConcurrentHashMap<String, LongAdder> assertionsErrors, RainfallHistogramSink<E> histograms,
+                              long startTime) {
     this.resultsReported = resultsReported;
     this.assertionsErrors = assertionsErrors;
     this.histograms = histograms;
+    this.startTime = startTime;
     this.timestamp = System.currentTimeMillis();
     for (String name : statisticsMap.keySet()) {
       statisticsPeeks.put(name, statisticsMap.get(name).peek(timestamp));
@@ -73,6 +75,10 @@ public class StatisticsPeekHolder<E extends Enum<E>> {
 
   public long getTimestamp() {
     return timestamp;
+  }
+
+  public long getStartTime() {
+    return startTime;
   }
 
   public Enum<E>[] getResultsReported() {

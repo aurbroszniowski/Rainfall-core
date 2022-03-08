@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Aurélien Broszniowski
+ * Copyright (c) 2014-2022 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,8 +44,13 @@ public abstract class StatisticsHolder<E extends Enum<E>> {
 
   public abstract void increaseAssertionsErrorsCount(String name);
 
+  public abstract void pause();
+
+  public abstract void resume();
+
   public long getTimeInNs() {
     return System.nanoTime();
   }
 
+  public abstract long getStartTime();
 }

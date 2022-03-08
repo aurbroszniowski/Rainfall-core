@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019 Aurélien Broszniowski
+ * Copyright (c) 2014-2022 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import org.HdrHistogram.HistogramLogWriter;
 
 import java.io.File;
 import java.io.PrintStream;
-import java.lang.management.ManagementFactory;
 import java.util.List;
 
 import static io.rainfall.utils.CompressionUtils.cleanFilename;
@@ -56,7 +55,8 @@ public class HlogReporter<E extends Enum<E>> extends FileReporter<E> {
   @Override
   public void summarize(final StatisticsHolder<E> statisticsHolder) {
     // dump raw histograms as hlog files
-    long startTime = ManagementFactory.getRuntimeMXBean().getStartTime();
+    long startTime = statisticsHolder.getStartTime(); // ManagementFactory.getRuntimeMXBean().getStartTime();
+
     long endTime = System.currentTimeMillis();
     try {
       Enum<E>[] results = statisticsHolder.getResultsReported();

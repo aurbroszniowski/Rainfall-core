@@ -113,9 +113,11 @@ public class ScenarioRun<E extends Enum<E>> {
 
     try {
       if (warmup != null) {
+        logger.error("This Warmup syntax is deprecated, please use the syntax:  Runner.setUp(scenario)\n" +
+                     "        .executed(warmup(during(30, seconds)), during(60, seconds))");
         RuntimeStatisticsHolder<E> blankStatisticsHolder = new RuntimeStatisticsHolder<E>(reportingConfig.getResults(), reportingConfig
             .getResultsReported(), reportingConfig.getStatisticsCollectors());
-        System.out.println("Executing warmup phase, please wait.");
+        logger.info("Executing warmup phase, please wait.");
         warmup.execute(blankStatisticsHolder, scenario, configurations, assertions);
       }
     } catch (TestException e) {
@@ -146,14 +148,20 @@ public class ScenarioRun<E extends Enum<E>> {
           topOfSecondExecutor.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-              logReporter.report(statisticsHolder.peek());
+              final StatisticsPeekHolder<E> statisticsPeekHolder = statisticsHolder.peek();
+              if (statisticsPeekHolder != null) {
+                logReporter.report(statisticsPeekHolder);
+              }
             }
           }, delay, ((PeriodicReporter)logReporter).getReportingIntervalInMillis(), TimeUnit.MILLISECONDS);
         } else {
           topOfSecondExecutor.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-              logReporter.report(statisticsHolder.peek());
+              final StatisticsPeekHolder<E> statisticsPeekHolder = statisticsHolder.peek();
+              if (statisticsPeekHolder != null) {
+                logReporter.report(statisticsPeekHolder);
+              }
             }
           }, delay, reportIntervalMillis, TimeUnit.MILLISECONDS);
         }

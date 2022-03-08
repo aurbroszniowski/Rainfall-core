@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019 Aurélien Broszniowski
+ * Copyright (c) 2014-2022 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,8 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> extends StatisticsHolder
   private final Set<StatisticsCollector> statisticsCollectors;
   private Enum<E>[] results;
   private Enum<E>[] resultsReported;
+  private volatile boolean running;
+  private long startTime = System.currentTimeMillis();
 
   public RuntimeStatisticsHolder(final Enum<E>[] results, final Enum<E>[] resultsReported,
                                  final Set<StatisticsCollector> statisticsCollectors) {
@@ -51,6 +53,7 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> extends StatisticsHolder
         return histograms;
       }
     });
+    this.running = true;
   }
 
   public Enum<E>[] getResults() {
@@ -117,8 +120,29 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> extends StatisticsHolder
     assertionsErrors.get(name).increment();
   }
 
+  @Override
+  public void pause() {
+    this.running = false;
+  }
+
+  @Override
+  public void resume() {
+    this.running = true;
+    this.startTime = System.currentTimeMillis();
+    System.out.println("--> set" + startTime);
+  }
+
+  @Override
+  public long getStartTime() {
+    return this.startTime;
+  }
+
   public StatisticsPeekHolder<E> peek() {
-    return new StatisticsPeekHolder<E>(this.resultsReported, this.statistics, this.statisticsCollectors,
-        this.assertionsErrors, histograms);
+    if (running) {
+      return new StatisticsPeekHolder<E>(this.resultsReported, this.statistics, this.statisticsCollectors,
+          this.assertionsErrors, histograms, this.startTime);
+    } else {
+      return null;
+    }
   }
 }

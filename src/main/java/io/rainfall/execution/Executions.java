@@ -60,6 +60,10 @@ public class Executions {
     return new RunsDuring(nb, timeDivision);
   }
 
+  public static WarmUp warmup(RunsDuring during) {
+    return new WarmUp(during);
+  }
+
   public static Repeat repeat(int executionCount, Execution... executions) {
     return new Repeat(executionCount, executions);
   }
