@@ -34,28 +34,28 @@ import java.util.Map;
  */
 public class WarmUp extends Execution {
 
-  private final RunsDuring during;
-  private final StatisticsHolder blankStatsHolder;
-
+  private final Execution execution;
+  private final StatisticsHolder blankStatsHolder = new WarmUpStatisticsHolder();
 
   public WarmUp(RunsDuring during) {
-    this.during = during;
-    blankStatsHolder = new WarmUpStatisticsHolder();
+    this.execution = during;
+  }
+
+  public WarmUp(Times times) {
+    this.execution = times;
   }
 
   @Override
   public <E extends Enum<E>> void execute(final StatisticsHolder<E> statisticsHolder, final Scenario scenario,
                                           final Map<Class<? extends Configuration>, Configuration> configurations,
                                           final List<AssertionEvaluator> assertions) throws TestException {
-    System.out.println(" 88 88 8 8 8 8 8 88  WARM UP  S TART");
     statisticsHolder.pause();
-    this.during.execute(blankStatsHolder, scenario, configurations, assertions);
+    this.execution.execute(blankStatsHolder, scenario, configurations, assertions);
     statisticsHolder.resume();
-    System.out.println(" 88 88 8 8 8 8 8 88  WARM UP  STOOOPPP");
   }
 
   @Override
   public String toString() {
-    return "" + during.toString();
+    return "" + execution.toString();
   }
 }
