@@ -30,7 +30,6 @@ import io.rainfall.utils.RangeMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -73,7 +72,7 @@ public class Times extends Execution {
 
       for (int threadNb = 0; threadNb < threadCount; threadNb++) {
         final long max = concurrencyConfig.getIterationCountForThread(threadpoolName, distributedConfig, threadNb, occurrences);
-        final Future<Void> future = executor.submit((Callable<Void>)() -> {
+        final Future<Void> future = executor.submit(() -> {
           Thread.currentThread().setName("Rainfall-core Operations Thread");
           RangeMap<WeightedOperation> operations = scenario.getOperations().get(threadpoolName);
           for (long i = 0; i < max; i++) {
