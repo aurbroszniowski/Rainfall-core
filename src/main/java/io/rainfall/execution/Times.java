@@ -27,10 +27,13 @@ import io.rainfall.configuration.DistributedConfig;
 import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.utils.RangeMap;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -62,29 +65,34 @@ public class Times extends Execution {
 
     markExecutionState(scenario, ExecutionState.BEGINNING);
 
+    List<Future<Void>> tasks = new ArrayList<>();
     final Map<String, ExecutorService> executors = concurrencyConfig.createFixedExecutorService();
     for (final String threadpoolName : executors.keySet()) {
       final int threadCount = concurrencyConfig.getThreadCount(threadpoolName);
       final ExecutorService executor = executors.get(threadpoolName);
 
-    for (int threadNb = 0; threadNb < threadCount; threadNb++) {
-      final long max = concurrencyConfig.getIterationCountForThread(threadpoolName, distributedConfig, threadNb, occurrences);
-      executor.submit(new Callable() {
-
-        @Override
-        public Object call() throws Exception {
+      for (int threadNb = 0; threadNb < threadCount; threadNb++) {
+        final long max = concurrencyConfig.getIterationCountForThread(threadpoolName, distributedConfig, threadNb, occurrences);
+        final Future<Void> future = executor.submit((Callable<Void>)() -> {
           Thread.currentThread().setName("Rainfall-core Operations Thread");
           RangeMap<WeightedOperation> operations = scenario.getOperations().get(threadpoolName);
           for (long i = 0; i < max; i++) {
-              operations.getNextRandom(weightRnd)
-                  .getOperation().exec(statisticsHolder, configurations, assertions);
+            operations.getNextRandom(weightRnd)
+                .getOperation().exec(statisticsHolder, configurations, assertions);
           }
           return null;
-        }
-      });
-    }
+        });
+        tasks.add(future);
+      }
     }
 
+    for (Future<Void> task : tasks) {
+      try {
+        task.get();
+      } catch (InterruptedException | ExecutionException e) {
+        throw new TestException("Execution of Scenario didn't stop correctly.", e);
+      }
+    }
 
     concurrencyConfig.clearIterationCountForThread();
     //TODO : it is submitted enough but not everything has finished to run when threads are done -> how to solve Coordinated Omission ?
