@@ -69,8 +69,9 @@ public class RunsDuring extends Execution {
       final int threadCount = concurrencyConfig.getThreadCount(threadpoolName);
 
       for (int threadNb = 0; threadNb < threadCount; threadNb++) {
+        final int finalThreadNb = threadNb;
         Future<Void> future = executors.get(threadpoolName).submit(() -> {
-          Thread.currentThread().setName("Rainfall-core Operations Thread");
+          Thread.currentThread().setName("Rainfall-core Operations Thread - " + finalThreadNb);
 
           while (!Thread.currentThread().isInterrupted() && !doneFlag.get()) {
             scenario.getOperations().get(threadpoolName).getNextRandom(weightRnd)

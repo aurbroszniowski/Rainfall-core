@@ -47,7 +47,7 @@ public class NothingFor extends Execution {
                                           final Map<Class<? extends Configuration>, Configuration> configurations,
                                           final List<AssertionEvaluator> assertions) throws TestException {
     try {
-      Thread.currentThread().setName("Rainfall-core Operations Thread");
+      Thread.currentThread().setName("Rainfall-core Operations Thread - 0");
       Thread.sleep(timeDivision.getTimeUnit().toMillis(nb));
     } catch (InterruptedException ex) {
       Thread.currentThread().interrupt();

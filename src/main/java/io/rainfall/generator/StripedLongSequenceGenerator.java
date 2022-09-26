@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2020 Aurélien Broszniowski
+ * Copyright (c) 2014-2022 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,6 +70,9 @@ public class StripedLongSequenceGenerator implements SequenceGenerator {
       long value = next.getAndIncrement();
       if (value <= end) {
         return value;
+      }
+      if (value > end) {
+        next.set(begin);
       }
       next.compareAndSet(value + 1, begin);
     }

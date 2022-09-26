@@ -72,8 +72,9 @@ public class Times extends Execution {
 
       for (int threadNb = 0; threadNb < threadCount; threadNb++) {
         final long max = concurrencyConfig.getIterationCountForThread(threadpoolName, distributedConfig, threadNb, occurrences);
+        final int finalThreadNb = threadNb;
         final Future<Void> future = executor.submit(() -> {
-          Thread.currentThread().setName("Rainfall-core Operations Thread");
+          Thread.currentThread().setName("Rainfall-core Operations Thread - " + finalThreadNb);
           RangeMap<WeightedOperation> operations = scenario.getOperations().get(threadpoolName);
           for (long i = 0; i < max; i++) {
             operations.getNextRandom(weightRnd)

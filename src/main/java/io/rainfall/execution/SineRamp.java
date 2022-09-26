@@ -28,7 +28,7 @@ public class SineRamp extends Pattern {
   public SineRamp(From from, To to, Over over) {
     super(from, to, over, (it) -> {
       Double delayBetweenAddingThread = over.getNbInMs() / Math.abs(to.getCount() - from.getCount());
-      return new Double((Math.sin(it) / 2 + 0.5) * delayBetweenAddingThread).longValue();
+      return new Double(((Math.sin(Math.toRadians(it + 270)) + 1d) / 2) * delayBetweenAddingThread).longValue();
     });
   }
 
@@ -37,5 +37,4 @@ public class SineRamp extends Pattern {
     return "Sine Ramp from " + from.toString() + " to "
            + to.toString() + " over " + over.toString();
   }
-
 }

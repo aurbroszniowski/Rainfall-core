@@ -150,7 +150,7 @@ public class Pattern extends Execution {
 
         futures.add(executors.get(threadpoolName).schedule(() -> {
           logger.info("Rainfall Ramp - Adding thread " + threadCount.get() + " at " + new Date());
-          Thread.currentThread().setName("Rainfall-core Operations Thread n" + threadCount.get());
+          Thread.currentThread().setName("Rainfall-core Operations Thread - " + threadCount.get());
           while (!Thread.currentThread().isInterrupted() && !doneFlag.get()) {
             operations.getNextRandom(weightRnd).getOperation().exec(statisticsHolder, configurations, assertions);
           }
