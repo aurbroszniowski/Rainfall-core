@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2014-2022 Aurélien Broszniowski
+  ~ Copyright (c) 2014-2023 Aurélien Broszniowski
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@
   <groupId>io.rainfall</groupId>
   <artifactId>rainfall-core</artifactId>
   <name>Rainfall-core</name>
-  <version>1.6.4</version>
+  <version>1.6.5</version>
   <packaging>jar</packaging>
 
   <properties>
@@ -242,7 +242,7 @@
           <plugin>
             <groupId>org.sonatype.plugins</groupId>
             <artifactId>nexus-staging-maven-plugin</artifactId>
-            <version>1.6.4</version>
+            <version>1.6.5</version>
             <extensions>true</extensions>
             <configuration>
               <serverId>ossrh</serverId>
