@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 Aurélien Broszniowski
+ * Copyright (c) 2014-2023 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,10 +51,10 @@ public class HtmlReport {
     File reportFile = new File(destReportPath, "aggregated-report.html");
     try {
       compressionUtils.extractResources("/report/js", destReportPath.getAbsolutePath() + File.separator + "js");
+      compressionUtils.extractReportTemplateToFile("/template/Aggregated-template.html", reportFile.getAbsolutePath());
     } catch (URISyntaxException e) {
       throw new IOException("Error extracting report template", e);
     }
-    compressionUtils.extractReportTemplateToFile("/template/Aggregated-template.html", reportFile);
 
     StringBuilder sb = new StringBuilder();
 
@@ -112,7 +112,7 @@ public class HtmlReport {
     File reportFile = new File(destReportPath, "aggregated-report.html");
     try {
       compressionUtils.extractResources("/report/js", destReportPath.getAbsolutePath() + File.separator + "js");
-      compressionUtils.extractReportTemplateToFile("/template/Aggregated-template.html", reportFile);
+      compressionUtils.extractReportTemplateToFile("/template/Aggregated-template.html", reportFile.getAbsolutePath());
 
       StringBuilder sb = new StringBuilder();
 

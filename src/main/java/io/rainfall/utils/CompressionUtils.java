@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2020 Aurélien Broszniowski
+ * Copyright (c) 2014-2023 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package io.rainfall.utils;
 
 import io.rainfall.reporting.HtmlReporter;
-import io.rainfall.reporting.PeriodicHlogReporter;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -31,13 +30,17 @@ import java.io.OutputStream;
 import java.net.JarURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.Objects;
 import java.util.Scanner;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+
 /**
  * @author Aurelien Broszniowski
  */
@@ -89,8 +92,7 @@ public class CompressionUtils {
 
     ByteArrayInputStream inputStream = new ByteArrayInputStream(compressedData);
     ZipInputStream in = new ZipInputStream(inputStream);
-    while (true)
-    {
+    while (true) {
       ZipEntry nextEntry = in.getNextEntry();
       if (nextEntry == null) {
         break;
@@ -132,7 +134,7 @@ public class CompressionUtils {
 
   public void extractResources(final String sources, final String dest) throws IOException, URISyntaxException {
     if (jarFile.isFile()) {  // Run with JAR file
-      extractFromJar(sources, dest);
+      extractDirFromJar(sources, dest);
     } else {
       extractFromPath(new File(HtmlReporter.class.getClass().getResource(sources).toURI()), new File(dest));
     }
@@ -142,10 +144,10 @@ public class CompressionUtils {
    * extract the subdirectory from a jar on the classpath to {@code writeDirectory}
    *
    * @param sourceDirectory directory (in a jar on the classpath) to extract
-   * @param writeDirectory  the location to extract to
+   * @param destDirectory   the location to extract to
    * @throws IOException if an IO exception occurs
    */
-  private void extractFromJar(String sourceDirectory, String writeDirectory) throws IOException {
+  private void extractDirFromJar(String sourceDirectory, String destDirectory) throws IOException {
     final URL dirURL = getClass().getResource(sourceDirectory);
     final String path = sourceDirectory.substring(1);
 
@@ -167,7 +169,7 @@ public class CompressionUtils {
         }
         final String entryTail = name.substring(path.length());
 
-        final File f = new File(writeDirectory + File.separator + entryTail);
+        final File f = new File(destDirectory + File.separator + entryTail);
         if (entry.isDirectory()) {
           // if its a directory, create it -- REVIEW @yzhang and also any intermediate dirs
           final boolean bMade = f.mkdirs();
@@ -192,6 +194,55 @@ public class CompressionUtils {
     } else {
       // not a "jar" protocol URL
       throw new IllegalStateException("don't know how to handle extracting from " + dirURL);
+    }
+  }
+
+  /**
+   * extract the file from a jar on the classpath to {@code writeFile}
+   *
+   * @param sourceFile file (in a jar on the classpath) to extract
+   * @param destFile   the location to extract to
+   * @throws IOException if an IO exception occurs
+   */
+  private void extractFileFromJar(String sourceFile, String destFile) throws IOException {
+    final URL fileURL = getClass().getResource(sourceFile);
+    final String path = sourceFile.substring(1);
+
+    if ((fileURL != null) && fileURL.getProtocol().equals("jar")) {
+      final JarURLConnection jarConnection = (JarURLConnection)fileURL.openConnection();
+      System.out.println("jarConnection is " + jarConnection);
+
+      final ZipFile jar = jarConnection.getJarFile();
+
+      final Enumeration<? extends ZipEntry> entries = jar.entries(); // gives ALL entries in jar
+
+      while (entries.hasMoreElements()) {
+        final ZipEntry entry = entries.nextElement();
+        final String name = entry.getName();
+        System.out.println("-> " + name + " / " + path);
+        if (!name.endsWith(path)) {
+          continue;
+        }
+        final String entryTail = name.substring(path.length());
+
+        final File f = new File(destFile + File.separator + entryTail);
+        System.out.println("  writing  " + f.getCanonicalPath());
+        final InputStream is = jar.getInputStream(entry);
+        final OutputStream os = new BufferedOutputStream(Files.newOutputStream(f.toPath()));
+        final byte[] buffer = new byte[4096];
+        int readCount;
+        while ((readCount = is.read(buffer)) > 0) {
+          os.write(buffer, 0, readCount);
+        }
+        os.close();
+        is.close();
+      }
+
+    } else if (fileURL == null) {
+      throw new IllegalStateException("can't find " + sourceFile + " on the classpath");
+    } else {
+      // not a "jar" protocol URL
+      throw new IllegalStateException("don't know how to handle extracting from " + fileURL);
     }
   }
 
@@ -223,9 +274,18 @@ public class CompressionUtils {
     }
   }
 
-  public void extractReportTemplateToFile(String inputTemplate, File outputFile) throws IOException {
-    InputStream in = PeriodicHlogReporter.class.getClass().getResourceAsStream(inputTemplate);
-    OutputStream out = new FileOutputStream(outputFile);
+  public void extractReportTemplateToFile(String inputTemplate, String outputFile) throws IOException, URISyntaxException {
+    if (jarFile.isFile()) {  // Run with JAR file
+      extractFileFromJar(inputTemplate, outputFile);
+    } else {
+      extractReportTemplateFromPath(
+          new File(Objects.requireNonNull(HtmlReporter.class.getResource(inputTemplate)).toURI()), outputFile);
+    }
+  }
+
+  public void extractReportTemplateFromPath(File inputTemplate, String outputFile) throws IOException {
+    InputStream in = Files.newInputStream(inputTemplate.toPath());
+    OutputStream out = Files.newOutputStream(Paths.get(outputFile));
     byte[] buffer = new byte[1024];
     int len = in.read(buffer);
     while (len > 0) {
@@ -295,7 +355,6 @@ public class CompressionUtils {
     out.write(replace, 0, replace.length);
     out.close();
   }
-
 
 
 }

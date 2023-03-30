@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2022 Aurélien Broszniowski
+ * Copyright (c) 2014-2023 Aurélien Broszniowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ public class PeriodicHlogReporter<E extends Enum<E>> extends FileReporter<E> {
 
       compressionUtils.extractResources("/report", this.basedir);
 
-      compressionUtils.extractReportTemplateToFile("/template/Hdr-template.html", new File(this.reportFile));
+      compressionUtils.extractReportTemplateToFile("/template/Hdr-template.html", this.reportFile);
 
     } catch (URISyntaxException e) {
       throw new RuntimeException("Can not read report template");
