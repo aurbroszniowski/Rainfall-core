@@ -18,13 +18,17 @@ package io.rainfall.unit;
 
 import io.rainfall.Unit;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.util.concurrent.TimeUnit;
+
 /**
  * @author Aurelien Broszniowski
  */
 
 public class TimeMeasurement implements Unit {
 
-  private final int count;
+  private final long count;
   private final TimeDivision timeDivision;
 
   public TimeMeasurement(int count, TimeDivision timeDivision) {
@@ -32,16 +36,21 @@ public class TimeMeasurement implements Unit {
     this.timeDivision = timeDivision;
   }
 
+  public TimeMeasurement(Duration duration) {
+    this.count = duration.get(ChronoUnit.SECONDS);
+    this.timeDivision = TimeDivision.seconds;
+  }
+
   public double getNbInMs() {
     return timeDivision.getTimeUnit().toMillis(count);
   }
 
-  public int getCount() {
+  public long getCount() {
     return count;
   }
 
-  public TimeDivision getTimeDivision() {
-    return timeDivision;
+  public TimeUnit getTimeUnit() {
+    return timeDivision.getTimeUnit();
   }
 
   @Override

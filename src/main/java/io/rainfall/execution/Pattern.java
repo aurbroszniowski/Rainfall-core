@@ -16,12 +16,7 @@
 
 package io.rainfall.execution;
 
-import io.rainfall.AssertionEvaluator;
-import io.rainfall.Configuration;
-import io.rainfall.Execution;
-import io.rainfall.Scenario;
-import io.rainfall.TestException;
-import io.rainfall.WeightedOperation;
+import io.rainfall.*;
 import io.rainfall.configuration.ConcurrencyConfig;
 import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.unit.From;
@@ -35,12 +30,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -93,7 +83,7 @@ public class Pattern extends Execution {
     final ScheduledFuture<?> endFuture = endScheduler.schedule(() -> {
       markExecutionState(scenario, ExecutionState.ENDING);
       shutdownNicely(doneFlag, execSchedulers, endScheduler);
-    }, over.getCount(), over.getTimeDivision().getTimeUnit());
+    }, over.getCount(), over.getTimeUnit());
 
     try {
       for (Future<Void> future : futures) {

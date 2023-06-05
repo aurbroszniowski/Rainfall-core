@@ -16,25 +16,17 @@
 
 package io.rainfall.execution;
 
-import io.rainfall.AssertionEvaluator;
-import io.rainfall.Configuration;
-import io.rainfall.Execution;
-import io.rainfall.Scenario;
-import io.rainfall.TestException;
+import io.rainfall.*;
 import io.rainfall.configuration.ConcurrencyConfig;
 import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.unit.Over;
 import io.rainfall.unit.TimeDivision;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -50,6 +42,10 @@ public class RunsDuring extends Execution {
 
   public RunsDuring(final int nb, final TimeDivision timeDivision) {
     this.during = new Over(nb, timeDivision);
+  }
+
+  public RunsDuring(Duration duration) {
+    this.during = new Over(duration);
   }
 
   @Override
@@ -90,7 +86,7 @@ public class RunsDuring extends Execution {
         markExecutionState(scenario, ExecutionState.ENDING);
         shutdownNicely(doneFlag, executors, scheduler);
       }
-    }, during.getCount(), during.getTimeDivision().getTimeUnit());
+    }, during.getCount(), during.getTimeUnit());
 
     try {
       for (Future<Void> future : futures) {

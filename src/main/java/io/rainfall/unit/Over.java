@@ -16,10 +16,16 @@
 
 package io.rainfall.unit;
 
+import java.time.Duration;
+
 /**
  * @author Aurelien Broszniowski
  */
 public class Over extends TimeMeasurement {
+
+  public Over(Duration duration) {
+    super(duration);
+  }
 
   public static Over over(int count, TimeDivision timeDivision) {
     return new Over(count, timeDivision);
@@ -33,4 +39,5 @@ public class Over extends TimeMeasurement {
   public String toString() {
     return "over " + super.toString();
   }
+
 }

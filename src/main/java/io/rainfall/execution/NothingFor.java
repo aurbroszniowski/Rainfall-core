@@ -16,14 +16,12 @@
 
 package io.rainfall.execution;
 
-import io.rainfall.AssertionEvaluator;
-import io.rainfall.Configuration;
-import io.rainfall.Execution;
-import io.rainfall.Scenario;
-import io.rainfall.TestException;
+import io.rainfall.*;
 import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.unit.TimeDivision;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 
@@ -34,12 +32,17 @@ import java.util.Map;
  */
 
 public class NothingFor extends Execution {
-  private final int nb;
+  private final long nb;
   private final TimeDivision timeDivision;
 
   public NothingFor(final int nb, final TimeDivision timeDivision) {
     this.nb = nb;
     this.timeDivision = timeDivision;
+  }
+
+  public NothingFor(final Duration duration) {
+    this.nb = duration.get(ChronoUnit.SECONDS);
+    this.timeDivision = TimeDivision.seconds;
   }
 
   @Override

@@ -16,13 +16,7 @@
 
 package io.rainfall.execution;
 
-import io.rainfall.AssertionEvaluator;
-import io.rainfall.Configuration;
-import io.rainfall.Execution;
-import io.rainfall.Scenario;
-import io.rainfall.TestException;
-import io.rainfall.Unit;
-import io.rainfall.WeightedOperation;
+import io.rainfall.*;
 import io.rainfall.configuration.ConcurrencyConfig;
 import io.rainfall.configuration.DistributedConfig;
 import io.rainfall.statistics.StatisticsHolder;
@@ -33,11 +27,7 @@ import io.rainfall.utils.RangeMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -102,7 +92,7 @@ public class InParallel extends Execution {
               exceptions.add(new TestException(e));
             }
           }
-        }, 0, every.getCount(), every.getTimeDivision().getTimeUnit());
+        }, 0, every.getCount(), every.getTimeUnit());
         // Schedule the end of the execution after the time entered as parameter
         scheduler.schedule(new Runnable() {
           @Override
@@ -110,7 +100,7 @@ public class InParallel extends Execution {
             markExecutionState(scenario, ExecutionState.ENDING);
             future.cancel(true);
           }
-        }, during.getCount(), during.getTimeDivision().getTimeUnit());
+        }, during.getCount(), during.getTimeUnit());
 
         futures.add(future);
       }
