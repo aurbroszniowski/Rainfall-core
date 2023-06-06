@@ -18,12 +18,9 @@ package io.rainfall.execution;
 
 import io.rainfall.Execution;
 import io.rainfall.Unit;
-import io.rainfall.unit.Every;
-import io.rainfall.unit.From;
-import io.rainfall.unit.Over;
-import io.rainfall.unit.TimeDivision;
-import io.rainfall.unit.To;
+import io.rainfall.unit.*;
 
+import java.time.Duration;
 import java.util.function.Function;
 
 /**
@@ -48,6 +45,9 @@ public class Executions {
     return new NothingFor(nb, timeDivision);
   }
 
+  public static NothingFor nothingFor(Duration duration) {
+    return new NothingFor(duration);
+  }
   public static Ramp ramp(From from, To to, Over over) {
     return new Ramp(from, to, over);
   }
@@ -59,7 +59,9 @@ public class Executions {
   public static RunsDuring during(int nb, TimeDivision timeDivision) {
     return new RunsDuring(nb, timeDivision);
   }
-
+  public static RunsDuring during(Duration duration) {
+    return new RunsDuring(duration);
+  }
   public static WarmUp warmup(RunsDuring during) {
     return new WarmUp(during);
   }
