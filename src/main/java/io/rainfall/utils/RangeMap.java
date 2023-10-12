@@ -16,11 +16,7 @@
 
 package io.rainfall.utils;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * A special Map, where keys are float values defining ranges.
@@ -49,7 +45,6 @@ public class RangeMap<E> {
   private final Map<Float, E> values = new HashMap<Float, E>();
   private final List<Range> keys = new LinkedList<Range>();
   private Float higherBound = 0.0f;
-  private final ConcurrentPseudoRandom rnd = new ConcurrentPseudoRandom();
 
   public synchronized void put(final Float weight, final E value) {
     if (weight > 0) {

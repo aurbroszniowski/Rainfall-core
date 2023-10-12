@@ -30,7 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RuntimeStatisticsHolder<E extends Enum<E>> extends StatisticsHolder<E> {
 
   private final ConcurrentHashMap<String, LongAdder> assertionsErrors = new ConcurrentHashMap<String, LongAdder>();
-  private final ConcurrentHashMap<String, Statistics<E>> statistics = new ConcurrentHashMap<String, Statistics<E>>();
+  private final ConcurrentHashMap<String, Statistics<E>> statistics = new ConcurrentHashMap<>();
   private final RainfallHistogramSink<E> histograms;
   private final Set<StatisticsCollector> statisticsCollectors;
   private Enum<E>[] results;
@@ -98,7 +98,13 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> extends StatisticsHolder
     for (Statistics<E> statistics : this.statistics.values()) {
       totalCounter += statistics.getCurrentTps(result);
     }
-    return (totalCounter / statistics.size());
+    final long currentTps;
+    try {
+      currentTps = totalCounter / statistics.size();
+    } catch (ArithmeticException e) {
+      return totalCounter;
+    }
+    return currentTps;
   }
 
   @Override
