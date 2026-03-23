@@ -20,7 +20,6 @@ package io.rainfall.statistics;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A peek at the {@link io.rainfall.statistics.Statistics}, used for statistics inspection.
@@ -90,50 +89,55 @@ public class StatisticsPeek<E extends Enum<E>> {
     return timestamp;
   }
 
-  public void setCumulativeValues(long length, ConcurrentHashMap<Enum, LongAdder> cumulativeCounters,
-                                  ConcurrentHashMap<Enum, LongAdder> cumulativeTotalLatencies) {
+  public void setCumulativeValues(long length, Enum<E>[] keys, long[] cumulativeCounters,
+                                  long[] cumulativeTotalLatencies) {
     long lengthInSec = length / 1000000 / 1000;
-    for (Enum<E> key : keys) {
-      LongAdder cumulativeCounter = cumulativeCounters.get(key);
-      this.cumulativeCounters.put(key, cumulativeCounter.longValue());
-
-      LongAdder cumulativeTotalLatency = cumulativeTotalLatencies.get(key);
-      this.cumulativeAverageLatencies.put(key, cumulativeTotalLatency.doubleValue() / cumulativeCounter.doubleValue() / 1000000L);
-
+    for (int i = 0; i < keys.length; i++) {
+      Enum<E> key = keys[i];
+      long cumulativeCounter = cumulativeCounters[i];
+      this.cumulativeCounters.put(key, cumulativeCounter);
+      long cumulativeTotalLatency = cumulativeTotalLatencies[i];
+      this.cumulativeAverageLatencies.put(key, averageLatencyInMs(cumulativeTotalLatency, cumulativeCounter));
       if (lengthInSec > 0) {
-        this.cumulativeTps.put(key, cumulativeCounter.longValue() / lengthInSec); // instead of dividing the ns into sec, we multiply
+        this.cumulativeTps.put(key, cumulativeCounter / lengthInSec); // instead of dividing the ns into sec, we multiply
       } else {
-        this.cumulativeTps.put(key, cumulativeCounter.longValue());
+        this.cumulativeTps.put(key, cumulativeCounter);
       }
 
-      this.sumOfCumulativeCounters += cumulativeCounter.longValue();
-      this.averageOfCumulativeAverageLatencies += cumulativeTotalLatency.doubleValue();
+      this.sumOfCumulativeCounters += cumulativeCounter;
+      this.averageOfCumulativeAverageLatencies += cumulativeTotalLatency;
       this.sumOfCumulativeTps += this.cumulativeTps.get(key);
     }
-    this.averageOfCumulativeAverageLatencies = this.averageOfCumulativeAverageLatencies / this.sumOfCumulativeCounters / 1000000L;
+    this.averageOfCumulativeAverageLatencies = averageLatencyInMs(this.averageOfCumulativeAverageLatencies, this.sumOfCumulativeCounters);
   }
 
-  public void setPeriodicValues(long length, ConcurrentHashMap<Enum, LongAdder> periodicCounters,
-                                ConcurrentHashMap<Enum, LongAdder> periodicTotalLatencies) {
+  public void setPeriodicValues(long length, Enum<E>[] keys, long[] periodicCounters,
+                                long[] periodicTotalLatencies) {
     long lengthInSec = length / 1000000 / 1000;
-    for (Enum<E> key : keys) {
-      LongAdder periodicCounter = periodicCounters.get(key);
-      this.periodicCounters.put(key, periodicCounter.longValue());
-
-      LongAdder periodicTotalLatency = periodicTotalLatencies.get(key);
-      this.periodicAverageLatencies.put(key, periodicTotalLatency.doubleValue() / periodicCounter.doubleValue() / 1000000L);
-
+    for (int i = 0; i < keys.length; i++) {
+      Enum<E> key = keys[i];
+      long periodicCounter = periodicCounters[i];
+      this.periodicCounters.put(key, periodicCounter);
+      long periodicTotalLatency = periodicTotalLatencies[i];
+      this.periodicAverageLatencies.put(key, averageLatencyInMs(periodicTotalLatency, periodicCounter));
       if (lengthInSec > 0) {
-        this.periodicTps.put(key, periodicCounter.longValue() / lengthInSec);
+        this.periodicTps.put(key, periodicCounter / lengthInSec);
       } else {
-        this.periodicTps.put(key, periodicCounter.longValue());
+        this.periodicTps.put(key, periodicCounter);
       }
 
-      this.sumOfPeriodicCounters += periodicCounter.longValue();
-      this.averageOfPeriodicAverageLatencies += periodicTotalLatency.doubleValue();
+      this.sumOfPeriodicCounters += periodicCounter;
+      this.averageOfPeriodicAverageLatencies += periodicTotalLatency;
       this.sumOfPeriodicTps += this.periodicTps.get(key);
     }
-    this.averageOfPeriodicAverageLatencies = this.averageOfPeriodicAverageLatencies / this.sumOfPeriodicCounters / 1000000L;
+    this.averageOfPeriodicAverageLatencies = averageLatencyInMs(this.averageOfPeriodicAverageLatencies, this.sumOfPeriodicCounters);
+  }
+
+  private double averageLatencyInMs(double totalLatencyInNs, long counter) {
+    if (counter == 0L) {
+      return 0.0d;
+    }
+    return totalLatencyInNs / counter / 1000000L;
   }
 
   /**

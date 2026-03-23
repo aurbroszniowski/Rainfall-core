@@ -47,9 +47,10 @@ public class StatisticsPeekHolder<E extends Enum<E>> {
     this.assertionsErrors = assertionsErrors;
     this.histograms = histograms;
     this.startTime = startTime;
-    this.timestamp = System.currentTimeMillis();
+    long snapshotTimestamp = System.currentTimeMillis();
+    this.timestamp = snapshotTimestamp;
     for (String name : statisticsMap.keySet()) {
-      statisticsPeeks.put(name, statisticsMap.get(name).peek(timestamp));
+      statisticsPeeks.put(name, statisticsMap.get(name).peek(snapshotTimestamp));
     }
     this.totalStatisticsPeeks = new StatisticsPeek<E>(ALL, this.resultsReported, this.timestamp);
     totalStatisticsPeeks.addAll(statisticsPeeks);
@@ -63,7 +64,10 @@ public class StatisticsPeekHolder<E extends Enum<E>> {
     return statisticsPeeks.get(name);
   }
 
-  public Long getAssertionsErrorsCount(String name) {return assertionsErrors.get(name).longValue();}
+  public Long getAssertionsErrorsCount(String name) {
+    LongAdder count = assertionsErrors.get(name);
+    return count == null ? 0L : count.longValue();
+  }
 
   public Set<String> getStatisticsPeeksNames() {
     return statisticsPeeks.keySet();

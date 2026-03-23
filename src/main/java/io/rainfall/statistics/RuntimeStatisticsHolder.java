@@ -36,7 +36,7 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> extends StatisticsHolder
   private Enum<E>[] results;
   private Enum<E>[] resultsReported;
   private volatile boolean running;
-  private long startTime = System.currentTimeMillis();
+  private volatile long startTime = System.currentTimeMillis();
 
   public RuntimeStatisticsHolder(final Enum<E>[] results, final Enum<E>[] resultsReported,
                                  final Set<StatisticsCollector> statisticsCollectors) {
@@ -93,18 +93,16 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> extends StatisticsHolder
   }
 
   @Override
-  public synchronized long getCurrentTps(Enum result) {
+  public long getCurrentTps(Enum result) {
+    int size = statistics.size();
+    if (size == 0) {
+      return 0L;
+    }
     long totalCounter = 0;
     for (Statistics<E> statistics : this.statistics.values()) {
       totalCounter += statistics.getCurrentTps(result);
     }
-    final long currentTps;
-    try {
-      currentTps = totalCounter / statistics.size();
-    } catch (ArithmeticException e) {
-      return totalCounter;
-    }
-    return currentTps;
+    return totalCounter / size;
   }
 
   @Override
@@ -123,7 +121,7 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> extends StatisticsHolder
 
   @Override
   public void increaseAssertionsErrorsCount(String name) {
-    assertionsErrors.get(name).increment();
+    assertionsErrors.computeIfAbsent(name, key -> new LongAdder()).increment();
   }
 
   @Override
@@ -135,7 +133,6 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> extends StatisticsHolder
   public void resume() {
     this.running = true;
     this.startTime = System.currentTimeMillis();
-    System.out.println("--> set" + startTime);
   }
 
   @Override

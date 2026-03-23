@@ -58,8 +58,8 @@ public class StatisticsTest {
     statistics.increaseCounterAndSetLatencyInNs(two, 34 * 1000000L);
     statistics.increaseCounterAndSetLatencyInNs(two, 97 * 1000000L);
 
-    assertThat(statistics.getCumulativeCounters(two).longValue(), is(0L));
-    assertThat(statistics.getCumulativeTotalLatencies(two).longValue(), is(0L));
+    assertThat(statistics.getCumulativeCounters(two).longValue(), is(3L));
+    assertThat(statistics.getCumulativeTotalLatencies(two).longValue(), is((105 + 34 + 97) * 1000000L));
     statistics.peek(1L);
     assertThat(statistics.getCumulativeCounters(two).longValue(), is(3L));
     assertThat(statistics.getCumulativeTotalLatencies(two).longValue(), is((105 + 34 + 97) * 1000000L));

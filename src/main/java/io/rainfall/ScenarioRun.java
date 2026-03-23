@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -128,7 +129,8 @@ public class ScenarioRun<E extends Enum<E>> {
         reportingConfig.getStatisticsCollectors());
 
     final Set<Reporter<E>> logReporters = reportingConfig.getLogReporters();
-    ScheduledExecutorService topOfSecondExecutor = Executors.newScheduledThreadPool(logReporters.size(), new CustomThreadFactory());
+    Map<Long, List<Reporter<E>>> reportersByInterval = groupReportersByInterval(logReporters, reportingConfig);
+    ScheduledExecutorService topOfSecondExecutor = Executors.newScheduledThreadPool(reportersByInterval.size(), new CustomThreadFactory());
     StatisticsThread<E> stats = null;
     StatisticsPeekHolder<E> peek = null;
     try {
@@ -143,28 +145,20 @@ public class ScenarioRun<E extends Enum<E>> {
       Date afterOneSecond = myDate.getTime();
       long delay = afterOneSecond.getTime() - System.currentTimeMillis() - 4;
 
-      for (final Reporter<E> logReporter : logReporters) {
-        if (logReporter instanceof PeriodicReporter) {
-          topOfSecondExecutor.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-              final StatisticsPeekHolder<E> statisticsPeekHolder = statisticsHolder.peek();
-              if (statisticsPeekHolder != null) {
-                logReporter.report(statisticsPeekHolder);
+      for (Map.Entry<Long, List<Reporter<E>>> intervalReporters : reportersByInterval.entrySet()) {
+        final long intervalInMillis = intervalReporters.getKey();
+        final List<Reporter<E>> reporters = intervalReporters.getValue();
+        topOfSecondExecutor.scheduleAtFixedRate(new Runnable() {
+          @Override
+          public void run() {
+            final StatisticsPeekHolder<E> statisticsPeekHolder = statisticsHolder.peek();
+            if (statisticsPeekHolder != null) {
+              for (Reporter<E> reporter : reporters) {
+                reporter.report(statisticsPeekHolder);
               }
             }
-          }, delay, ((PeriodicReporter)logReporter).getReportingIntervalInMillis(), TimeUnit.MILLISECONDS);
-        } else {
-          topOfSecondExecutor.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-              final StatisticsPeekHolder<E> statisticsPeekHolder = statisticsHolder.peek();
-              if (statisticsPeekHolder != null) {
-                logReporter.report(statisticsPeekHolder);
-              }
-            }
-          }, delay, reportIntervalMillis, TimeUnit.MILLISECONDS);
-        }
+          }
+        }, delay, intervalInMillis, TimeUnit.MILLISECONDS);
       }
 
       for (final Execution execution : executions) {
@@ -195,6 +189,19 @@ public class ScenarioRun<E extends Enum<E>> {
       }
     }
     return peek;
+  }
+
+  private Map<Long, List<Reporter<E>>> groupReportersByInterval(final Set<Reporter<E>> logReporters,
+                                                                final ReportingConfig<E> reportingConfig) {
+    long defaultIntervalMillis = reportingConfig.getReportTimeUnit().toMillis(reportingConfig.getReportInterval());
+    Map<Long, List<Reporter<E>>> groupedReporters = new LinkedHashMap<Long, List<Reporter<E>>>();
+    for (Reporter<E> logReporter : logReporters) {
+      long intervalInMillis = logReporter instanceof PeriodicReporter
+          ? ((PeriodicReporter<E>)logReporter).getReportingIntervalInMillis()
+          : defaultIntervalMillis;
+      groupedReporters.computeIfAbsent(intervalInMillis, key -> new ArrayList<Reporter<E>>()).add(logReporter);
+    }
+    return groupedReporters;
   }
 
   private void startCluster(final DistributedConfig distributedConfig) {

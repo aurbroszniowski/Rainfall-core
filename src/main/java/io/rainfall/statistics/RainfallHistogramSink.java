@@ -36,7 +36,7 @@ public class RainfallHistogramSink<E extends Enum<E>> {
 
   private final Factory factory;
   private final ConcurrentLinkedQueue<HistogramHolder> actives = new ConcurrentLinkedQueue<HistogramHolder>();
-  private static final ThreadLocal<HistogramHolder> context = new ThreadLocal<HistogramHolder>();
+  private final ThreadLocal<HistogramHolder> context = new ThreadLocal<HistogramHolder>();
 
   private static class HistogramHolder {
     private volatile boolean dead = false;
