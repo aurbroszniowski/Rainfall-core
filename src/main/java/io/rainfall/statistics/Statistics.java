@@ -17,7 +17,8 @@
 package io.rainfall.statistics;
 
 
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -30,19 +31,21 @@ public class Statistics<E extends Enum<E>> {
 
   private final String name;
   private Enum<E>[] results;
-  private final ConcurrentHashMap<Enum, AtomicLong> periodicCounters = new ConcurrentHashMap<Enum, AtomicLong>();
-  private final ConcurrentHashMap<Enum, AtomicLong> periodicTotalLatenciesInNs = new ConcurrentHashMap<Enum, AtomicLong>();
+  private final Map<Enum<E>, Integer> resultIndexes;
   private final ConcurrentHashMap<Enum, LongAdder> cumulativeCounters = new ConcurrentHashMap<Enum, LongAdder>();   //TODO replace with max, average
   private final ConcurrentHashMap<Enum, LongAdder> cumulativeTotalLatenciesInNs = new ConcurrentHashMap<Enum, LongAdder>();
+  private final long[] lastDrainedCounters;
+  private final long[] lastDrainedTotalLatenciesInNs;
   private volatile long periodicStartTime;
   private volatile long cumulativeStartTime;
 
   public Statistics(String name, Enum<E>[] results) {
     this.name = name;
     this.results = results;
+    this.resultIndexes = buildResultIndexes(results);
+    this.lastDrainedCounters = new long[results.length];
+    this.lastDrainedTotalLatenciesInNs = new long[results.length];
     for (Enum<E> result : results) {
-      this.periodicCounters.put(result, new AtomicLong());
-      this.periodicTotalLatenciesInNs.put(result, new AtomicLong());
       this.cumulativeCounters.put(result, new LongAdder());
       this.cumulativeTotalLatenciesInNs.put(result, new LongAdder());
     }
@@ -53,22 +56,15 @@ public class Statistics<E extends Enum<E>> {
   Statistics(String name, Enum<E>[] results, long startTime) {
     this.results = results;
     this.name = name;
+    this.resultIndexes = buildResultIndexes(results);
+    this.lastDrainedCounters = new long[results.length];
+    this.lastDrainedTotalLatenciesInNs = new long[results.length];
     for (Enum<E> result : results) {
-      this.periodicCounters.put(result, new AtomicLong());
-      this.periodicTotalLatenciesInNs.put(result, new AtomicLong());
       this.cumulativeCounters.put(result, new LongAdder());
       this.cumulativeTotalLatenciesInNs.put(result, new LongAdder());
     }
     this.periodicStartTime = startTime;
     this.cumulativeStartTime = this.periodicStartTime;
-  }
-
-  AtomicLong getPeriodicCounters(Enum result) {
-    return periodicCounters.get(result);
-  }
-
-  AtomicLong getPeriodicTotalLatenciesInNs(Enum result) {
-    return periodicTotalLatenciesInNs.get(result);
   }
 
   LongAdder getCumulativeCounters(Enum result) {
@@ -80,8 +76,6 @@ public class Statistics<E extends Enum<E>> {
   }
 
   public void increaseCounterAndSetLatencyInNs(final Enum result, final long latency) {
-    periodicCounters.get(result).incrementAndGet();
-    periodicTotalLatenciesInNs.get(result).addAndGet(latency);
     cumulativeCounters.get(result).increment();
     cumulativeTotalLatenciesInNs.get(result).add(latency);
   }
@@ -94,9 +88,10 @@ public class Statistics<E extends Enum<E>> {
     return System.nanoTime();
   }
 
-  public long getCurrentTps(Enum result) {
+  public synchronized long getCurrentTps(Enum result) {
     long time = getTimeInNs() - periodicStartTime;
-    long currentCount = periodicCounters.get(result).get();
+    int resultIndex = getResultIndex(result);
+    long currentCount = cumulativeCounters.get(result).sum() - lastDrainedCounters[resultIndex];
     return time < 1000000L ? currentCount : currentCount * 1000L * 1000000L / time;
   }
 
@@ -111,10 +106,12 @@ public class Statistics<E extends Enum<E>> {
     long[] currentCumulativeLatencies = new long[results.length];
     for (int i = 0; i < results.length; i++) {
       Enum<E> key = results[i];
-      drainedPeriodicCounters[i] = this.periodicCounters.get(key).getAndSet(0L);
-      drainedPeriodicLatencies[i] = this.periodicTotalLatenciesInNs.get(key).getAndSet(0L);
-      currentCumulativeCounters[i] = this.cumulativeCounters.get(key).longValue();
-      currentCumulativeLatencies[i] = this.cumulativeTotalLatenciesInNs.get(key).longValue();
+      currentCumulativeCounters[i] = this.cumulativeCounters.get(key).sum();
+      currentCumulativeLatencies[i] = this.cumulativeTotalLatenciesInNs.get(key).sum();
+      drainedPeriodicCounters[i] = currentCumulativeCounters[i] - lastDrainedCounters[i];
+      drainedPeriodicLatencies[i] = currentCumulativeLatencies[i] - lastDrainedTotalLatenciesInNs[i];
+      lastDrainedCounters[i] = currentCumulativeCounters[i];
+      lastDrainedTotalLatenciesInNs[i] = currentCumulativeLatencies[i];
     }
 
     StatisticsPeek<E> statisticsPeek = new StatisticsPeek<E>(this.name, this.results, timestamp);
@@ -125,12 +122,30 @@ public class Statistics<E extends Enum<E>> {
 
   public void reset() {
     for (Enum<E> key : results) {
-      this.periodicCounters.get(key).set(0L);
-      this.periodicTotalLatenciesInNs.get(key).set(0L);
       this.cumulativeCounters.get(key).reset();
       this.cumulativeTotalLatenciesInNs.get(key).reset();
     }
+    for (int i = 0; i < results.length; i++) {
+      this.lastDrainedCounters[i] = 0L;
+      this.lastDrainedTotalLatenciesInNs[i] = 0L;
+    }
     this.periodicStartTime = getTimeInNs();
     this.cumulativeStartTime = this.periodicStartTime;
+  }
+
+  private int getResultIndex(Enum result) {
+    Integer resultIndex = resultIndexes.get(result);
+    if (resultIndex != null) {
+      return resultIndex.intValue();
+    }
+    throw new IllegalArgumentException("Unknown result " + result + " for statistics " + name);
+  }
+
+  private Map<Enum<E>, Integer> buildResultIndexes(Enum<E>[] results) {
+    Map<Enum<E>, Integer> indexes = new HashMap<Enum<E>, Integer>(results.length);
+    for (int i = 0; i < results.length; i++) {
+      indexes.put(results[i], i);
+    }
+    return indexes;
   }
 }

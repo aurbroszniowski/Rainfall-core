@@ -4,7 +4,6 @@ import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsNot.not;
 
 /**
  * @author Aurelien Broszniowski
@@ -12,7 +11,7 @@ import static org.hamcrest.core.IsNot.not;
 public class StatisticsTest {
 
   @Test
-  public void testPeriodicCounters() {
+  public void testPeriodicCountersAreDerivedFromCumulativeDelta() {
     Result one = Result.ONE;
     Result two = Result.TWO;
     Result three = Result.THREE;
@@ -23,8 +22,14 @@ public class StatisticsTest {
     statistics.increaseCounterAndSetLatencyInNs(two, 34 * 1000000L);
     statistics.increaseCounterAndSetLatencyInNs(two, 97 * 1000000L);
 
-    assertThat(statistics.getPeriodicCounters(two).longValue(), is(3L));
-    assertThat(statistics.getPeriodicTotalLatenciesInNs(two).longValue(), is((105 + 34 + 97) * 1000000L));
+    StatisticsPeek<Result> firstPeek = statistics.peek(1L);
+    assertThat(firstPeek.getPeriodicCounters(two), is(3L));
+    assertThat(firstPeek.getPeriodicAverageLatencyInMs(two), is((105d + 34d + 97d) / 3d));
+
+    statistics.increaseCounterAndSetLatencyInNs(two, 10 * 1000000L);
+    StatisticsPeek<Result> secondPeek = statistics.peek(2L);
+    assertThat(secondPeek.getPeriodicCounters(two), is(1L));
+    assertThat(secondPeek.getPeriodicAverageLatencyInMs(two), is(10d));
   }
 
   @Test
@@ -39,11 +44,13 @@ public class StatisticsTest {
     statistics.increaseCounterAndSetLatencyInNs(two, 34 * 1000000L);
     statistics.increaseCounterAndSetLatencyInNs(two, 97 * 1000000L);
 
-    assertThat(statistics.getPeriodicCounters(two).longValue(), is(not(0L)));
-    assertThat(statistics.getPeriodicTotalLatenciesInNs(two).doubleValue(), is(not(0d)));
-    statistics.peek(1L);
-    assertThat(statistics.getPeriodicCounters(two).longValue(), is(0L));
-    assertThat(statistics.getPeriodicTotalLatenciesInNs(two).doubleValue(), is(0d));
+    StatisticsPeek<Result> firstPeek = statistics.peek(1L);
+    assertThat(firstPeek.getPeriodicCounters(two), is(3L));
+    assertThat(firstPeek.getPeriodicAverageLatencyInMs(two), is((105d + 34d + 97d) / 3d));
+
+    StatisticsPeek<Result> secondPeek = statistics.peek(2L);
+    assertThat(secondPeek.getPeriodicCounters(two), is(0L));
+    assertThat(secondPeek.getPeriodicAverageLatencyInMs(two), is(0d));
   }
 
   @Test
