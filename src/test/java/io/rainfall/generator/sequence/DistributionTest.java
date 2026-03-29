@@ -18,6 +18,7 @@ import java.util.Map;
 
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -48,6 +49,34 @@ public class DistributionTest {
       long next = distribution.generate(rnd, min, max, max);
       assertThat(next, greaterThanOrEqualTo(min));
       assertThat(next, lessThanOrEqualTo(max));
+    }
+  }
+
+  @Test
+  public void testFlatWithLongMinValueStaysInRange() {
+    ConcurrentPseudoRandom random = new ConcurrentPseudoRandom() {
+      @Override
+      public long nextLong() {
+        return Long.MIN_VALUE;
+      }
+    };
+
+    long value = Distribution.FLAT.generate(random, 0L, 10L, 10L);
+
+    assertThat(value, greaterThanOrEqualTo(0L));
+    assertThat(value, lessThan(10L));
+  }
+
+  @Test
+  public void testFlatWithNegativeBoundsStaysBelowMaximum() {
+    Distribution distribution = Distribution.FLAT;
+    final ConcurrentPseudoRandom rnd = new ConcurrentPseudoRandom();
+    long min = -10000;
+    long max = -200;
+    for (int i = 0; i < 10000; i++) {
+      long next = distribution.generate(rnd, min, max, max);
+      assertThat(next, greaterThanOrEqualTo(min));
+      assertThat(next, lessThan(max));
     }
   }
 

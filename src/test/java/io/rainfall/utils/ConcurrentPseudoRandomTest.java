@@ -20,9 +20,10 @@ import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.hamcrest.number.OrderingComparison.lessThan;
 
 /**
  * @author Aurelien Broszniowski
@@ -75,5 +76,28 @@ public class ConcurrentPseudoRandomTest {
     System.out.println("Distribution between [ " + String.format("%.5f", min) + ", " + String.format("%.5f", max) + " ]");
     assertThat(min, is(lessThan(0f + 0.003f)));
     assertThat(max, is(greaterThan(5.9543f - 0.003f)));
+  }
+
+  @Test
+  public void testSeededFloatStaysWithinUnitInterval() {
+    ConcurrentPseudoRandom random = new ConcurrentPseudoRandom();
+
+    for (long seed = 0; seed < 10000; seed++) {
+      float value = random.nextFloat(seed);
+      assertThat(value, is(greaterThanOrEqualTo(0.0f)));
+      assertThat(value, is(lessThan(1.0f)));
+    }
+  }
+
+  @Test
+  public void testBoundedFloatStaysWithinUpperBound() {
+    ConcurrentPseudoRandom random = new ConcurrentPseudoRandom();
+    float upperBound = 5.9543f;
+
+    for (int i = 0; i < 50000; i++) {
+      float value = random.nextFloat(upperBound);
+      assertThat(value, is(greaterThanOrEqualTo(0.0f)));
+      assertThat(value, is(lessThan(upperBound)));
+    }
   }
 }

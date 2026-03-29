@@ -18,6 +18,9 @@ package io.rainfall.statistics;
 
 import org.junit.Test;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
@@ -104,6 +107,35 @@ public class StatisticsPeekTest {
     StatisticsPeek<Result> peek = statistics.peek(8L);
 
     assertThat(round(peek.getCumulativeAverageLatencyInMs(two)), is(round((105d + 34d + 97d + 25d + 94d + 37d) / 6)));
+  }
+
+  @Test
+  public void addAllShouldUseWeightedLatencyFromRawTotals() {
+    StatisticsPeek<Result> firstPeek = new StatisticsPeek<Result>("first", Result.values(), 1L);
+    firstPeek.setPeriodicValues(1_000_000_000L, Result.values(), new long[] {1L, 0L, 0L},
+        new long[] {10_000_000L, 0L, 0L});
+    firstPeek.setCumulativeValues(1_000_000_000L, Result.values(), new long[] {1L, 0L, 0L},
+        new long[] {10_000_000L, 0L, 0L});
+
+    StatisticsPeek<Result> secondPeek = new StatisticsPeek<Result>("second", Result.values(), 1L);
+    secondPeek.setPeriodicValues(1_000_000_000L, Result.values(), new long[] {9L, 0L, 0L},
+        new long[] {9_000_000L, 0L, 0L});
+    secondPeek.setCumulativeValues(1_000_000_000L, Result.values(), new long[] {9L, 0L, 0L},
+        new long[] {9_000_000L, 0L, 0L});
+
+    Map<String, StatisticsPeek<Result>> peeks = new LinkedHashMap<String, StatisticsPeek<Result>>();
+    peeks.put(firstPeek.getName(), firstPeek);
+    peeks.put(secondPeek.getName(), secondPeek);
+
+    StatisticsPeek<Result> totalPeek = new StatisticsPeek<Result>("ALL", Result.values(), 1L);
+    totalPeek.addAll(peeks);
+
+    assertThat(totalPeek.getSumOfPeriodicCounters(), is(10L));
+    assertThat(totalPeek.getSumOfCumulativeCounters(), is(10L));
+    assertThat(totalPeek.getAverageOfPeriodicAverageLatencies(), is(1.9d));
+    assertThat(totalPeek.getAverageOfCumulativeAverageLatencies(), is(1.9d));
+    assertThat(totalPeek.getPeriodicAverageLatencyInMs(Result.ONE), is(1.9d));
+    assertThat(totalPeek.getCumulativeAverageLatencyInMs(Result.ONE), is(1.9d));
   }
 
   private Double round(final Double value) {

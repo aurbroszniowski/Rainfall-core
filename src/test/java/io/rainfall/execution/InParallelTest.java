@@ -43,7 +43,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-public class InParallelBatch2Test {
+public class InParallelTest {
 
   private enum Result {
     OK
@@ -52,7 +52,7 @@ public class InParallelBatch2Test {
   @Test
   public void executeShouldRunOnTheExpectedSingleThreadCadence() throws TestException {
     ConcurrentLinkedQueue<Long> executionTimes = new ConcurrentLinkedQueue<Long>();
-    Scenario scenario = Scenario.scenario("batch2").exec(new Operation() {
+    Scenario scenario = Scenario.scenario("in-parallel").exec(new Operation() {
       @Override
       public void exec(final io.rainfall.statistics.StatisticsHolder statisticsHolder,
                        final Map<Class<? extends Configuration>, Configuration> configurations,
@@ -89,7 +89,7 @@ public class InParallelBatch2Test {
     AtomicInteger executions = new AtomicInteger();
     Set<Long> threadIds = ConcurrentHashMap.newKeySet();
 
-    Scenario scenario = Scenario.scenario("batch2").exec(new Operation() {
+    Scenario scenario = Scenario.scenario("in-parallel").exec(new Operation() {
       @Override
       public void exec(final io.rainfall.statistics.StatisticsHolder statisticsHolder,
                        final Map<Class<? extends Configuration>, Configuration> configurations,

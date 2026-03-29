@@ -16,15 +16,15 @@
 
 package io.rainfall.statistics;
 
-import org.junit.Test;
 import org.HdrHistogram.Histogram;
+import org.junit.Test;
 
 import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-public class RuntimeStatisticsHolderBatch1Test {
+public class RuntimeStatisticsHolderTest {
 
   private enum Result {
     OK
