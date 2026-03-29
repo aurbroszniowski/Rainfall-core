@@ -31,8 +31,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -130,21 +128,13 @@ public class ScenarioRun<E extends Enum<E>> {
 
     final Set<Reporter<E>> logReporters = reportingConfig.getLogReporters();
     Map<Long, List<Reporter<E>>> reportersByInterval = groupReportersByInterval(logReporters, reportingConfig);
-    ScheduledExecutorService topOfSecondExecutor = Executors.newScheduledThreadPool(reportersByInterval.size(), new CustomThreadFactory());
+    ScheduledExecutorService topOfSecondExecutor = Executors.newScheduledThreadPool(
+        Math.max(1, reportersByInterval.size()), new CustomThreadFactory());
     StatisticsThread<E> stats = null;
     StatisticsPeekHolder<E> peek = null;
     try {
       stats = new StatisticsThread<E>(statisticsHolder, reportingConfig, getDescription(),
           reportingConfig.getStatisticsCollectors());
-      TimeUnit reportIntervalUnit = reportingConfig.getReportTimeUnit();
-      long reportIntervalMillis = reportIntervalUnit.toMillis(reportingConfig.getReportInterval());
-
-      Calendar myDate = Calendar.getInstance();
-      myDate.add(Calendar.SECOND, 1);
-      myDate.set(Calendar.MILLISECOND, 0);
-      Date afterOneSecond = myDate.getTime();
-      long delay = afterOneSecond.getTime() - System.currentTimeMillis() - 4;
-
       for (Map.Entry<Long, List<Reporter<E>>> intervalReporters : reportersByInterval.entrySet()) {
         final long intervalInMillis = intervalReporters.getKey();
         final List<Reporter<E>> reporters = intervalReporters.getValue();
@@ -158,7 +148,7 @@ public class ScenarioRun<E extends Enum<E>> {
               }
             }
           }
-        }, delay, intervalInMillis, TimeUnit.MILLISECONDS);
+        }, initialReportDelayInMillis(intervalInMillis), intervalInMillis, TimeUnit.MILLISECONDS);
       }
 
       for (final Execution execution : executions) {
@@ -189,6 +179,10 @@ public class ScenarioRun<E extends Enum<E>> {
       }
     }
     return peek;
+  }
+
+  long initialReportDelayInMillis(final long intervalInMillis) {
+    return intervalInMillis;
   }
 
   private Map<Long, List<Reporter<E>>> groupReportersByInterval(final Set<Reporter<E>> logReporters,

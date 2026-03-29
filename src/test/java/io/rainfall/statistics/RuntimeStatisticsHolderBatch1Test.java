@@ -17,6 +17,7 @@
 package io.rainfall.statistics;
 
 import org.junit.Test;
+import org.HdrHistogram.Histogram;
 
 import java.util.Collections;
 
@@ -61,5 +62,19 @@ public class RuntimeStatisticsHolderBatch1Test {
 
     assertThat(firstHolder.fetchHistogram(Result.OK).getTotalCount(), is(1L));
     assertThat(secondHolder.fetchHistogram(Result.OK).getTotalCount(), is(1L));
+  }
+
+  @Test
+  public void fetchHistogramShouldReuseTheAggregateHistogramInstance() {
+    RuntimeStatisticsHolder<Result> holder = new RuntimeStatisticsHolder<Result>(
+        Result.values(), Result.values(), Collections.emptySet());
+
+    holder.record("op", 10L, Result.OK);
+
+    Histogram firstFetch = holder.fetchHistogram(Result.OK);
+    Histogram secondFetch = holder.fetchHistogram(Result.OK);
+
+    assertThat(firstFetch, is(secondFetch));
+    assertThat(secondFetch.getTotalCount(), is(1L));
   }
 }

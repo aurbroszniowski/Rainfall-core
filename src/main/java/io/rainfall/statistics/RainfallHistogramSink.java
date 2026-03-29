@@ -37,6 +37,7 @@ public class RainfallHistogramSink<E extends Enum<E>> {
   private final Factory factory;
   private final ConcurrentLinkedQueue<HistogramHolder> actives = new ConcurrentLinkedQueue<HistogramHolder>();
   private final ThreadLocal<HistogramHolder> context = new ThreadLocal<HistogramHolder>();
+  private final ConcurrentHashMap<Enum, Histogram> aggregateHistograms;
 
   private static class HistogramHolder {
     private volatile boolean dead = false;
@@ -73,6 +74,7 @@ public class RainfallHistogramSink<E extends Enum<E>> {
 
   public RainfallHistogramSink(Factory factory) {
     this.factory = factory;
+    this.aggregateHistograms = factory.createHistograms();
   }
 
   private HistogramHolder perThread() {
@@ -98,12 +100,13 @@ public class RainfallHistogramSink<E extends Enum<E>> {
     perThread().getHistogram(result).recordValue(value);
   }
 
-  public Histogram fetchHistogram(final Enum<E> result) {
-    ConcurrentHashMap<Enum, Histogram> aggregate = factory.createHistograms();
+  public synchronized Histogram fetchHistogram(final Enum<E> result) {
+    Histogram aggregate = aggregateHistograms.get(result);
+    aggregate.reset();
     for (HistogramHolder hh : actives) {
-      aggregate.get(result).add(hh.getHistogram(result));
+      aggregate.add(hh.getHistogram(result));
     }
-    return aggregate.get(result);
+    return aggregate;
   }
 
   public synchronized void reset() {
@@ -115,6 +118,9 @@ public class RainfallHistogramSink<E extends Enum<E>> {
       }
     }
     actives.clear();
+    for (Histogram aggregate : aggregateHistograms.values()) {
+      aggregate.reset();
+    }
   }
 
 }
