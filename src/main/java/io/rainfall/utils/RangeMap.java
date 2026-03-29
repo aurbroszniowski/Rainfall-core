@@ -16,7 +16,9 @@
 
 package io.rainfall.utils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * A special Map, where keys are float values defining ranges.
@@ -42,22 +44,32 @@ import java.util.*;
 
 public class RangeMap<E> {
 
-  private final Map<Float, E> values = new HashMap<Float, E>();
-  private final List<Range> keys = new LinkedList<Range>();
-  private Float higherBound = 0.0f;
+  private static final int DEFAULT_CAPACITY = 4;
+
+  private float[] upperBounds = new float[DEFAULT_CAPACITY];
+  private Object[] values = new Object[DEFAULT_CAPACITY];
+  private int size = 0;
+  private float higherBound = 0.0f;
 
   public synchronized void put(final Float weight, final E value) {
     if (weight > 0) {
-      values.put(higherBound, value);
-      keys.add(new Range(higherBound, higherBound + weight, higherBound));
+      ensureCapacity(size + 1);
       higherBound += weight;
+      upperBounds[size] = higherBound;
+      values[size] = value;
+      size++;
     }
   }
 
   public E get(final float key) {
-    for (Range range : keys) {   // the Iterator is way better for the LinkedList that doesn't implement RandomAccess
-      if (range.contains(key))
-        return values.get(range.getKey());
+    if (key < 0.0f || key >= higherBound || size == 0) {
+      return null;
+    }
+
+    for (int i = 0; i < size; i++) {
+      if (key < upperBounds[i]) {
+        return valueAt(i);
+      }
     }
     return null;
   }
@@ -67,30 +79,32 @@ public class RangeMap<E> {
   }
 
   public Collection<E> getAll() {
-    return values.values();
+    List<E> all = new ArrayList<E>(size);
+    for (int i = 0; i < size; i++) {
+      all.add(valueAt(i));
+    }
+    return all;
   }
 
   public E getNextRandom(ConcurrentPseudoRandom concurrentPseudoRandom) {
     return get(concurrentPseudoRandom.nextFloat(higherBound));
   }
 
-  public class Range {
-    private float low;
-    private float high;
-    private Float key;
-
-    public Range(final float low, final float high, final Float key) {
-      this.low = low;
-      this.high = high;
-      this.key = key;
+  private void ensureCapacity(int capacity) {
+    if (capacity <= upperBounds.length) {
+      return;
     }
+    int newCapacity = Math.max(capacity, upperBounds.length * 2);
+    float[] expandedUpperBounds = new float[newCapacity];
+    Object[] expandedValues = new Object[newCapacity];
+    System.arraycopy(upperBounds, 0, expandedUpperBounds, 0, size);
+    System.arraycopy(values, 0, expandedValues, 0, size);
+    upperBounds = expandedUpperBounds;
+    values = expandedValues;
+  }
 
-    public boolean contains(final float key) {
-      return (this.low <= key && this.high > key);
-    }
-
-    public Float getKey() {
-      return key;
-    }
+  @SuppressWarnings("unchecked")
+  private E valueAt(int index) {
+    return (E) values[index];
   }
 }

@@ -18,6 +18,9 @@ package io.rainfall.utils;
 
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -40,5 +43,27 @@ public class RangeMapTest {
     assertThat("0.50 belongs to range [0.50, 0.70[, it should return the third value.", map.get(0.50f), is(equalTo("Value3")));
     assertThat("0.70 belongs to range [0.70, 1.00], it should return no value.", map.get(0.70f), is(equalTo(null)));
     assertThat("1.00 belongs to range [0.70, 1.00], it should return no value.", map.get(1.00f), is(equalTo(null)));
+  }
+
+  @Test
+  public void testIgnoredWeightsDoNotChangeTheRange() {
+    RangeMap<String> map = new RangeMap<String>();
+    map.put(0.0f, "Ignored");
+    map.put(-0.10f, "Ignored");
+    map.put(0.25f, "Value1");
+
+    assertThat(map.getHigherBound(), is(equalTo(0.25f)));
+    assertThat(map.get(0.10f), is(equalTo("Value1")));
+    assertThat(map.get(0.30f), is(equalTo(null)));
+  }
+
+  @Test
+  public void testGetAllPreservesInsertionOrder() {
+    RangeMap<String> map = new RangeMap<String>();
+    map.put(0.20f, "Value1");
+    map.put(0.30f, "Value2");
+    map.put(0.20f, "Value3");
+
+    assertThat(new ArrayList<String>(map.getAll()), is(equalTo(Arrays.asList("Value1", "Value2", "Value3"))));
   }
 }

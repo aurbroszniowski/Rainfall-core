@@ -26,7 +26,15 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class IterationSequenceGenerator implements SequenceGenerator {
 
+  static final int BLOCK_SIZE = 1024;
+
   private final AtomicLong next;
+  private final ThreadLocal<LocalRange> localRange = new ThreadLocal<LocalRange>() {
+    @Override
+    protected LocalRange initialValue() {
+      return new LocalRange();
+    }
+  };
 
   public IterationSequenceGenerator() {
     this.next = new AtomicLong(1);
@@ -43,11 +51,24 @@ public class IterationSequenceGenerator implements SequenceGenerator {
 
   @Override
   public long next() {
-    return next.getAndIncrement();
+    LocalRange range = localRange.get();
+    if (range.next >= range.limit) {
+      // Reserving a small per-thread block removes the shared CAS from the hot path,
+      // at the cost of possible gaps if a thread stops with unused reserved values.
+      long blockStart = next.getAndAdd(BLOCK_SIZE);
+      range.next = blockStart;
+      range.limit = blockStart + BLOCK_SIZE;
+    }
+    return range.next++;
   }
 
   @Override
   public String getDescription() {
     return "Iterative sequence";
+  }
+
+  private static class LocalRange {
+    private long next;
+    private long limit;
   }
 }

@@ -27,6 +27,9 @@ package io.rainfall.utils;
 
 public class ConcurrentPseudoRandom {
 
+  private static final float FLOAT_UNIT = 1.0f / (1 << 24);
+  private static final long FLOAT_MIX = 0x2545F4914F6CDD1DL;
+
   private final ThreadLocal<RandomFunction> randomFunction = new ThreadLocal<RandomFunction>() {
     protected RandomFunction initialValue() {
       return new RandomFunction();
@@ -82,7 +85,8 @@ public class ConcurrentPseudoRandom {
 
     //  Float.intBitsToFloat(nextInt()) ???
     public float nextFloat(final long next) {
-      return Math.abs(((nextLong(next)) % 100000) / 100000f);
+      long mixed = nextLong(next) * FLOAT_MIX;
+      return ((mixed >>> 40) & 0xFFFFFFL) * FLOAT_UNIT;
     }
   }
 }

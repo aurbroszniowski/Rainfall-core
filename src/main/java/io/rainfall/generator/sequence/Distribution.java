@@ -12,7 +12,8 @@ public enum Distribution {
   FLAT {
     @Override
     public long generate(ConcurrentPseudoRandom rnd, long minimum, long maximum, long width) {
-      return (Math.abs(rnd.nextLong()) % (maximum - minimum)) + minimum;
+      long range = maximum - minimum;
+      return ((rnd.nextLong() & Long.MAX_VALUE) % range) + minimum;
     }
 
     @Override
