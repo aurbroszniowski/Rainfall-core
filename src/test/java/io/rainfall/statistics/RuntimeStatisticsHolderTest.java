@@ -77,4 +77,24 @@ public class RuntimeStatisticsHolderTest {
     assertThat(firstFetch, is(secondFetch));
     assertThat(secondFetch.getTotalCount(), is(1L));
   }
+
+  @Test
+  public void peekShouldAggregateAverageLatenciesUsingRawTotals() {
+    RuntimeStatisticsHolder<Result> holder = new RuntimeStatisticsHolder<Result>(
+        Result.values(), Result.values(), Collections.emptySet());
+
+    holder.record("fast", 1_000_000L, Result.OK);
+    holder.record("slow", 10_000_000L, Result.OK);
+    for (int i = 0; i < 8; i++) {
+      holder.record("slow", 1_000_000L, Result.OK);
+    }
+
+    StatisticsPeekHolder<Result> peekHolder = holder.peek();
+
+    assertThat(peekHolder.getTotalStatisticsPeeks().getSumOfPeriodicCounters(), is(10L));
+    assertThat(peekHolder.getTotalStatisticsPeeks().getAverageOfPeriodicAverageLatencies(), is(1.9d));
+    assertThat(peekHolder.getTotalStatisticsPeeks().getAverageOfCumulativeAverageLatencies(), is(1.9d));
+    assertThat(peekHolder.getTotalStatisticsPeeks().getPeriodicAverageLatencyInMs(Result.OK), is(1.9d));
+    assertThat(peekHolder.getTotalStatisticsPeeks().getCumulativeAverageLatencyInMs(Result.OK), is(1.9d));
+  }
 }

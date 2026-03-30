@@ -16,56 +16,34 @@
 
 package io.rainfall.statistics;
 
-
-import java.util.HashMap;
+import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.Set;
 
 /**
  * A peek at the {@link io.rainfall.statistics.Statistics}, used for statistics inspection.
  *
- * Holds the:
- *
- * - timestamp
- *
- * - periodic average latency (periodic average latency for one observed domain)
- * - cumulative average latency (cumulative average latency for one observed domain)
- * - total periodic average latency (periodic average latency for all observed domains)
- * - total cumulative average latency (cumulative average latency for one observed domain)
- *
- * - periodic counter (periodic nb of operations for one observed domain)
- * - cumulative counter (cumulative nb of operations for one observed domain)
- * - total periodic counter (periodic nb of operations for all observed domains)
- * - total cumulative counter (cumulative nb of operations for one observed domain)
- *
- * - periodic TPS (periodic TPS for one observed domain)
- * - cumulative TPS (cumulative TPS for one observed domain)
- * - total periodic TPS (periodic TPS for all observed domains)
- * - total cumulative TPS (cumulative TPS for one observed domain)
- *
- * - HdrHistogram : percentiles of measures latencies
-
- *
  * @author Aurelien Broszniowski
  */
-
 public class StatisticsPeek<E extends Enum<E>> {
 
   private String name;
   private long timestamp;
-  private final Map<Enum, Long> periodicCounters = new HashMap<Enum, Long>();
-  private final Map<Enum, Long> periodicTotalLatenciesInNs = new HashMap<Enum, Long>();
-  private final Map<Enum, Double> periodicAverageLatencies = new HashMap<Enum, Double>();
-  private final Map<Enum, Long> periodicTps = new HashMap<Enum, Long>();
+  private final int[] keyIndexesByOrdinal;
+  private final Map<Enum, Long> periodicCounters;
+  private final long[] periodicTotalLatenciesInNs;
+  private final Map<Enum, Double> periodicAverageLatencies;
+  private final Map<Enum, Long> periodicTps;
 
   private Long sumOfPeriodicCounters = 0L;
   private double averageOfPeriodicAverageLatencies = 0.0d;
   private Long sumOfPeriodicTps = 0L;
 
-  private final Map<Enum, Long> cumulativeCounters = new HashMap<Enum, Long>();
-  private final Map<Enum, Long> cumulativeTotalLatenciesInNs = new HashMap<Enum, Long>();
-  private final Map<Enum, Double> cumulativeAverageLatencies = new HashMap<Enum, Double>();
-  private final Map<Enum, Long> cumulativeTps = new HashMap<Enum, Long>();
+  private final Map<Enum, Long> cumulativeCounters;
+  private final long[] cumulativeTotalLatenciesInNs;
+  private final Map<Enum, Double> cumulativeAverageLatencies;
+  private final Map<Enum, Long> cumulativeTps;
 
   private Long sumOfCumulativeCounters = 0L;
   private double averageOfCumulativeAverageLatencies = 0.0d;
@@ -74,9 +52,22 @@ public class StatisticsPeek<E extends Enum<E>> {
   private Enum<E>[] keys;
 
   public StatisticsPeek(String name, Enum<E>[] keys, long timestamp) {
+    this(name, keys, timestamp, true);
+  }
+
+  StatisticsPeek(String name, Enum<E>[] keys, long timestamp, boolean retainRawTotals) {
     this.name = name;
     this.keys = keys;
     this.timestamp = timestamp;
+    this.keyIndexesByOrdinal = retainRawTotals ? buildKeyIndexesByOrdinal(keys) : null;
+    this.periodicCounters = newEnumMap(keys);
+    this.periodicTotalLatenciesInNs = retainRawTotals ? new long[keys.length] : null;
+    this.periodicAverageLatencies = newEnumMap(keys);
+    this.periodicTps = newEnumMap(keys);
+    this.cumulativeCounters = newEnumMap(keys);
+    this.cumulativeTotalLatenciesInNs = retainRawTotals ? new long[keys.length] : null;
+    this.cumulativeAverageLatencies = newEnumMap(keys);
+    this.cumulativeTps = newEnumMap(keys);
   }
 
   public String getName() {
@@ -99,10 +90,12 @@ public class StatisticsPeek<E extends Enum<E>> {
       long cumulativeCounter = cumulativeCounters[i];
       this.cumulativeCounters.put(key, cumulativeCounter);
       long cumulativeTotalLatency = cumulativeTotalLatencies[i];
-      this.cumulativeTotalLatenciesInNs.put(key, cumulativeTotalLatency);
+      if (this.cumulativeTotalLatenciesInNs != null) {
+        this.cumulativeTotalLatenciesInNs[i] = cumulativeTotalLatency;
+      }
       this.cumulativeAverageLatencies.put(key, averageLatencyInMs(cumulativeTotalLatency, cumulativeCounter));
       if (lengthInSec > 0) {
-        this.cumulativeTps.put(key, cumulativeCounter / lengthInSec); // instead of dividing the ns into sec, we multiply
+        this.cumulativeTps.put(key, cumulativeCounter / lengthInSec);
       } else {
         this.cumulativeTps.put(key, cumulativeCounter);
       }
@@ -111,7 +104,8 @@ public class StatisticsPeek<E extends Enum<E>> {
       this.averageOfCumulativeAverageLatencies += cumulativeTotalLatency;
       this.sumOfCumulativeTps += this.cumulativeTps.get(key);
     }
-    this.averageOfCumulativeAverageLatencies = averageLatencyInMs(this.averageOfCumulativeAverageLatencies, this.sumOfCumulativeCounters);
+    this.averageOfCumulativeAverageLatencies =
+        averageLatencyInMs(this.averageOfCumulativeAverageLatencies, this.sumOfCumulativeCounters);
   }
 
   public void setPeriodicValues(long length, Enum<E>[] keys, long[] periodicCounters,
@@ -122,7 +116,9 @@ public class StatisticsPeek<E extends Enum<E>> {
       long periodicCounter = periodicCounters[i];
       this.periodicCounters.put(key, periodicCounter);
       long periodicTotalLatency = periodicTotalLatencies[i];
-      this.periodicTotalLatenciesInNs.put(key, periodicTotalLatency);
+      if (this.periodicTotalLatenciesInNs != null) {
+        this.periodicTotalLatenciesInNs[i] = periodicTotalLatency;
+      }
       this.periodicAverageLatencies.put(key, averageLatencyInMs(periodicTotalLatency, periodicCounter));
       if (lengthInSec > 0) {
         this.periodicTps.put(key, periodicCounter / lengthInSec);
@@ -134,7 +130,46 @@ public class StatisticsPeek<E extends Enum<E>> {
       this.averageOfPeriodicAverageLatencies += periodicTotalLatency;
       this.sumOfPeriodicTps += this.periodicTps.get(key);
     }
-    this.averageOfPeriodicAverageLatencies = averageLatencyInMs(this.averageOfPeriodicAverageLatencies, this.sumOfPeriodicCounters);
+    this.averageOfPeriodicAverageLatencies =
+        averageLatencyInMs(this.averageOfPeriodicAverageLatencies, this.sumOfPeriodicCounters);
+  }
+
+  void setAggregatedPeriodicValues(Enum<E>[] keys, long[] periodicCounters, long[] periodicTotalLatencies, long[] periodicTps) {
+    long totalPeriodicLatencyInNs = 0L;
+    for (int i = 0; i < keys.length; i++) {
+      Enum<E> key = keys[i];
+      long periodicCounter = periodicCounters[i];
+      long periodicTotalLatency = periodicTotalLatencies[i];
+
+      this.periodicCounters.put(key, periodicCounter);
+      this.periodicAverageLatencies.put(key, averageLatencyInMs(periodicTotalLatency, periodicCounter));
+      this.periodicTps.put(key, periodicTps[i]);
+
+      this.sumOfPeriodicCounters += periodicCounter;
+      totalPeriodicLatencyInNs += periodicTotalLatency;
+      this.sumOfPeriodicTps += periodicTps[i];
+    }
+    this.averageOfPeriodicAverageLatencies = averageLatencyInMs(totalPeriodicLatencyInNs, this.sumOfPeriodicCounters);
+  }
+
+  void setAggregatedCumulativeValues(Enum<E>[] keys, long[] cumulativeCounters, long[] cumulativeTotalLatencies,
+                                     long[] cumulativeTps) {
+    long totalCumulativeLatencyInNs = 0L;
+    for (int i = 0; i < keys.length; i++) {
+      Enum<E> key = keys[i];
+      long cumulativeCounter = cumulativeCounters[i];
+      long cumulativeTotalLatency = cumulativeTotalLatencies[i];
+
+      this.cumulativeCounters.put(key, cumulativeCounter);
+      this.cumulativeAverageLatencies.put(key, averageLatencyInMs(cumulativeTotalLatency, cumulativeCounter));
+      this.cumulativeTps.put(key, cumulativeTps[i]);
+
+      this.sumOfCumulativeCounters += cumulativeCounter;
+      totalCumulativeLatencyInNs += cumulativeTotalLatency;
+      this.sumOfCumulativeTps += cumulativeTps[i];
+    }
+    this.averageOfCumulativeAverageLatencies =
+        averageLatencyInMs(totalCumulativeLatencyInNs, this.sumOfCumulativeCounters);
   }
 
   private double averageLatencyInMs(double totalLatencyInNs, long counter) {
@@ -143,17 +178,6 @@ public class StatisticsPeek<E extends Enum<E>> {
     }
     return totalLatencyInNs / counter / 1000000L;
   }
-
-  /**
-   * Add all statisticPeeks values:
-   * periodic TPS
-   * periodic Response time
-   * Histograms
-   * <p>
-   * TODO : remove cumulative counter, since it is useless now
-   *
-   * @param statisticsPeeks snapshot of the statistics at reporting interval
-   */
 
   public void addAll(final Map<String, StatisticsPeek<E>> statisticsPeeks) {
     Set<String> names = statisticsPeeks.keySet();
@@ -180,10 +204,11 @@ public class StatisticsPeek<E extends Enum<E>> {
         cumulativeTps += peek.getCumulativeTps(key);
       }
 
+      int keyIndex = getKeyIndex(key);
       this.periodicCounters.put(key, periodicCounter);
       this.cumulativeCounters.put(key, cumulativeCounter);
-      this.periodicTotalLatenciesInNs.put(key, periodicTotalLatencyInNs);
-      this.cumulativeTotalLatenciesInNs.put(key, cumulativeTotalLatencyInNs);
+      this.periodicTotalLatenciesInNs[keyIndex] = periodicTotalLatencyInNs;
+      this.cumulativeTotalLatenciesInNs[keyIndex] = cumulativeTotalLatencyInNs;
       this.periodicAverageLatencies.put(key, averageLatencyInMs(periodicTotalLatencyInNs, periodicCounter));
       this.cumulativeAverageLatencies.put(key, averageLatencyInMs(cumulativeTotalLatencyInNs, cumulativeCounter));
       this.periodicTps.put(key, periodicTps);
@@ -201,84 +226,97 @@ public class StatisticsPeek<E extends Enum<E>> {
     this.averageOfCumulativeAverageLatencies = averageLatencyInMs(totalCumulativeLatencyInNs, this.sumOfCumulativeCounters);
   }
 
-  // periodic counter (periodic nb of operations for one observed domain)
-  //   = periodic counter
   public Long getPeriodicCounters(Enum<E> key) {
     return this.periodicCounters.get(key);
   }
 
-  // periodic average latency (periodic average latency for one observed domain)
-  //   = periodic total latency / periodic counter
   public Double getPeriodicAverageLatencyInMs(Enum<E> key) {
     return this.periodicAverageLatencies.get(key);
   }
 
   public Long getPeriodicTotalLatencyInNs(Enum<E> key) {
-    return this.periodicTotalLatenciesInNs.get(key);
+    assertRawTotalsAvailable();
+    return this.periodicTotalLatenciesInNs[getKeyIndex(key)];
   }
 
-  // periodic TPS (periodic TPS for one observed domain)
-  //   = periodic counter / length in sec
   public Long getPeriodicTps(Enum<E> key) {
     return this.periodicTps.get(key);
   }
 
-  // total periodic counter (periodic nb of operations for all observed domains)
-  //   = sum of all periodic counters
   public long getSumOfPeriodicCounters() {
     return this.sumOfPeriodicCounters;
   }
 
-  // total periodic average latency (periodic average latency for all observed domains)
-  //   = average of all periodic average latency for each key
   public double getAverageOfPeriodicAverageLatencies() {
     return this.averageOfPeriodicAverageLatencies;
   }
 
-  // total periodic TPS (periodic TPS for all observed domains)
-  //   = sum of all periodic counter / length in sec
   public long getSumOfPeriodicTps() {
     return this.sumOfPeriodicTps;
   }
 
-  // cumulative counter (cumulative nb of operations for one observed domain)
-  //   = cumulative counter
   public Long getCumulativeCounters(Enum<E> key) {
     return this.cumulativeCounters.get(key);
   }
 
-  // cumulative average latency (cumulative average latency for one observed domain)
-  //   = cumulative total latency / cumulative counter
   public Double getCumulativeAverageLatencyInMs(Enum<E> key) {
     return this.cumulativeAverageLatencies.get(key);
   }
 
   public Long getCumulativeTotalLatencyInNs(Enum<E> key) {
-    return this.cumulativeTotalLatenciesInNs.get(key);
+    assertRawTotalsAvailable();
+    return this.cumulativeTotalLatenciesInNs[getKeyIndex(key)];
   }
 
-  // cumulative TPS (cumulative TPS for one observed domain)
-  //   = cumulative counter / length in sec
   public Long getCumulativeTps(Enum<E> key) {
     return this.cumulativeTps.get(key);
   }
 
-  // total cumulative counter (cumulative nb of operations for one observed domain)
-  //   = sum of all cumulative counters
   public long getSumOfCumulativeCounters() {
     return this.sumOfCumulativeCounters;
   }
 
-  // total cumulative average latency (cumulative average latency for one observed domain)
-  //   = sum of all cumulative average latency
   public double getAverageOfCumulativeAverageLatencies() {
     return this.averageOfCumulativeAverageLatencies;
   }
 
-  // total cumulative TPS (cumulative TPS for one observed domain)
-  //   = sum of all cumulative counter / length in sec
   public long getSumOfCumulativeTps() {
     return this.sumOfCumulativeTps;
   }
 
+  private int getKeyIndex(Enum<E> key) {
+    assertRawTotalsAvailable();
+    int ordinal = key.ordinal();
+    if (ordinal < keyIndexesByOrdinal.length) {
+      int keyIndex = keyIndexesByOrdinal[ordinal];
+      if (keyIndex >= 0) {
+        return keyIndex;
+      }
+    }
+    throw new IllegalArgumentException("Unknown key " + key + " for statistics peek " + name);
+  }
+
+  private int[] buildKeyIndexesByOrdinal(Enum<E>[] keys) {
+    int maxOrdinal = 0;
+    for (int i = 0; i < keys.length; i++) {
+      maxOrdinal = Math.max(maxOrdinal, keys[i].ordinal());
+    }
+    int[] indexes = new int[maxOrdinal + 1];
+    Arrays.fill(indexes, -1);
+    for (int i = 0; i < keys.length; i++) {
+      indexes[keys[i].ordinal()] = i;
+    }
+    return indexes;
+  }
+
+  private void assertRawTotalsAvailable() {
+    if (this.keyIndexesByOrdinal == null) {
+      throw new IllegalStateException("Raw latency totals are not retained for statistics peek " + name);
+    }
+  }
+
+  @SuppressWarnings({"rawtypes", "unchecked"})
+  private <T> Map<Enum, T> newEnumMap(Enum<E>[] keys) {
+    return new EnumMap(keys[0].getDeclaringClass());
+  }
 }

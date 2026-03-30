@@ -107,8 +107,16 @@ public class Statistics<E extends Enum<E>> {
   }
 
   public synchronized StatisticsPeek<E> peek(final long timestamp) {
+    return peek(timestamp, null, null, null, null, null, null);
+  }
+
+  synchronized StatisticsPeek<E> peek(final long timestamp, long[] aggregatePeriodicCounters,
+                                      long[] aggregatePeriodicLatencies, long[] aggregatePeriodicTps,
+                                      long[] aggregateCumulativeCounters, long[] aggregateCumulativeLatencies,
+                                      long[] aggregateCumulativeTps) {
     long now = getTimeInNs();
     long periodicLength = now - periodicStartTime;
+    long cumulativeLength = now - cumulativeStartTime;
     this.periodicStartTime = now;
 
     for (int i = 0; i < results.length; i++) {
@@ -121,9 +129,15 @@ public class Statistics<E extends Enum<E>> {
       lastDrainedTotalLatenciesInNs[i] = scratchCumulativeLatencies[i];
     }
 
-    StatisticsPeek<E> statisticsPeek = new StatisticsPeek<E>(this.name, this.results, timestamp);
+    if (aggregatePeriodicCounters != null) {
+      accumulateAggregateValues(periodicLength, cumulativeLength,
+          aggregatePeriodicCounters, aggregatePeriodicLatencies, aggregatePeriodicTps,
+          aggregateCumulativeCounters, aggregateCumulativeLatencies, aggregateCumulativeTps);
+    }
+
+    StatisticsPeek<E> statisticsPeek = new StatisticsPeek<E>(this.name, this.results, timestamp, false);
     statisticsPeek.setPeriodicValues(periodicLength, this.results, scratchPeriodicCounters, scratchPeriodicLatencies);
-    statisticsPeek.setCumulativeValues(now - cumulativeStartTime, this.results, scratchCumulativeCounters, scratchCumulativeLatencies);
+    statisticsPeek.setCumulativeValues(cumulativeLength, this.results, scratchCumulativeCounters, scratchCumulativeLatencies);
     return statisticsPeek;
   }
 
@@ -162,5 +176,25 @@ public class Statistics<E extends Enum<E>> {
       indexes[results[i].ordinal()] = i;
     }
     return indexes;
+  }
+
+  private void accumulateAggregateValues(long periodicLength, long cumulativeLength,
+                                         long[] aggregatePeriodicCounters, long[] aggregatePeriodicLatencies,
+                                         long[] aggregatePeriodicTps, long[] aggregateCumulativeCounters,
+                                         long[] aggregateCumulativeLatencies, long[] aggregateCumulativeTps) {
+    long periodicLengthInSec = periodicLength / 1000000 / 1000;
+    long cumulativeLengthInSec = cumulativeLength / 1000000 / 1000;
+    for (int i = 0; i < results.length; i++) {
+      long periodicCounter = scratchPeriodicCounters[i];
+      long cumulativeCounter = scratchCumulativeCounters[i];
+
+      aggregatePeriodicCounters[i] += periodicCounter;
+      aggregatePeriodicLatencies[i] += scratchPeriodicLatencies[i];
+      aggregatePeriodicTps[i] += periodicLengthInSec > 0 ? periodicCounter / periodicLengthInSec : periodicCounter;
+
+      aggregateCumulativeCounters[i] += cumulativeCounter;
+      aggregateCumulativeLatencies[i] += scratchCumulativeLatencies[i];
+      aggregateCumulativeTps[i] += cumulativeLengthInSec > 0 ? cumulativeCounter / cumulativeLengthInSec : cumulativeCounter;
+    }
   }
 }

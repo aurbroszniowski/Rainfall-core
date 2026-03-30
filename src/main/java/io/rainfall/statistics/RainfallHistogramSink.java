@@ -102,9 +102,18 @@ public class RainfallHistogramSink<E extends Enum<E>> {
 
   public synchronized Histogram fetchHistogram(final Enum<E> result) {
     Histogram aggregate = aggregateHistograms.get(result);
-    aggregate.reset();
+    boolean copied = false;
     for (HistogramHolder hh : actives) {
-      aggregate.add(hh.getHistogram(result));
+      Histogram histogram = hh.getHistogram(result);
+      if (!copied) {
+        histogram.copyInto(aggregate);
+        copied = true;
+      } else {
+        aggregate.add(histogram);
+      }
+    }
+    if (!copied) {
+      aggregate.reset();
     }
     return aggregate;
   }

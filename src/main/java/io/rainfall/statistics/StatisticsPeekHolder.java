@@ -20,6 +20,8 @@ import io.rainfall.statistics.collector.StatisticsCollector;
 import io.rainfall.statistics.exporter.Exporter;
 import org.HdrHistogram.Histogram;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,8 +36,8 @@ public class StatisticsPeekHolder<E extends Enum<E>> {
   private final RainfallHistogramSink<E> histograms;
   private final long startTime;
 
-  private Map<String, StatisticsPeek<E>> statisticsPeeks = new ConcurrentHashMap<String, StatisticsPeek<E>>();
-  private Map<String, Exporter> extraCollectedStatistics = new ConcurrentHashMap<String, Exporter>();
+  private Map<String, StatisticsPeek<E>> statisticsPeeks = new HashMap<String, StatisticsPeek<E>>();
+  private Map<String, Exporter> extraCollectedStatistics = Collections.emptyMap();
   private StatisticsPeek<E> totalStatisticsPeeks = null;
   private long timestamp;
 
@@ -49,14 +51,28 @@ public class StatisticsPeekHolder<E extends Enum<E>> {
     this.startTime = startTime;
     long snapshotTimestamp = System.currentTimeMillis();
     this.timestamp = snapshotTimestamp;
+    long[] totalPeriodicCounters = new long[this.resultsReported.length];
+    long[] totalPeriodicLatencies = new long[this.resultsReported.length];
+    long[] totalPeriodicTps = new long[this.resultsReported.length];
+    long[] totalCumulativeCounters = new long[this.resultsReported.length];
+    long[] totalCumulativeLatencies = new long[this.resultsReported.length];
+    long[] totalCumulativeTps = new long[this.resultsReported.length];
     for (String name : statisticsMap.keySet()) {
-      statisticsPeeks.put(name, statisticsMap.get(name).peek(snapshotTimestamp));
+      statisticsPeeks.put(name, statisticsMap.get(name).peek(snapshotTimestamp,
+          totalPeriodicCounters, totalPeriodicLatencies, totalPeriodicTps,
+          totalCumulativeCounters, totalCumulativeLatencies, totalCumulativeTps));
     }
     this.totalStatisticsPeeks = new StatisticsPeek<E>(ALL, this.resultsReported, this.timestamp);
-    totalStatisticsPeeks.addAll(statisticsPeeks);
+    this.totalStatisticsPeeks.setAggregatedPeriodicValues(this.resultsReported,
+        totalPeriodicCounters, totalPeriodicLatencies, totalPeriodicTps);
+    this.totalStatisticsPeeks.setAggregatedCumulativeValues(this.resultsReported,
+        totalCumulativeCounters, totalCumulativeLatencies, totalCumulativeTps);
 
-    for (StatisticsCollector statisticsCollector : statisticsCollectors) {
-      extraCollectedStatistics.put(statisticsCollector.getName(), statisticsCollector.peek());
+    if (!statisticsCollectors.isEmpty()) {
+      this.extraCollectedStatistics = new HashMap<String, Exporter>();
+      for (StatisticsCollector statisticsCollector : statisticsCollectors) {
+        extraCollectedStatistics.put(statisticsCollector.getName(), statisticsCollector.peek());
+      }
     }
   }
 
