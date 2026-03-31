@@ -142,7 +142,7 @@ public class RuntimeStatisticsHolder<E extends Enum<E>> extends StatisticsHolder
 
   public StatisticsPeekHolder<E> peek() {
     if (running) {
-      return new StatisticsPeekHolder<E>(this.resultsReported, this.statistics, this.statisticsCollectors,
+      return new StatisticsPeekHolder<E>(this.results, this.resultsReported, this.statistics, this.statisticsCollectors,
           this.assertionsErrors, histograms, this.startTime);
     } else {
       return null;

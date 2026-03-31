@@ -41,7 +41,8 @@ public class StatisticsPeekHolder<E extends Enum<E>> {
   private StatisticsPeek<E> totalStatisticsPeeks = null;
   private long timestamp;
 
-  public StatisticsPeekHolder(final Enum<E>[] resultsReported, final Map<String, Statistics<E>> statisticsMap,
+  public StatisticsPeekHolder(final Enum<E>[] results, final Enum<E>[] resultsReported,
+                              final Map<String, Statistics<E>> statisticsMap,
                               final Set<StatisticsCollector> statisticsCollectors,
                               final ConcurrentHashMap<String, LongAdder> assertionsErrors, RainfallHistogramSink<E> histograms,
                               long startTime) {
@@ -51,22 +52,28 @@ public class StatisticsPeekHolder<E extends Enum<E>> {
     this.startTime = startTime;
     long snapshotTimestamp = System.currentTimeMillis();
     this.timestamp = snapshotTimestamp;
-    long[] totalPeriodicCounters = new long[this.resultsReported.length];
-    long[] totalPeriodicLatencies = new long[this.resultsReported.length];
-    long[] totalPeriodicTps = new long[this.resultsReported.length];
-    long[] totalCumulativeCounters = new long[this.resultsReported.length];
-    long[] totalCumulativeLatencies = new long[this.resultsReported.length];
-    long[] totalCumulativeTps = new long[this.resultsReported.length];
+    long[] totalPeriodicCounters = new long[results.length];
+    long[] totalPeriodicLatencies = new long[results.length];
+    long[] totalPeriodicTps = new long[results.length];
+    long[] totalCumulativeCounters = new long[results.length];
+    long[] totalCumulativeLatencies = new long[results.length];
+    long[] totalCumulativeTps = new long[results.length];
     for (String name : statisticsMap.keySet()) {
       statisticsPeeks.put(name, statisticsMap.get(name).peek(snapshotTimestamp,
           totalPeriodicCounters, totalPeriodicLatencies, totalPeriodicTps,
           totalCumulativeCounters, totalCumulativeLatencies, totalCumulativeTps));
     }
+    long[] reportedPeriodicCounters = projectAggregates(results, resultsReported, totalPeriodicCounters);
+    long[] reportedPeriodicLatencies = projectAggregates(results, resultsReported, totalPeriodicLatencies);
+    long[] reportedPeriodicTps = projectAggregates(results, resultsReported, totalPeriodicTps);
+    long[] reportedCumulativeCounters = projectAggregates(results, resultsReported, totalCumulativeCounters);
+    long[] reportedCumulativeLatencies = projectAggregates(results, resultsReported, totalCumulativeLatencies);
+    long[] reportedCumulativeTps = projectAggregates(results, resultsReported, totalCumulativeTps);
     this.totalStatisticsPeeks = new StatisticsPeek<E>(ALL, this.resultsReported, this.timestamp);
     this.totalStatisticsPeeks.setAggregatedPeriodicValues(this.resultsReported,
-        totalPeriodicCounters, totalPeriodicLatencies, totalPeriodicTps);
+        reportedPeriodicCounters, reportedPeriodicLatencies, reportedPeriodicTps);
     this.totalStatisticsPeeks.setAggregatedCumulativeValues(this.resultsReported,
-        totalCumulativeCounters, totalCumulativeLatencies, totalCumulativeTps);
+        reportedCumulativeCounters, reportedCumulativeLatencies, reportedCumulativeTps);
 
     if (!statisticsCollectors.isEmpty()) {
       this.extraCollectedStatistics = new HashMap<String, Exporter>();
@@ -74,6 +81,23 @@ public class StatisticsPeekHolder<E extends Enum<E>> {
         extraCollectedStatistics.put(statisticsCollector.getName(), statisticsCollector.peek());
       }
     }
+  }
+
+  private long[] projectAggregates(final Enum<E>[] results, final Enum<E>[] resultsReported, final long[] aggregateValues) {
+    long[] projected = new long[resultsReported.length];
+    for (int i = 0; i < resultsReported.length; i++) {
+      projected[i] = aggregateValues[getResultIndex(results, resultsReported[i])];
+    }
+    return projected;
+  }
+
+  private int getResultIndex(final Enum<E>[] results, final Enum<E> result) {
+    for (int i = 0; i < results.length; i++) {
+      if (results[i] == result) {
+        return i;
+      }
+    }
+    throw new IllegalArgumentException("Unknown reported result " + result);
   }
 
   public StatisticsPeek<E> getStatisticsPeeks(String name) {

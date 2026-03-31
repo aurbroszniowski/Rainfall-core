@@ -27,7 +27,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class RuntimeStatisticsHolderTest {
 
   private enum Result {
-    OK
+    OK,
+    ERROR,
+    TIMEOUT
   }
 
   @Test
@@ -96,5 +98,44 @@ public class RuntimeStatisticsHolderTest {
     assertThat(peekHolder.getTotalStatisticsPeeks().getAverageOfCumulativeAverageLatencies(), is(1.9d));
     assertThat(peekHolder.getTotalStatisticsPeeks().getPeriodicAverageLatencyInMs(Result.OK), is(1.9d));
     assertThat(peekHolder.getTotalStatisticsPeeks().getCumulativeAverageLatencyInMs(Result.OK), is(1.9d));
+  }
+
+  @Test
+  public void peekShouldAggregateSubsetOfReportedResultsByEnumKey() {
+    RuntimeStatisticsHolder<Result> holder = new RuntimeStatisticsHolder<Result>(
+        Result.values(), new Result[]{Result.ERROR}, Collections.emptySet());
+
+    holder.record("op", 1_000_000L, Result.OK);
+    holder.record("op", 1_000_000L, Result.OK);
+    for (int i = 0; i < 5; i++) {
+      holder.record("op", 2_000_000L, Result.ERROR);
+    }
+
+    StatisticsPeek<Result> total = holder.peek().getTotalStatisticsPeeks();
+
+    assertThat(total.getSumOfPeriodicCounters(), is(5L));
+    assertThat(total.getSumOfCumulativeCounters(), is(5L));
+    assertThat(total.getPeriodicCounters(Result.ERROR), is(5L));
+    assertThat(total.getCumulativeCounters(Result.ERROR), is(5L));
+    assertThat(total.getPeriodicAverageLatencyInMs(Result.ERROR), is(2.0d));
+    assertThat(total.getCumulativeAverageLatencyInMs(Result.ERROR), is(2.0d));
+  }
+
+  @Test
+  public void peekShouldAggregateReorderedReportedResultsByEnumKey() {
+    RuntimeStatisticsHolder<Result> holder = new RuntimeStatisticsHolder<Result>(
+        Result.values(), new Result[]{Result.TIMEOUT, Result.OK}, Collections.emptySet());
+
+    holder.record("op", 3_000_000L, Result.TIMEOUT);
+    holder.record("op", 3_000_000L, Result.TIMEOUT);
+    holder.record("op", 1_000_000L, Result.OK);
+
+    StatisticsPeek<Result> total = holder.peek().getTotalStatisticsPeeks();
+
+    assertThat(total.getSumOfPeriodicCounters(), is(3L));
+    assertThat(total.getPeriodicCounters(Result.TIMEOUT), is(2L));
+    assertThat(total.getPeriodicCounters(Result.OK), is(1L));
+    assertThat(total.getPeriodicAverageLatencyInMs(Result.TIMEOUT), is(3.0d));
+    assertThat(total.getPeriodicAverageLatencyInMs(Result.OK), is(1.0d));
   }
 }
