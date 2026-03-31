@@ -77,7 +77,7 @@ public class ScenarioRunTest {
             weighted(0.40, new Operation() {
               @Override
               public void exec(StatisticsHolder statisticsHolder, Map<Class<? extends Configuration>, Configuration> configurations, List<AssertionEvaluator> assertions) throws TestException {
-                statisticsHolder.record("some name", random.nextLong(), random.nextBoolean() ? Result.OK : Result.KO);
+                statisticsHolder.record("some name", random.nextInt(1_000) + 1_000L, random.nextBoolean() ? Result.OK : Result.KO);
               }
 
               @Override
@@ -89,7 +89,7 @@ public class ScenarioRunTest {
 
               @Override
               public void exec(StatisticsHolder statisticsHolder, Map<Class<? extends Configuration>, Configuration> configurations, List<AssertionEvaluator> assertions) throws TestException {
-                statisticsHolder.record("some name", random.nextLong(), random.nextBoolean() ? Result.OK : Result.KO);
+                statisticsHolder.record("some name", random.nextInt(1_000) + 1_000L, random.nextBoolean() ? Result.OK : Result.KO);
               }
 
               @Override
