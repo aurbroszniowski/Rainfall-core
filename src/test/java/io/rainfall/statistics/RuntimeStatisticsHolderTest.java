@@ -17,9 +17,11 @@
 package io.rainfall.statistics;
 
 import org.HdrHistogram.Histogram;
+import org.HdrHistogram.ConcurrentHistogram;
 import org.junit.Test;
 
 import java.util.Collections;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -137,5 +139,33 @@ public class RuntimeStatisticsHolderTest {
     assertThat(total.getPeriodicCounters(Result.OK), is(1L));
     assertThat(total.getPeriodicAverageLatencyInMs(Result.TIMEOUT), is(3.0d));
     assertThat(total.getPeriodicAverageLatencyInMs(Result.OK), is(1.0d));
+  }
+
+  @Test
+  public void statisticsPeekHolderCompatibilityConstructorShouldUseReportedResultsForAggregation() {
+    ConcurrentHashMap<String, Statistics<Result>> statisticsMap = new ConcurrentHashMap<String, Statistics<Result>>();
+    Statistics<Result> statistics = new Statistics<Result>("op", Result.values());
+    statistics.increaseCounterAndSetLatencyInNs(Result.OK, 1_000_000L);
+    statisticsMap.put("op", statistics);
+
+    StatisticsPeekHolder<Result> peekHolder = new StatisticsPeekHolder<Result>(
+        Result.values(),
+        statisticsMap,
+        Collections.emptySet(),
+        new ConcurrentHashMap<String, LongAdder>(),
+        new RainfallHistogramSink<Result>(new RainfallHistogramSink.Factory() {
+          @Override
+          public ConcurrentHashMap<Enum, Histogram> createHistograms() {
+            ConcurrentHashMap<Enum, Histogram> histograms = new ConcurrentHashMap<Enum, Histogram>();
+            for (Result result : Result.values()) {
+              histograms.put(result, new ConcurrentHistogram(3));
+            }
+            return histograms;
+          }
+        }),
+        0L);
+
+    assertThat(peekHolder.getTotalStatisticsPeeks().getSumOfPeriodicCounters(), is(1L));
+    assertThat(peekHolder.getTotalStatisticsPeeks().getPeriodicCounters(Result.OK), is(1L));
   }
 }

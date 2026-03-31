@@ -41,6 +41,15 @@ public class StatisticsPeekHolder<E extends Enum<E>> {
   private StatisticsPeek<E> totalStatisticsPeeks = null;
   private long timestamp;
 
+  public StatisticsPeekHolder(final Enum<E>[] resultsReported,
+                              final Map<String, Statistics<E>> statisticsMap,
+                              final Set<StatisticsCollector> statisticsCollectors,
+                              final ConcurrentHashMap<String, LongAdder> assertionsErrors,
+                              final RainfallHistogramSink<E> histograms,
+                              long startTime) {
+    this(resultsReported, resultsReported, statisticsMap, statisticsCollectors, assertionsErrors, histograms, startTime);
+  }
+
   public StatisticsPeekHolder(final Enum<E>[] results, final Enum<E>[] resultsReported,
                               final Map<String, Statistics<E>> statisticsMap,
                               final Set<StatisticsCollector> statisticsCollectors,
