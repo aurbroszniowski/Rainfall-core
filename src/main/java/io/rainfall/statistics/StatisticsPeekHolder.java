@@ -72,12 +72,19 @@ public class StatisticsPeekHolder<E extends Enum<E>> {
           totalPeriodicCounters, totalPeriodicLatencies, totalPeriodicTps,
           totalCumulativeCounters, totalCumulativeLatencies, totalCumulativeTps));
     }
-    long[] reportedPeriodicCounters = projectAggregates(results, resultsReported, totalPeriodicCounters);
-    long[] reportedPeriodicLatencies = projectAggregates(results, resultsReported, totalPeriodicLatencies);
-    long[] reportedPeriodicTps = projectAggregates(results, resultsReported, totalPeriodicTps);
-    long[] reportedCumulativeCounters = projectAggregates(results, resultsReported, totalCumulativeCounters);
-    long[] reportedCumulativeLatencies = projectAggregates(results, resultsReported, totalCumulativeLatencies);
-    long[] reportedCumulativeTps = projectAggregates(results, resultsReported, totalCumulativeTps);
+    boolean sameReportedResults = sameResultsOrder(results, resultsReported);
+    long[] reportedPeriodicCounters = sameReportedResults ? totalPeriodicCounters
+        : projectAggregates(results, resultsReported, totalPeriodicCounters);
+    long[] reportedPeriodicLatencies = sameReportedResults ? totalPeriodicLatencies
+        : projectAggregates(results, resultsReported, totalPeriodicLatencies);
+    long[] reportedPeriodicTps = sameReportedResults ? totalPeriodicTps
+        : projectAggregates(results, resultsReported, totalPeriodicTps);
+    long[] reportedCumulativeCounters = sameReportedResults ? totalCumulativeCounters
+        : projectAggregates(results, resultsReported, totalCumulativeCounters);
+    long[] reportedCumulativeLatencies = sameReportedResults ? totalCumulativeLatencies
+        : projectAggregates(results, resultsReported, totalCumulativeLatencies);
+    long[] reportedCumulativeTps = sameReportedResults ? totalCumulativeTps
+        : projectAggregates(results, resultsReported, totalCumulativeTps);
     this.totalStatisticsPeeks = new StatisticsPeek<E>(ALL, this.resultsReported, this.timestamp);
     this.totalStatisticsPeeks.setAggregatedPeriodicValues(this.resultsReported,
         reportedPeriodicCounters, reportedPeriodicLatencies, reportedPeriodicTps);
@@ -90,6 +97,18 @@ public class StatisticsPeekHolder<E extends Enum<E>> {
         extraCollectedStatistics.put(statisticsCollector.getName(), statisticsCollector.peek());
       }
     }
+  }
+
+  private boolean sameResultsOrder(final Enum<E>[] results, final Enum<E>[] resultsReported) {
+    if (results.length != resultsReported.length) {
+      return false;
+    }
+    for (int i = 0; i < results.length; i++) {
+      if (results[i] != resultsReported[i]) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private long[] projectAggregates(final Enum<E>[] results, final Enum<E>[] resultsReported, final long[] aggregateValues) {

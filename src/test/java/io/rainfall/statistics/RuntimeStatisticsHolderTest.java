@@ -142,6 +142,24 @@ public class RuntimeStatisticsHolderTest {
   }
 
   @Test
+  public void peekShouldAggregateMatchingReportedResultsFromSeparateArrayInstance() {
+    Result[] reportedResults = new Result[]{Result.OK, Result.ERROR, Result.TIMEOUT};
+    RuntimeStatisticsHolder<Result> holder = new RuntimeStatisticsHolder<Result>(
+        Result.values(), reportedResults, Collections.emptySet());
+
+    holder.record("op", 1_000_000L, Result.OK);
+    holder.record("op", 2_000_000L, Result.ERROR);
+    holder.record("op", 3_000_000L, Result.TIMEOUT);
+
+    StatisticsPeek<Result> total = holder.peek().getTotalStatisticsPeeks();
+
+    assertThat(total.getSumOfPeriodicCounters(), is(3L));
+    assertThat(total.getPeriodicCounters(Result.OK), is(1L));
+    assertThat(total.getPeriodicCounters(Result.ERROR), is(1L));
+    assertThat(total.getPeriodicCounters(Result.TIMEOUT), is(1L));
+  }
+
+  @Test
   public void statisticsPeekHolderCompatibilityConstructorShouldUseReportedResultsForAggregation() {
     ConcurrentHashMap<String, Statistics<Result>> statisticsMap = new ConcurrentHashMap<String, Statistics<Result>>();
     Statistics<Result> statistics = new Statistics<Result>("op", Result.values());
