@@ -157,18 +157,19 @@ public class ScenarioRun<E extends Enum<E>> {
     } catch (Exception e) {
       throw new RuntimeException(e);
     } finally {
-      if (stats != null) {
-        peek = stats.shutdown();
-      }
-      long end = System.currentTimeMillis();
       topOfSecondExecutor.shutdown();
       try {
         if (!topOfSecondExecutor.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
           topOfSecondExecutor.shutdownNow();
         }
       } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
         topOfSecondExecutor.shutdownNow();
       }
+      if (stats != null) {
+        peek = stats.shutdown();
+      }
+      long end = System.currentTimeMillis();
     }
 
     if (distributedConfig != null) {

@@ -16,6 +16,8 @@
 
 package io.rainfall;
 
+import io.rainfall.configuration.ReportingConfig;
+import io.rainfall.generator.RandomSequenceGenerator;
 import io.rainfall.reporting.Reporter;
 import io.rainfall.configuration.ConcurrencyConfig;
 import io.rainfall.statistics.RuntimeStatisticsHolder;
@@ -26,14 +28,25 @@ import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static io.rainfall.Scenario.weighted;
 import static io.rainfall.configuration.ReportingConfig.every;
+import static io.rainfall.configuration.ReportingConfig.hlog;
 import static io.rainfall.configuration.ReportingConfig.report;
+import static io.rainfall.configuration.ReportingConfig.text;
+import static io.rainfall.execution.Executions.during;
+import static io.rainfall.execution.Executions.times;
+import static io.rainfall.execution.Executions.warmup;
+import static io.rainfall.unit.TimeDivision.minutes;
+import static java.util.concurrent.TimeUnit.DAYS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -53,8 +66,48 @@ import static org.mockito.Mockito.mock;
 public class ScenarioRunTest {
 
   private enum Result {
-    OK
+    OK, KO
   }
+
+  @Test
+  public void testScenarioRun() throws Exception {
+    SecureRandom random = new SecureRandom();
+    SequenceGenerator sequenceGenerator = new RandomSequenceGenerator(io.rainfall.generator.sequence.Distribution.FLAT, 0, 1000000, 500000);
+    Scenario scenario = new Scenario("Data Access Phase").exec(
+            weighted(0.40, new Operation() {
+              @Override
+              public void exec(StatisticsHolder statisticsHolder, Map<Class<? extends Configuration>, Configuration> configurations, List<AssertionEvaluator> assertions) throws TestException {
+                statisticsHolder.record("some name", random.nextLong(), random.nextBoolean() ? Result.OK : Result.KO);
+              }
+
+              @Override
+              public List<String> getDescription() {
+                return List.of();
+              }
+            }),
+            weighted(0.60, new Operation() {
+
+              @Override
+              public void exec(StatisticsHolder statisticsHolder, Map<Class<? extends Configuration>, Configuration> configurations, List<AssertionEvaluator> assertions) throws TestException {
+                statisticsHolder.record("some name", random.nextLong(), random.nextBoolean() ? Result.OK : Result.KO);
+              }
+
+              @Override
+              public List<String> getDescription() {
+                return List.of();
+              }
+            }));
+
+    ConcurrencyConfig concurrency = ConcurrencyConfig.concurrencyConfig()
+            .threads(4).timeout(7, DAYS);
+    ReportingConfig reporting = new ReportingConfig(new Enum[]{Result.OK, Result.KO}, new Enum[]{Result.OK, Result.KO}).log(text(), hlog("target/rainfall"));
+
+    Runner.setUp(scenario)
+            .executed(warmup(during(1, minutes)), times(1000))
+            .config(concurrency, reporting)
+            .start();
+  }
+
 
   @Test
   public void testCorrectInstantiation() {
@@ -86,7 +139,7 @@ public class ScenarioRunTest {
     Runner runner = mock(Runner.class);
     Scenario scenario = mock(Scenario.class);
     ScenarioRun scenarioRun = new ScenarioRun(scenario);
-    ((ConcurrencyConfig)scenarioRun.getConfiguration(ConcurrencyConfig.class)).timeout(4, SECONDS);
+    ((ConcurrencyConfig) scenarioRun.getConfiguration(ConcurrencyConfig.class)).timeout(4, SECONDS);
     Execution execution = mock(Execution.class);
     scenarioRun.executed(execution);
 
@@ -116,8 +169,8 @@ public class ScenarioRunTest {
 
     ScenarioRun<Result> scenarioRun = new ScenarioRun<Result>(Scenario.scenario("reporters"));
     scenarioRun.config(report(Result.class).log(
-        every(firstReporter, 100, TimeUnit.MILLISECONDS),
-        every(secondReporter, 100, TimeUnit.MILLISECONDS)
+            every(firstReporter, 100, TimeUnit.MILLISECONDS),
+            every(secondReporter, 100, TimeUnit.MILLISECONDS)
     ));
     scenarioRun.executed(new Execution() {
       @Override
@@ -161,6 +214,37 @@ public class ScenarioRunTest {
     assertThat(scenarioRun.initialReportDelayInMillis(250L), is(250L));
   }
 
+  @Test
+  public void summarizeShouldRunAfterPeriodicReportersHaveStopped() throws Exception {
+    final BlockingPeriodicReporter<Result> reporter = new BlockingPeriodicReporter<Result>(100L);
+
+    ScenarioRun<Result> scenarioRun = new ScenarioRun<Result>(Scenario.scenario("shutdown-order"));
+    scenarioRun.config(report(Result.class).log(every(reporter, 100, TimeUnit.MILLISECONDS)));
+    scenarioRun.executed(new Execution() {
+      @Override
+      public <E extends Enum<E>> void execute(final StatisticsHolder<E> statisticsHolder, final Scenario scenario,
+                                              final Map<Class<? extends Configuration>, Configuration> configurations,
+                                              final List<AssertionEvaluator> assertions) throws TestException {
+        statisticsHolder.record("op", 1_000_000L, (E) Result.OK);
+        try {
+          assertTrue(reporter.awaitReportStarted());
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+          throw new TestException("Interrupted while waiting for periodic report", e);
+        }
+      }
+
+      @Override
+      public String toString() {
+        return "shutdown-order-execution";
+      }
+    });
+
+    scenarioRun.start();
+
+    assertThat(reporter.didSummarizeObserveActiveReport(), is(false));
+  }
+
   private static class CapturingReporter<E extends Enum<E>> implements Reporter<E> {
     private final AtomicReference<StatisticsPeekHolder<E>> firstPeek = new AtomicReference<StatisticsPeekHolder<E>>();
     private final CountDownLatch firstReportLatch = new CountDownLatch(1);
@@ -188,6 +272,45 @@ public class ScenarioRunTest {
 
     public StatisticsPeekHolder<E> getFirstPeek() {
       return firstPeek.get();
+    }
+  }
+
+  private static class BlockingPeriodicReporter<E extends Enum<E>> implements Reporter<E> {
+    private final CountDownLatch reportStarted = new CountDownLatch(1);
+    private final AtomicInteger activeReports = new AtomicInteger(0);
+    private final AtomicBoolean summarizeObservedActiveReport = new AtomicBoolean(false);
+
+    private BlockingPeriodicReporter(final long reportingIntervalInMillis) {
+    }
+
+    @Override
+    public void header(final List<String> description) {
+      // no-op
+    }
+
+    @Override
+    public void report(final StatisticsPeekHolder<E> statisticsHolder) {
+      activeReports.incrementAndGet();
+      reportStarted.countDown();
+      try {
+        Thread.sleep(250L);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      } finally {
+        activeReports.decrementAndGet();
+      }
+    }
+
+    @Override
+    public void summarize(final io.rainfall.statistics.StatisticsHolder<E> statisticsHolder) {
+      summarizeObservedActiveReport.set(activeReports.get() > 0);
+    }
+    private boolean awaitReportStarted() throws InterruptedException {
+      return reportStarted.await(3, TimeUnit.SECONDS);
+    }
+
+    private boolean didSummarizeObserveActiveReport() {
+      return summarizeObservedActiveReport.get();
     }
   }
 }

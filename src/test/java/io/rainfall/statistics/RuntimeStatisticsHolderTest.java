@@ -186,4 +186,38 @@ public class RuntimeStatisticsHolderTest {
     assertThat(peekHolder.getTotalStatisticsPeeks().getSumOfPeriodicCounters(), is(1L));
     assertThat(peekHolder.getTotalStatisticsPeeks().getPeriodicCounters(Result.OK), is(1L));
   }
+
+  @Test
+  public void statisticsPeekHolderCompatibilityConstructorShouldUseUnderlyingStatisticsResultsForSubsetReportedResults() {
+    ConcurrentHashMap<String, Statistics<Result>> statisticsMap = new ConcurrentHashMap<String, Statistics<Result>>();
+    Statistics<Result> statistics = new Statistics<Result>("op", Result.values());
+    statistics.increaseCounterAndSetLatencyInNs(Result.OK, 1_000_000L);
+    statistics.increaseCounterAndSetLatencyInNs(Result.ERROR, 2_000_000L);
+    statistics.increaseCounterAndSetLatencyInNs(Result.TIMEOUT, 3_000_000L);
+    statisticsMap.put("op", statistics);
+
+    StatisticsPeekHolder<Result> peekHolder = new StatisticsPeekHolder<Result>(
+        new Result[]{Result.TIMEOUT, Result.OK},
+        statisticsMap,
+        Collections.emptySet(),
+        new ConcurrentHashMap<String, LongAdder>(),
+        new RainfallHistogramSink<Result>(new RainfallHistogramSink.Factory() {
+          @Override
+          public ConcurrentHashMap<Enum, Histogram> createHistograms() {
+            ConcurrentHashMap<Enum, Histogram> histograms = new ConcurrentHashMap<Enum, Histogram>();
+            for (Result result : Result.values()) {
+              histograms.put(result, new ConcurrentHistogram(3));
+            }
+            return histograms;
+          }
+        }),
+        0L);
+
+    StatisticsPeek<Result> total = peekHolder.getTotalStatisticsPeeks();
+    assertThat(total.getSumOfPeriodicCounters(), is(2L));
+    assertThat(total.getPeriodicCounters(Result.TIMEOUT), is(1L));
+    assertThat(total.getPeriodicCounters(Result.OK), is(1L));
+    assertThat(total.getPeriodicAverageLatencyInMs(Result.TIMEOUT), is(3.0d));
+    assertThat(total.getPeriodicAverageLatencyInMs(Result.OK), is(1.0d));
+  }
 }

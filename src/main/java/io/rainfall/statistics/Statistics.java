@@ -95,6 +95,10 @@ public class Statistics<E extends Enum<E>> {
     return name;
   }
 
+  Enum<E>[] getResults() {
+    return results;
+  }
+
   protected long getTimeInNs() {
     return System.nanoTime();
   }

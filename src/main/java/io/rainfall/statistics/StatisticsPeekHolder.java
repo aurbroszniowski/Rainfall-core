@@ -55,36 +55,37 @@ public class StatisticsPeekHolder<E extends Enum<E>> {
                               final Set<StatisticsCollector> statisticsCollectors,
                               final ConcurrentHashMap<String, LongAdder> assertionsErrors, RainfallHistogramSink<E> histograms,
                               long startTime) {
+    Enum<E>[] aggregateResults = resolveAggregateResults(results, statisticsMap);
     this.resultsReported = resultsReported;
     this.assertionsErrors = assertionsErrors;
     this.histograms = histograms;
     this.startTime = startTime;
     long snapshotTimestamp = System.currentTimeMillis();
     this.timestamp = snapshotTimestamp;
-    long[] totalPeriodicCounters = new long[results.length];
-    long[] totalPeriodicLatencies = new long[results.length];
-    long[] totalPeriodicTps = new long[results.length];
-    long[] totalCumulativeCounters = new long[results.length];
-    long[] totalCumulativeLatencies = new long[results.length];
-    long[] totalCumulativeTps = new long[results.length];
+    long[] totalPeriodicCounters = new long[aggregateResults.length];
+    long[] totalPeriodicLatencies = new long[aggregateResults.length];
+    long[] totalPeriodicTps = new long[aggregateResults.length];
+    long[] totalCumulativeCounters = new long[aggregateResults.length];
+    long[] totalCumulativeLatencies = new long[aggregateResults.length];
+    long[] totalCumulativeTps = new long[aggregateResults.length];
     for (String name : statisticsMap.keySet()) {
       statisticsPeeks.put(name, statisticsMap.get(name).peek(snapshotTimestamp,
           totalPeriodicCounters, totalPeriodicLatencies, totalPeriodicTps,
           totalCumulativeCounters, totalCumulativeLatencies, totalCumulativeTps));
     }
-    boolean sameReportedResults = sameResultsOrder(results, resultsReported);
+    boolean sameReportedResults = sameResultsOrder(aggregateResults, resultsReported);
     long[] reportedPeriodicCounters = sameReportedResults ? totalPeriodicCounters
-        : projectAggregates(results, resultsReported, totalPeriodicCounters);
+        : projectAggregates(aggregateResults, resultsReported, totalPeriodicCounters);
     long[] reportedPeriodicLatencies = sameReportedResults ? totalPeriodicLatencies
-        : projectAggregates(results, resultsReported, totalPeriodicLatencies);
+        : projectAggregates(aggregateResults, resultsReported, totalPeriodicLatencies);
     long[] reportedPeriodicTps = sameReportedResults ? totalPeriodicTps
-        : projectAggregates(results, resultsReported, totalPeriodicTps);
+        : projectAggregates(aggregateResults, resultsReported, totalPeriodicTps);
     long[] reportedCumulativeCounters = sameReportedResults ? totalCumulativeCounters
-        : projectAggregates(results, resultsReported, totalCumulativeCounters);
+        : projectAggregates(aggregateResults, resultsReported, totalCumulativeCounters);
     long[] reportedCumulativeLatencies = sameReportedResults ? totalCumulativeLatencies
-        : projectAggregates(results, resultsReported, totalCumulativeLatencies);
+        : projectAggregates(aggregateResults, resultsReported, totalCumulativeLatencies);
     long[] reportedCumulativeTps = sameReportedResults ? totalCumulativeTps
-        : projectAggregates(results, resultsReported, totalCumulativeTps);
+        : projectAggregates(aggregateResults, resultsReported, totalCumulativeTps);
     this.totalStatisticsPeeks = new StatisticsPeek<E>(ALL, this.resultsReported, this.timestamp);
     this.totalStatisticsPeeks.setAggregatedPeriodicValues(this.resultsReported,
         reportedPeriodicCounters, reportedPeriodicLatencies, reportedPeriodicTps);
@@ -97,6 +98,14 @@ public class StatisticsPeekHolder<E extends Enum<E>> {
         extraCollectedStatistics.put(statisticsCollector.getName(), statisticsCollector.peek());
       }
     }
+  }
+
+  private Enum<E>[] resolveAggregateResults(final Enum<E>[] fallbackResults,
+                                            final Map<String, Statistics<E>> statisticsMap) {
+    for (Statistics<E> statistics : statisticsMap.values()) {
+      return statistics.getResults();
+    }
+    return fallbackResults;
   }
 
   private boolean sameResultsOrder(final Enum<E>[] results, final Enum<E>[] resultsReported) {
