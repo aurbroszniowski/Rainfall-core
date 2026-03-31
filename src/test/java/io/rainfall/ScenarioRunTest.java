@@ -16,10 +16,10 @@
 
 package io.rainfall;
 
+import io.rainfall.configuration.ConcurrencyConfig;
 import io.rainfall.configuration.ReportingConfig;
 import io.rainfall.generator.RandomSequenceGenerator;
 import io.rainfall.reporting.Reporter;
-import io.rainfall.configuration.ConcurrencyConfig;
 import io.rainfall.statistics.RuntimeStatisticsHolder;
 import io.rainfall.statistics.StatisticsHolder;
 import io.rainfall.statistics.StatisticsPeekHolder;
@@ -32,9 +32,9 @@ import java.security.SecureRandom;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static io.rainfall.Scenario.weighted;
@@ -45,14 +45,14 @@ import static io.rainfall.configuration.ReportingConfig.text;
 import static io.rainfall.execution.Executions.during;
 import static io.rainfall.execution.Executions.times;
 import static io.rainfall.execution.Executions.warmup;
-import static io.rainfall.unit.TimeDivision.minutes;
+import static io.rainfall.unit.TimeDivision.seconds;
 import static java.util.concurrent.TimeUnit.DAYS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
@@ -103,7 +103,7 @@ public class ScenarioRunTest {
     ReportingConfig reporting = new ReportingConfig(new Enum[]{Result.OK, Result.KO}, new Enum[]{Result.OK, Result.KO}).log(text(), hlog("target/rainfall"));
 
     Runner.setUp(scenario)
-            .executed(warmup(during(1, minutes)), times(1000))
+            .executed(warmup(during(30, seconds)), times(1000))
             .config(concurrency, reporting)
             .start();
   }
