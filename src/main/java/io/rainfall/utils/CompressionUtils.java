@@ -136,7 +136,11 @@ public class CompressionUtils {
     if (jarFile.isFile()) {  // Run with JAR file
       extractDirFromJar(sources, dest);
     } else {
-      extractFromPath(new File(HtmlReporter.class.getClass().getResource(sources).toURI()), new File(dest));
+      URL resource = HtmlReporter.class.getResource(sources);
+      if (resource == null) {
+        throw new IllegalStateException("can't find " + sources + " on the classpath");
+      }
+      extractFromPath(new File(resource.toURI()), new File(dest));
     }
   }
 
